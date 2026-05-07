@@ -1,0 +1,17 @@
+# UI
+streamlit>=1.36.0
+
+# Spark-X2-Flash API compatibility with the official sample
+requests>=2.32.0
+
+# Local knowledge-base ingestion
+pypdf>=4.0.0
+
+# Optional OCR for scanned PDFs. The current textbook appears to need OCR.
+pymupdf>=1.24.0
+Pillow>=10.0.0
+rapidocr-onnxruntime>=1.3.24
+numpy>=1.26.0
+
+# Helpful display/data utilities for Streamlit
+pandas>=2.2.0
