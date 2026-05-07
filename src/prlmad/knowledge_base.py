@@ -14,7 +14,7 @@ from .pdf_loader import PageText
 from .text_splitter import TextChunk, chunk_pages
 
 
-TOKEN_RE = re.compile(r"[A-Za-z0-9_+#.-]+|[\u4e00-\u9fff]+")
+TOKEN_RE = re.compile(r"[A-Za-z0-9_+#./()-]+|[\u4e00-\u9fff]+")
 
 
 @dataclass(frozen=True)

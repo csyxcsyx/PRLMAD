@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
+import random
+import time
 from typing import Any, Iterable, Iterator
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -77,8 +79,24 @@ class SparkClient:
         except URLError as exc:
             raise SparkAPIError(f"Spark API request failed: {exc.reason}") from exc
 
+    def _request_with_retry(
+        self, messages: list[dict[str, str]], stream: bool, max_retries: int = 3
+    ):
+        base_delay = 1.0
+        for attempt in range(max_retries):
+            try:
+                return self._request(messages, stream)
+            except SparkAPIError as exc:
+                if attempt == max_retries - 1:
+                    raise
+                if "HTTP 5" in str(exc) or "URLError" in str(exc.__cause__.__class__.__name__):
+                    delay = base_delay * (2**attempt) + random.uniform(0, 0.5)
+                    time.sleep(delay)
+                    continue
+                raise
+
     def stream_chat(self, messages: list[dict[str, str]]) -> Iterator[ChatChunk]:
-        with self._request(messages, stream=True) as response:
+        with self._request_with_retry(messages, stream=True) as response:
             for raw_line in response:
                 line = raw_line.strip()
                 if not line:
@@ -103,7 +121,7 @@ class SparkClient:
         if stream:
             return "".join(chunk.content for chunk in self.stream_chat(messages))
 
-        with self._request(messages, stream=False) as response:
+        with self._request_with_retry(messages, stream=False) as response:
             payload = json.loads(response.read().decode("utf-8"))
         choice = (payload.get("choices") or [{}])[0]
         message = choice.get("message") or choice.get("delta") or {}

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 import json
 from typing import Protocol
@@ -20,8 +21,10 @@ RESOURCE_AGENT_PROMPTS: dict[str, str] = {
     "extended_reading": "你是拓展阅读智能体，生成围绕教材知识点的延伸阅读材料和阅读问题。",
     "case_project": "你是实践案例智能体，生成可操作的 Python 或操作系统实验案例，包含步骤、代码和观察指标。",
     "video_script": "你是多模态脚本智能体，生成 3-5 分钟短视频/动画脚本，包含分镜、旁白和画面元素。",
+    "ppt_outline": "你是课件大纲智能体，生成 PPT 课件大纲，每页包含标题、要点和讲解备注。",
+    "task_checklist": "你是任务规划智能体，输出结构化的学习任务清单，包含每日任务、完成标准和检查项。",
+    "review_material": "你是复习资料智能体，生成阶段性复习资料，包含知识点速查表、常见考题和易错提醒。",
 }
-
 
 DEFAULT_RESOURCE_TYPES = [
     "lecture_note",
@@ -29,8 +32,9 @@ DEFAULT_RESOURCE_TYPES = [
     "exercises",
     "case_project",
     "video_script",
+    "ppt_outline",
+    "task_checklist",
 ]
-
 
 RESOURCE_TYPE_NAMES = {
     "lecture_note": "课程讲解文档",
@@ -39,6 +43,9 @@ RESOURCE_TYPE_NAMES = {
     "extended_reading": "拓展阅读材料",
     "case_project": "代码类实操案例",
     "video_script": "短视频/动画脚本",
+    "ppt_outline": "PPT 课件大纲",
+    "task_checklist": "学习任务清单",
+    "review_material": "阶段性复习资料",
 }
 
 
@@ -134,19 +141,39 @@ class AgentOrchestrator:
         steps.append("检索智能体召回教材片段")
 
         resources: dict[str, str] = {}
-        for resource_type in request.resource_types:
-            prompt = RESOURCE_AGENT_PROMPTS.get(resource_type)
-            if not prompt:
-                continue
-            resources[resource_type] = self._resource_agent(
-                role_prompt=prompt,
-                course=request.course,
-                resource_type=resource_type,
-                learner_brief=learner_brief,
-                profile_markdown=profile_markdown,
-                context=context,
-            )
-            steps.append(f"{RESOURCE_TYPE_NAMES.get(resource_type, resource_type)}智能体完成生成")
+        resource_futures: dict = {}
+        submit_order: list[str] = []
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            for resource_type in request.resource_types:
+                prompt = RESOURCE_AGENT_PROMPTS.get(resource_type)
+                if not prompt:
+                    continue
+                future = executor.submit(
+                    self._resource_agent,
+                    role_prompt=prompt,
+                    course=request.course,
+                    resource_type=resource_type,
+                    learner_brief=learner_brief,
+                    profile_markdown=profile_markdown,
+                    context=context,
+                )
+                resource_futures[future] = resource_type
+                submit_order.append(resource_type)
+
+            for future in as_completed(resource_futures):
+                resource_type = resource_futures[future]
+                try:
+                    resources[resource_type] = future.result()
+                    steps.append(
+                        f"{RESOURCE_TYPE_NAMES.get(resource_type, resource_type)}智能体完成生成"
+                    )
+                except Exception as exc:
+                    resources[resource_type] = (
+                        f"生成失败: {exc}\n\n请尝试重新生成该资源，或调整资源类型后重试。"
+                    )
+                    steps.append(
+                        f"{RESOURCE_TYPE_NAMES.get(resource_type, resource_type)}智能体生成异常: {exc}"
+                    )
 
         path_plan = self._path_planner(request.course, learner_brief, profile_markdown, context, resources)
         steps.append("路径规划智能体完成学习顺序与推送建议")
@@ -245,8 +272,60 @@ class AgentOrchestrator:
 请设计学习效果评估方案，包含行为数据、练习表现、资源使用反馈、知识掌握度和后续推送调整规则。"""
         return self.client.chat(_messages("你是学习效果评估智能体。", prompt))
 
-    @staticmethod
-    def parse_json_profile(text: str) -> dict[str, object]:
+    def build_profile_from_conversation(
+        self, course: str, conversation: list[dict[str, str]]
+    ) -> str:
+        """Extract structured learner profile from a natural language conversation."""
+        conversation_text = "\n".join(
+            f"{'学生' if m['role'] == 'user' else '系统'}: {m['content']}"
+            for m in conversation
+        )
+        prompt = f"""课程：{course}
+
+以下是系统与学生之间的自然对话记录：
+{conversation_text}
+
+请从对话中提取学生学习画像，至少包含以下 6 个维度，输出 Markdown 格式：
+- 知识基础水平
+- 专业方向
+- 课程学习目标
+- 认知风格与学习习惯
+- 学习兴趣与资源偏好
+- 易错知识点与薄弱环节
+
+只基于对话中明确提及的信息，不要编造未提供的内容。"""
+        return self.client.chat(_messages("你是学习画像提取智能体。", prompt))
+
+    def tutor_chat(
+        self,
+        course: str,
+        learner_brief: str,
+        question: str,
+        context: str = "",
+    ) -> str:
+        """Answer a student's learning question using the knowledge base context."""
+        if not context:
+            query = f"{course} {question}"
+            snippets = self.knowledge_base.search(query, course=course, top_k=5)
+            context = self.knowledge_base.format_context(snippets) if snippets else "当前知识库无相关教材片段。"
+
+        prompt = f"""课程：{course}
+
+学习者信息：
+{learner_brief}
+
+教材知识库片段：
+{context}
+
+学生问题：{question}
+
+请基于教材片段提供辅导回答。要求：
+- 给出清晰的解题思路或概念解释
+- 标注关键知识点和易错提醒
+- 若教材片段不足，明确说明并建议查阅方向
+- 提供进一步学习建议
+- 用 Markdown 格式输出。"""
+        return self.client.chat(_messages("你是智能辅导智能体，提供针对性的学习答疑。", prompt))
         try:
             return json.loads(text)
         except json.JSONDecodeError:

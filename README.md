@@ -1,137 +1,217 @@
-# PRLMAD
+# PRLMAD — Personalized Resource Learning Multi-Agent Demo
 
-中国软件杯 A3 题目原型：基于大模型的个性化资源生成与学习多智能体系统。当前课程知识库选择“操作系统”，通过本地教材入库 + RAG 检索 + 科大讯飞 Spark-X2-Flash 多智能体生成完成个性化学习资源。
+中国软件杯 A3 赛题原型：**基于大模型的个性化资源生成与学习多智能体系统**。
 
-## 推荐环境
+以"操作系统"课程为知识库，通过本地教材入库 + RAG 检索 + 科大讯飞 Spark-X2-Flash API，由多智能体协同完成个性化学习资源生成、学习路径规划、智能辅导与学习效果评估。
 
-建议使用 Python 3.12。
+---
+
+## 系统架构
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Streamlit Web UI                          │
+│  ┌──────┬──────┬──────┬──────┬──────┬──────┐               │
+│  │ 画像 │ 生成 │ 路径 │ 辅导 │ 评估 │ 知识库│  ← 顶部导航   │
+│  └──────┴──────┴──────┴──────┴──────┴──────┘               │
+├─────────────────────────────────────────────────────────────┤
+│                    AgentOrchestrator                         │
+│  ┌──────────┐  ┌──────────┐  ┌──────────────┐              │
+│  │ 画像智能体│→│ 检索智能体│→│ 资源智能体 ×9 │ ← 并行生成    │
+│  └──────────┘  └──────────┘  └──────┬───────┘              │
+│                       ┌─────────────┼─────────────┐         │
+│                       ↓             ↓             ↓         │
+│               ┌──────────┐  ┌──────────┐  ┌──────────┐     │
+│               │路径智能体│  │辅导智能体│  │评估智能体│     │
+│               └──────────┘  └──────────┘  └──────────┘     │
+├─────────────────────────────────────────────────────────────┤
+│   Spark-X2-Flash API  │  SQLite 知识库  │  本地 PDF/OCR     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 智能体角色（11 个）
+
+| 智能体 | 职责 | 输出 |
+|--------|------|------|
+| 画像智能体 | 分析学习者输入，构建 6+ 维动态画像 | Markdown 画像 |
+| 检索智能体 | 从本地知识库召回教材片段 | 相关文本片段 |
+| 课程讲解智能体 | 生成结构化课程讲解文档 | Markdown 文档 |
+| 思维导图智能体 | 生成 Mermaid 知识结构图 | Mermaid 图表 |
+| 题库智能体 | 生成选择题/判断/简答/实践题 | 题目+解析 |
+| 拓展阅读智能体 | 生成延伸阅读材料和问题 | 阅读材料 |
+| 实操案例智能体 | 生成 Python/OS 实验案例 | 代码+步骤 |
+| 视频脚本智能体 | 生成短视频/动画脚本 | 分镜脚本 |
+| PPT 大纲智能体 | 生成 PPT 课件大纲 | 大纲+备注 |
+| 任务清单智能体 | 生成学习任务清单 | 每日任务 |
+| 复习资料智能体 | 生成阶段复习资料 | 速查表+易错点 |
+
+辅助：路径规划智能体、智能辅导智能体、学习评估智能体、安全审核智能体。
+
+### 资源类型（9 种）
+
+课程讲解文档、知识点思维导图、练习题库、拓展阅读材料、代码类实操案例、短视频/动画脚本、PPT 课件大纲、学习任务清单、阶段性复习资料。
+
+---
+
+## 核心功能
+
+### 1. 对话式学习画像构建
+- **快速填表模式**：每个输入框支持下拉预设选项 + 自定义输入
+- **对话式模式**：多轮自然语言对话，自动提取画像信息，无表单填写的繁琐
+- **画像维度**：专业方向、知识基础、学习目标、认知风格、资源偏好、薄弱环节、时间投入（≥6 维）
+
+### 2. 多智能体协同资源生成
+- 11 个专业智能体分工协作，资源生成智能体**并行执行**（ThreadPoolExecutor）
+- 智能体协作流水线：画像分析 → 知识检索 → **并行资源生成** → 路径规划 → 效果评估
+- 可视化流水线进度展示
+- 单智能体失败不影响其他资源生成
+
+### 3. 个性化学习路径规划
+- 基于学生画像和生成资源，规划 7 天学习路径
+- 包含学习步骤、资源使用顺序、每日检查点、复习触发条件
+- 支持动态调整策略
+
+### 4. 智能辅导（RAG 问答）
+- 结合教材知识库的检索增强问答
+- 步骤化推理说明、关键知识点解释、易错提醒、学习建议
+- 教材片段不足时明确提示
+
+### 5. 学习效果评估
+- 多维度评估方案：行为数据、练习表现、资源使用反馈、知识掌握度
+- 画像维度雷达图可视化
+- 后续推送调整规则
+
+---
+
+## 快速开始
+
+### 环境要求
+- Python ≥ 3.12
+- 科大讯飞 Spark API Key
+
+### 安装
 
 ```powershell
 python -m pip install -r requirements.txt
-Copy-Item .env.example .env
+Copy-Item .env .env
 ```
 
-编辑 `.env`：
+编辑 `.env`，填入 API Key：
 
 ```text
-SPARK_API_KEY=Bearer 你的科大讯飞APIpassword
+SPARK_API_KEY=Bearer 你的APIpassword
 ```
 
-当前教材 PDF 是扫描版的概率很高，普通文本抽取拿不到内容，所以 `requirements.txt` 已加入 OCR 依赖。首次安装会比普通项目慢一些，这是正常的。
-
-## 本地导入训练
-
-把教材放在项目根目录的 `knowledge` 文件夹中，目前已检测到：
-
-```text
-knowledge/教材-操作系统概念-亚伯拉罕·西尔伯沙茨-械工业出版社.pdf
-```
-
-执行本地知识库构建：
+### 导入教材
 
 ```powershell
 python run_cli.py train --knowledge-dir knowledge --course 操作系统 --ocr-mode auto
 ```
 
-如果想先快速调试 OCR 流程，可只处理前 10 页：
+> 教材放在 `knowledge/` 目录，支持 PDF/TXT/MD 格式。扫描版 PDF 自动 OCR。
 
-```powershell
-python run_cli.py train --knowledge-dir knowledge --course 操作系统 --ocr-mode on --ocr-max-pages 10
-```
-
-查看已入库文档：
-
-```powershell
-python run_cli.py docs
-```
-
-检索验证：
-
-```powershell
-python run_cli.py search "死锁的必要条件" --course 操作系统
-```
-
-## 启动 Streamlit
+### 启动系统
 
 ```powershell
 streamlit run streamlit_app.py
 ```
 
-打开终端输出的地址，通常是：
+打开 http://localhost:8501
 
-[http://localhost:8501](http://localhost:8501)
-
-页面里可以完成：
-
-- 扫描 `knowledge` 文件夹并本地导入训练。
-- 查看知识库状态。
-- 检索教材片段。
-- 输入学生画像，调用 Spark-X2-Flash 生成课程讲解、思维导图、题库、实操案例、视频脚本、学习路径和评估方案。
-
-## 命令行生成
+### CLI 命令
 
 ```powershell
-python run_cli.py generate --course 操作系统 --major 计算机科学与技术 --goal "理解进程同步与死锁" --level "了解基础概念但容易混淆信号量和互斥锁"
+# 检索
+python run_cli.py search "死锁的必要条件" --course 操作系统
+
+# 命令行生成
+python run_cli.py generate --course 操作系统 --goal "理解进程同步与死锁" --level "学过C/Python，概念容易混淆"
+
+# 查看已入库文档
+python run_cli.py docs
 ```
 
-## 文件作用
-
-```text
-streamlit_app.py
-  Streamlit 主界面，比赛演示建议主要运行这个文件。
-
-run_cli.py
-  命令行入口，负责本地训练、检索、生成和查看文档。
-
-run_web.py
-  早期标准库 Web 服务入口，保留作备用；当前推荐 Streamlit。
-
-.env.example
-  环境变量模板，复制为 .env 后填写 Spark API Key。
-
-requirements.txt
-  项目依赖，包含 Streamlit、Spark 请求库、PDF 解析和 OCR 组件。
-
-knowledge/
-  本地教材目录，放 PDF/TXT/MD 课程资料。
-
-data/
-  自动生成的本地知识库数据目录，默认数据库是 data/knowledge.sqlite3。
-
-src/prlmad/config.py
-  读取 .env 与项目路径配置。
-
-src/prlmad/pdf_loader.py
-  PDF/TXT/MD 文档读取；扫描 PDF 会尝试 OCR。
-
-src/prlmad/text_splitter.py
-  文本清洗和知识片段切分。
-
-src/prlmad/knowledge_base.py
-  SQLite 本地知识库、分词索引和教材检索。
-
-src/prlmad/training.py
-  扫描 knowledge 文件夹并执行本地导入训练。
-
-src/prlmad/spark_client.py
-  科大讯飞 Spark-X2-Flash HTTP 客户端。
-
-src/prlmad/agents.py
-  多智能体协作编排：画像、资源生成、路径规划和评估。
-
-src/prlmad/safety.py
-  防幻觉与内容安全提示策略。
-
-src/prlmad/app.py 与 src/prlmad/web/
-  标准库 Web 原型，作为 Streamlit 之外的备用实现。
-
-tests/
-  基础单元测试，验证切片、知识库检索和智能体编排。
-```
-
-## 测试
+### 运行测试
 
 ```powershell
 python -m unittest discover -s tests
 ```
 
+---
+
+## 页面导航
+
+| 页面 | 功能 |
+|------|------|
+| 👤 学习画像 | 快速填表 / 对话式构建学习画像，画像预览与完整度检测 |
+| 📚 资源生成 | 设置课程、资源类型、召回数量，启动多智能体协同生成 |
+| 🗺️ 学习路径 | 查看生成的个性化学习路径规划 |
+| 💡 智能辅导 | 基于教材知识库的 RAG 智能问答辅导 |
+| 📊 学习评估 | 评估方案、画像维度雷达图、指标面板 |
+| ⚙️ 知识库 | 导入训练、教材检索、知识库状态、运行配置 |
+
+---
+
+## 项目结构
+
+```text
+streamlit_app.py          # Streamlit Web 主界面（顶部导航栏）
+run_cli.py                # 命令行入口
+run_web.py                # 标准库 Web 服务（备用）
+
+src/prlmad/
+├── agents.py             # 多智能体协作编排（11 个智能体角色）
+├── spark_client.py       # Spark-X2-Flash HTTP 客户端（流式+重试）
+├── knowledge_base.py     # SQLite 本地知识库（TF 分词检索）
+├── training.py           # 知识库批量导入训练
+├── pdf_loader.py         # PDF/TXT/MD 文档加载（OCR 支持）
+├── text_splitter.py      # 文本清洗与智能切片
+├── config.py             # 环境变量与路径配置
+├── safety.py             # 内容安全过滤（防幻觉+关键词审核）
+├── app.py                # 标准库 Web 原型
+└── web/                  # Web 原型前端资源
+
+knowledge/                # 本地教材目录（gitignore）
+data/                     # 知识库数据目录（gitignore）
+tests/                    # 单元测试
+```
+
+---
+
+## 依赖说明
+
+| 依赖 | 用途 | 版本 |
+|------|------|------|
+| streamlit | Web 前端框架 | ≥1.36.0 |
+| requests | HTTP 请求 | ≥2.32.0 |
+| pypdf | PDF 文本提取 | ≥4.0.0 |
+| pymupdf | PDF 渲染（OCR 用） | ≥1.24.0 |
+| Pillow | 图像处理（OCR 用） | ≥10.0.0 |
+| rapidocr-onnxruntime | OCR 识别引擎 | ≥1.3.24 |
+| numpy | 数值计算 | ≥1.26.0 |
+| pandas | 数据展示 | ≥2.2.0 |
+
+**大模型 API**：科大讯飞 Spark-X2-Flash（`spark-api-open.xf-yun.com`）
+
+**外部工具**：pymupdf (AGPL)、rapidocr-onnxruntime (Apache 2.0)、pypdf (BSD)
+
+---
+
+## 比赛评价要点对照
+
+| 评价维度 | 实现情况 |
+|----------|----------|
+| 多智能体协同框架 | 11 个角色智能体，并行资源生成，流水线协作 |
+| 对话式画像构建 | 聊天对话 + 快速填表双模式，≥6 维度 |
+| 个性化多模态资源 | 9 种资源类型，可扩展 |
+| 学习路径动态规划 | 7 天路径规划 + 动态调整策略 |
+| 智能辅导 | RAG 问答辅导（可选加分项） |
+| 学习效果评估 | 多维度评估 + 雷达图可视化（可选加分项） |
+| 防幻觉与内容安全 | 系统级安全策略 + 关键词过滤 |
+| 界面交互体验 | 顶部导航栏，流式呈现，Markdown 渲染 |
+
+---
+
+## License
+
+MIT
