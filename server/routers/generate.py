@@ -24,10 +24,11 @@ async def _generate_resources_stream(
     top_k: int,
 ):
     profile = session_store.get_profile(session_id)
+    focus_topic = (knowledge_points or "").strip()
 
     learner = LearnerInput(
         major=profile.get("major", ""),
-        goal=profile.get("goal", knowledge_points),
+        goal=profile.get("goal", "") or focus_topic,
         knowledge_level=profile.get("knowledge_level", ""),
         learning_history=profile.get("learning_history", ""),
         preferences=profile.get("preferences", ""),
@@ -44,7 +45,7 @@ async def _generate_resources_stream(
 
     try:
         from src.prlmad.safety import check_user_request
-        safety = check_user_request(learner.goal + learner.weak_points)
+        safety = check_user_request(" ".join([focus_topic, learner.goal, learner.weak_points]))
         if not safety.allowed:
             yield sse_error("请求包含不适合生成的内容：" + "；".join(safety.warnings))
             return
@@ -52,7 +53,7 @@ async def _generate_resources_stream(
 
         yield sse_event("stage", {"stage": "knowledge_retrieval", "status": "running"})
         snippets = orchestrator.knowledge_base.search(
-            f"{course} {knowledge_points} {learner.goal} {learner.weak_points}",
+            f"{course} {focus_topic} {learner.goal} {learner.weak_points}",
             course=course,
             top_k=top_k,
         )
@@ -60,6 +61,7 @@ async def _generate_resources_stream(
         yield sse_event("stage", {"stage": "knowledge_retrieval", "status": "done", "snippet_count": len(snippets)})
 
         learner_brief_lines = [
+            f"本次学习知识点：{focus_topic or '未指定，请围绕画像薄弱点生成'}",
             f"专业：{learner.major or '未提供'}",
             f"学习目标：{learner.goal or '未提供'}",
             f"知识基础：{learner.knowledge_level or '未提供'}",
@@ -92,6 +94,7 @@ async def _generate_resources_stream(
                     learner_brief=learner_brief,
                     profile_markdown=profile_md,
                     context=context,
+                    focus_topic=focus_topic,
                 )
                 futures_map[future] = rt
 
@@ -123,12 +126,12 @@ async def _generate_resources_stream(
         })
 
         yield sse_event("stage", {"stage": "path_planning", "status": "running"})
-        path_plan = orchestrator._path_planner(course, learner_brief, profile_md, context, resources)
+        path_plan = orchestrator._path_planner(course, learner_brief, profile_md, context, resources, focus_topic=focus_topic)
         yield sse_event("path", {"content": path_plan})
         yield sse_event("stage", {"stage": "path_planning", "status": "done"})
 
         yield sse_event("stage", {"stage": "assessment", "status": "running"})
-        assessment = orchestrator._assessment_agent(course, learner_brief, profile_md, context)
+        assessment = orchestrator._assessment_agent(course, learner_brief, profile_md, context, focus_topic=focus_topic)
         yield sse_event("assessment", {"content": assessment})
         yield sse_event("stage", {"stage": "assessment", "status": "done"})
 

@@ -207,6 +207,7 @@ class AgentOrchestrator:
         emit("knowledge_retrieval", {"status": "done", "context_length": len(context), "snippet_count": len(snippets)})
 
         learner_brief = _learner_brief(request.learner)
+        focus_topic = request.learner.goal or request.learner.weak_points or ""
 
         emit("profile_analysis", {"status": "running"})
         profile_markdown = self._profile_agent(request.course, learner_brief, context)
@@ -229,6 +230,7 @@ class AgentOrchestrator:
                     learner_brief=learner_brief,
                     profile_markdown=profile_markdown,
                     context=context,
+                    focus_topic=focus_topic,
                 )
                 resource_futures[future] = resource_type
 
@@ -255,11 +257,11 @@ class AgentOrchestrator:
                     })
 
         emit("path_planning", {"status": "running"})
-        path_plan = self._path_planner(request.course, learner_brief, profile_markdown, context, resources)
+        path_plan = self._path_planner(request.course, learner_brief, profile_markdown, context, resources, focus_topic=focus_topic)
         emit("path_planning", {"status": "done"})
 
         emit("assessment", {"status": "running"})
-        assessment = self._assessment_agent(request.course, learner_brief, profile_markdown, context)
+        assessment = self._assessment_agent(request.course, learner_brief, profile_markdown, context, focus_topic=focus_topic)
         emit("assessment", {"status": "done"})
 
         emit("done", {"resource_count": len(resources)})
@@ -287,8 +289,10 @@ class AgentOrchestrator:
         learner_brief: str,
         profile_markdown: str,
         context: str,
+        focus_topic: str = "",
     ) -> str:
         prompt = f"""课程：{course}
+知识点关注：{focus_topic or '未指定'}
 资源类型：{RESOURCE_TYPE_NAMES.get(resource_type, resource_type)}
 
 学习者信息：
@@ -302,6 +306,7 @@ class AgentOrchestrator:
 
 请生成个性化学习资源。要求：
 - 用 Markdown。
+- 所有标题、例题、任务和解释必须围绕“知识点关注”，不要扩展到无关章节。
 - 使用专业教师授课口吻，先给出定义和条件，再解释推理过程，最后给学习检查点。
 - 关键概念和结论尽量引用 [资料1]、[资料2] 等来源。
 - 如果教材片段不足，明确说明不足位置。
@@ -315,9 +320,11 @@ class AgentOrchestrator:
         profile_markdown: str,
         context: str,
         resources: dict[str, str],
+        focus_topic: str = "",
     ) -> str:
         resource_index = "\n".join(f"- {RESOURCE_TYPE_NAMES.get(key, key)}" for key in resources)
         prompt = f"""课程：{course}
+知识点关注：{focus_topic or '未指定'}
 
 学习者信息：
 {learner_brief}
@@ -331,7 +338,8 @@ class AgentOrchestrator:
 教材依据：
 {context}
 
-请规划 7 天以内的个性化学习路径，包含学习步骤、资源使用顺序、每日检查点、复习触发条件和动态调整策略。"""
+请规划 7 天以内的个性化学习路径，包含学习步骤、资源使用顺序、每日检查点、复习触发条件和动态调整策略。
+路径主题必须紧扣“知识点关注”；若未指定，则围绕学习者薄弱点和课程目标规划。"""
         return self.client.chat(_messages("你是学习路径规划智能体，也是一名课程教学设计教师。", prompt))
 
     def _assessment_agent(
@@ -340,8 +348,10 @@ class AgentOrchestrator:
         learner_brief: str,
         profile_markdown: str,
         context: str,
+        focus_topic: str = "",
     ) -> str:
         prompt = f"""课程：{course}
+知识点关注：{focus_topic or '未指定'}
 
 学习者信息：
 {learner_brief}
@@ -352,7 +362,7 @@ class AgentOrchestrator:
 教材依据：
 {context}
 
-请设计学习效果评估方案，包含行为数据、练习表现、资源使用反馈、知识掌握度和后续推送调整规则。"""
+请围绕“知识点关注”设计学习效果评估方案，包含行为数据、练习表现、资源使用反馈、知识掌握度和后续推送调整规则。"""
         return self.client.chat(_messages("你是学习效果评估智能体，也是一名课程评价教师。", prompt))
 
     def build_profile_from_conversation(
@@ -466,7 +476,10 @@ class AgentOrchestrator:
   "adjustment_strategy": "动态调整策略说明"
 }}
 
-输出格式：纯 JSON，不要包含 markdown 代码块标记。"""
+要求：
+- steps 必须包含 3-7 个可执行步骤，不要返回空数组。
+- 每一步都要围绕“知识点关注”，并适配学习者基础，不要一开始就堆砌过深术语。
+- 输出格式：纯 JSON，不要包含 markdown 代码块标记。"""
         return self.client.chat(_messages("你是学习路径规划智能体，也是一名专业课程教学设计教师。", prompt))
 
     def evaluate_learning(

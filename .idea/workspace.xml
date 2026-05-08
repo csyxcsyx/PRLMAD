@@ -4,22 +4,24 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f8c67ac5-c48e-4f05-a742-eacd3a0de6d9" name="更改" comment="上传了《操作系统》教材和已经完成导入的支持库...">
-      <change afterPath="$PROJECT_DIR$/.gitattributes" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/knowledge_active.sqlite3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/knowledge/教材-操作系统概念-亚伯拉罕·西尔伯沙茨-械工业出版社.pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="f8c67ac5-c48e-4f05-a742-eacd3a0de6d9" name="更改" comment="优化了对话AI和界面...">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/dependencies.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/dependencies.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/routers/chat.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/routers/chat.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/routers/generate.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/routers/generate.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/routers/knowledge.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/routers/knowledge.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/routers/session.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/routers/session.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/routers/tutor.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/routers/tutor.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/prlmad/agents.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/prlmad/agents.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/prlmad/session_store.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/prlmad/session_store.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/static/js/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/app.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/static/js/chat.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/chat.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/pages/chat.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/pages/chat.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/pages/generate.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/pages/generate.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/pages/knowledge.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/pages/knowledge.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/pages/learning_path.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/pages/learning_path.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/pages/tutor.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/pages/tutor.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -85,7 +87,7 @@
       <workItem from="1778218152855" duration="3266000" />
       <workItem from="1778224999660" duration="9497000" />
       <workItem from="1778242328699" duration="5530000" />
-      <workItem from="1778254535722" duration="717000" />
+      <workItem from="1778254535722" duration="5579000" />
     </task>
     <task id="LOCAL-00001" summary="使用Python (FastAPI) + HTML + CSS + TailwindCSS + Alpine.js框架：&#10;重新构建代码逻辑，重新设计页面">
       <option name="closed" value="true" />
@@ -103,7 +105,15 @@
       <option name="project" value="LOCAL" />
       <updated>1778254310725</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="优化了对话AI和界面...">
+      <option name="closed" value="true" />
+      <created>1778255332139</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1778255332139</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -124,6 +134,7 @@
     <MESSAGE value="重新设计了布局和代码逻辑，但界面还是丑丑的..." />
     <MESSAGE value="使用Python (FastAPI) + HTML + CSS + TailwindCSS + Alpine.js框架：&#10;重新构建代码逻辑，重新设计页面" />
     <MESSAGE value="上传了《操作系统》教材和已经完成导入的支持库..." />
-    <option name="LAST_COMMIT_MESSAGE" value="上传了《操作系统》教材和已经完成导入的支持库..." />
+    <MESSAGE value="优化了对话AI和界面..." />
+    <option name="LAST_COMMIT_MESSAGE" value="优化了对话AI和界面..." />
   </component>
 </project>

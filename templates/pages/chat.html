@@ -1,63 +1,58 @@
 {% extends "base.html" %}
 {% block content %}
 <div x-data="chatPage" class="h-full">
-    <!-- Welcome Banner (no session) -->
     <div x-show="showWelcome" class="h-full flex items-center justify-center p-8">
         <div class="max-w-lg text-center fade-in">
-            <div class="w-20 h-20 rounded-2xl gradient-brand flex items-center justify-center text-white text-3xl font-bold shadow-xl mx-auto mb-6 pulse">P</div>
+            <div class="w-20 h-20 rounded-2xl gradient-brand flex items-center justify-center text-white text-3xl font-bold shadow-xl mx-auto mb-6">P</div>
             <h2 class="text-2xl font-bold text-gray-800 mb-2">欢迎使用 PRLMAD</h2>
-            <p class="text-gray-500 mb-1">先聊几句，系统会为你生成学习画像</p>
-            <p class="text-sm text-gray-400 mb-8">画像越完整，后续资源、路径和评估越贴近你的真实情况</p>
+            <p class="text-gray-500 mb-1">先建立一份学习画像，再生成资源、路径和辅导建议</p>
+            <p class="text-sm text-gray-400 mb-8">画像由固定问题和选项构成，不需要你一开始就懂很多专业概念。</p>
 
             <div class="grid grid-cols-3 gap-3 mb-8">
                 <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                    <span class="label-mark mx-auto">像</span>
-                    <p class="text-xs text-gray-600 mt-2 font-medium">对话式画像</p>
-                    <p class="text-[10px] text-gray-400 mt-0.5">自然对话了解你</p>
+                    <span class="label-mark mx-auto">1</span>
+                    <p class="text-xs text-gray-600 mt-2 font-medium">选背景</p>
+                    <p class="text-[10px] text-gray-400 mt-0.5">专业、年级、基础</p>
                 </div>
                 <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                    <span class="label-mark mx-auto">协</span>
-                    <p class="text-xs text-gray-600 mt-2 font-medium">多智能体协同</p>
-                    <p class="text-[10px] text-gray-400 mt-0.5">12个AI分工协作</p>
+                    <span class="label-mark mx-auto">2</span>
+                    <p class="text-xs text-gray-600 mt-2 font-medium">定目标</p>
+                    <p class="text-[10px] text-gray-400 mt-0.5">考试、项目、理解</p>
                 </div>
                 <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                    <span class="label-mark mx-auto">资</span>
-                    <p class="text-xs text-gray-600 mt-2 font-medium">9种学习资源</p>
-                    <p class="text-[10px] text-gray-400 mt-0.5">个性化定向生成</p>
+                    <span class="label-mark mx-auto">3</span>
+                    <p class="text-xs text-gray-600 mt-2 font-medium">生成学习支持</p>
+                    <p class="text-[10px] text-gray-400 mt-0.5">资源、路径、辅导</p>
                 </div>
             </div>
 
             <div class="bg-white border border-brand-100 rounded-2xl p-4 text-left shadow-sm mb-6">
                 <p class="text-xs font-semibold text-brand-700 mb-2">建议从这里开始</p>
-                <div class="grid grid-cols-1 gap-2 text-xs text-gray-600">
-                    <p><span class="label-mark mr-2">1</span>创建一个学习会话，告诉小P你的专业、课程和目标。</p>
-                    <p><span class="label-mark mr-2">2</span>按输入框上方的快捷提示补齐基础、薄弱点和学习偏好。</p>
-                    <p><span class="label-mark mr-2">3</span>画像达到 5 个维度后，去资源生成页创建个性化学习包。</p>
+                <div class="grid gap-2 text-xs text-gray-600">
+                    <p><span class="label-mark mr-2">A</span>先创建一个学习会话。</p>
+                    <p><span class="label-mark mr-2">B</span>在画像页按步骤选择最接近你的选项。</p>
+                    <p><span class="label-mark mr-2">C</span>画像保存后，去资源生成页输入具体知识点。</p>
                 </div>
             </div>
 
             <button @click="doQuickStart()"
                 class="gradient-brand text-white rounded-xl px-8 py-3 text-sm font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95">
-                开始学习之旅
+                创建学习会话
             </button>
-            <p class="text-[10px] text-gray-400 mt-3">首次使用将自动创建学习会话</p>
+            <p class="text-[10px] text-gray-400 mt-3">会话名称会自动避免和已有会话重复</p>
         </div>
     </div>
 
-    <!-- Chat Interface (with session) -->
     <div x-show="!showWelcome" class="flex h-full">
-    <div class="flex-1 flex flex-col h-full min-w-0">
-        <!-- Chat Header -->
-        <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between flex-shrink-0">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-lg gradient-brand flex items-center justify-center text-white text-sm font-bold">P</div>
-                <div>
-                    <h2 class="text-sm font-semibold text-gray-800">对话式学习画像构建</h2>
-                    <p class="text-[11px] text-gray-400">AI 学习顾问 · Step <span x-text="currentStep + '/' + totalSteps"></span></p>
+        <div class="flex-1 flex flex-col h-full min-w-0">
+            <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-lg gradient-brand flex items-center justify-center text-white text-sm font-bold">P</div>
+                    <div>
+                        <h2 class="text-sm font-semibold text-gray-800">学习画像构建</h2>
+                        <p class="text-[11px] text-gray-400">固定问题 · Step <span x-text="currentStep + '/' + totalSteps"></span></p>
+                    </div>
                 </div>
-            </div>
-            <div class="flex items-center gap-4">
-                <!-- Profile Progress -->
                 <div class="hidden sm:flex items-center gap-2">
                     <span class="text-[11px] text-gray-500">画像完整度</span>
                     <div class="w-24 bg-gray-100 rounded-full h-2 overflow-hidden">
@@ -66,132 +61,141 @@
                     </div>
                     <span class="text-[11px] font-medium text-brand-600" x-text="profileProgress + '%'"></span>
                 </div>
-                <span x-show="profileUpdating" class="hidden sm:inline-flex text-[11px] bg-amber-50 text-amber-600 border border-amber-100 rounded-full px-2.5 py-1">
-                    画像后台更新中，可继续输入
-                </span>
             </div>
-        </div>
 
-        <!-- Messages Area -->
-        <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4" x-ref="msgContainer" id="chatMessages">
-            <!-- Welcome message from AI -->
-            <div x-show="chatMessages.length === 0 && !isStreaming" class="slide-up">
-                <div class="flex gap-3">
-                    <div class="w-8 h-8 rounded-xl gradient-brand flex items-center justify-center text-white text-xs flex-shrink-0">AI</div>
-                    <div class="bg-white border border-gray-100 rounded-2xl rounded-bl-md px-5 py-3.5 shadow-sm max-w-[80%]">
-                        <p class="text-sm text-gray-700 font-medium mb-2">你好，我是你的专属学习顾问。</p>
-                        <p class="text-sm text-gray-600 mb-3">我们先把画像建稳：请从专业、年级和正在学习的课程开始。你也可以直接点击下面的快捷回复。</p>
-                        <div class="space-y-1.5">
-                            <button @click="sendQuickReply('我是计算机科学与技术专业大二的学生，正在学习操作系统这门课')"
-                                class="block text-left text-xs bg-brand-50 text-brand-700 hover:bg-brand-100 rounded-lg px-3 py-2 transition-colors w-full border border-brand-100">
-                                我是计算机专业的学生，正在学操作系统
-                            </button>
-                            <button @click="sendQuickReply('我是软件工程专业的，想系统学习操作系统原理')"
-                                class="block text-left text-xs bg-brand-50 text-brand-700 hover:bg-brand-100 rounded-lg px-3 py-2 transition-colors w-full border border-brand-100">
-                                我是软件工程专业的，想学操作系统原理
+            <div class="flex-1 overflow-y-auto p-6">
+                <div class="max-w-5xl mx-auto space-y-5">
+                    <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                            <div>
+                                <p class="text-xs font-semibold text-brand-600 mb-1">画像用于个性化生成</p>
+                                <h3 class="text-lg font-bold text-gray-800">请选择最接近你当前状态的选项</h3>
+                                <p class="text-sm text-gray-500 mt-1">不确定也没关系，选择“刚入门”或“需要补基础”即可，后续可以随时修改。</p>
+                            </div>
+                            <button @click="saveProfile()"
+                                class="gradient-brand text-white rounded-xl px-5 py-2.5 text-sm font-semibold shadow-sm hover:shadow-md transition-all disabled:opacity-50"
+                                :disabled="saving || !$store.app.currentSessionId">
+                                <span x-show="!saving">保存画像</span>
+                                <span x-show="saving">保存中...</span>
                             </button>
                         </div>
                     </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-5">
+                        <div class="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm h-fit">
+                            <template x-for="(step, idx) in profileSteps" :key="step.key">
+                                <button @click="activeIndex = idx"
+                                    class="w-full text-left rounded-xl px-3 py-3 transition-all mb-1"
+                                    :class="activeIndex === idx ? 'bg-brand-50 text-brand-700' : 'hover:bg-gray-50 text-gray-600'">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold"
+                                            :class="isStepComplete(step) ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'"
+                                            x-text="isStepComplete(step) ? '✓' : (idx + 1)"></span>
+                                        <span class="text-xs font-semibold" x-text="step.nav"></span>
+                                    </div>
+                                </button>
+                            </template>
+                        </div>
+
+                        <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm min-h-[520px]">
+                            <template x-if="activeStep">
+                                <div>
+                                    <div class="flex items-start justify-between gap-4 mb-5">
+                                        <div>
+                                            <p class="text-xs text-brand-600 font-semibold mb-1" x-text="'第 ' + currentStep + ' 步'"></p>
+                                            <h3 class="text-xl font-bold text-gray-800" x-text="activeStep.title"></h3>
+                                            <p class="text-sm text-gray-500 mt-2" x-text="activeStep.description"></p>
+                                        </div>
+                                        <span class="label-mark" x-text="activeStep.mark"></span>
+                                    </div>
+
+                                    <div x-show="activeStep.type === 'grouped'" class="space-y-5">
+                                        <template x-for="field in activeStep.fields" :key="field.key">
+                                            <div>
+                                                <p class="text-xs font-semibold text-gray-500 mb-2" x-text="field.label"></p>
+                                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                    <template x-for="option in field.options" :key="option">
+                                                        <button @click="selectFieldOption(field.key, option)"
+                                                            class="text-left rounded-xl border px-3 py-2.5 text-sm transition-all"
+                                                            :class="profileDraft[field.key] === option ? 'border-brand-300 bg-brand-50 text-brand-700 shadow-sm' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'">
+                                                            <span x-text="option"></span>
+                                                        </button>
+                                                    </template>
+                                                </div>
+                                                <input x-model="profileDraft[field.key]" type="text"
+                                                    :placeholder="'也可以直接填写' + field.label"
+                                                    class="mt-2 w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50 focus:ring-2 focus:ring-brand-400 outline-none placeholder-gray-400" />
+                                            </div>
+                                        </template>
+                                    </div>
+
+                                    <div x-show="activeStep.type !== 'grouped'" class="space-y-4">
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            <template x-for="option in activeStep.options" :key="option">
+                                                <button @click="toggleOption(activeStep.target, option, activeStep.multi)"
+                                                    class="text-left rounded-xl border px-3 py-3 text-sm transition-all"
+                                                    :class="isSelected(activeStep.target, option) ? 'border-brand-300 bg-brand-50 text-brand-700 shadow-sm' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'">
+                                                    <span x-text="option"></span>
+                                                </button>
+                                            </template>
+                                        </div>
+                                        <textarea x-model="customInputs[activeStep.target]" rows="3"
+                                            :placeholder="activeStep.customPlaceholder"
+                                            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-gray-50 focus:ring-2 focus:ring-brand-400 outline-none resize-none placeholder-gray-400"></textarea>
+                                    </div>
+
+                                    <div class="mt-6 flex items-center justify-between border-t border-gray-100 pt-4">
+                                        <button @click="prevStep()"
+                                            class="text-sm text-gray-500 hover:text-brand-600 px-3 py-2 rounded-lg hover:bg-gray-50 disabled:opacity-40"
+                                            :disabled="activeIndex === 0">上一步</button>
+                                        <div class="flex items-center gap-2">
+                                            <span x-show="savedAt" class="text-xs text-green-600" x-text="savedAt"></span>
+                                            <button @click="nextStep()"
+                                                class="bg-gray-900 hover:bg-gray-800 text-white rounded-xl px-5 py-2.5 text-sm font-semibold transition-all"
+                                                x-text="activeIndex === totalSteps - 1 ? '完成' : '下一步'"></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Chat Messages -->
-            <template x-for="(msg, idx) in chatMessages" :key="idx">
-                <div class="slide-up">
-                    <div x-show="msg.role === 'user'" class="flex justify-end mb-4">
-                        <div class="bg-gradient-to-br from-brand-500 to-brand-600 text-white rounded-2xl rounded-br-md px-4 py-2.5 max-w-[75%] shadow-sm">
-                            <p class="text-sm whitespace-pre-wrap leading-relaxed" x-text="msg.content"></p>
-                        </div>
+        <div class="w-72 bg-white/90 border-l border-gray-100 p-4 overflow-y-auto flex-shrink-0 hidden xl:block" id="profileSidebar">
+            <div class="flex items-center gap-2 mb-4">
+                <h3 class="text-sm font-semibold text-gray-700">学习画像</h3>
+                <span class="ml-auto text-[10px] bg-brand-100 text-brand-700 px-2 py-0.5 rounded-full" x-text="'版本 ' + profileVersion"></span>
+            </div>
+
+            <div x-show="$store.app.profileDimensions.length === 0" class="text-center py-6">
+                <span class="empty-mark !w-12 !h-12 !text-sm">画像</span>
+                <p class="text-xs text-gray-400 mt-2">还没有画像信息</p>
+                <p class="text-[10px] text-gray-300 mt-1">完成左侧选项后点击保存</p>
+            </div>
+
+            <template x-for="dim in $store.app.profileDimensions" :key="dim.label">
+                <div class="mb-3 bg-gradient-to-br from-gray-50 to-white border border-gray-100 rounded-xl p-3 hover:shadow-sm transition-shadow">
+                    <div class="flex items-center justify-between mb-1">
+                        <p class="text-[11px] font-semibold text-gray-600" x-text="dim.label"></p>
+                        <span class="text-[10px] text-brand-500">●</span>
                     </div>
-                    <div x-show="msg.role === 'assistant'" class="flex gap-3 mb-4">
-                        <div class="w-8 h-8 rounded-xl gradient-brand flex items-center justify-center text-white text-xs flex-shrink-0 shadow-sm">AI</div>
-                        <div class="bg-white border border-gray-100 rounded-2xl rounded-bl-md px-5 py-3.5 max-w-[80%] shadow-sm">
-                            <div class="markdown-body text-sm" x-html="msg.content_md || ''"></div>
-                        </div>
-                    </div>
+                    <p class="text-xs text-gray-700 leading-relaxed" x-text="dim.value || '待完善'"></p>
                 </div>
             </template>
 
-            <!-- Streaming Message -->
-            <div x-show="isStreaming" class="slide-up mb-4">
-                <div class="flex gap-3">
-                    <div class="w-8 h-8 rounded-xl gradient-brand flex items-center justify-center text-white text-xs flex-shrink-0 shadow-sm pulse">AI</div>
-                    <div class="bg-white border border-gray-100 rounded-2xl rounded-bl-md px-5 py-3.5 max-w-[80%] shadow-sm">
-                        <div class="markdown-body text-sm" x-html="streamingContentMd || '<span class=typing>正在思考...</span>'"></div>
-                    </div>
+            <div x-show="$store.app.profileDimensions.length > 0" class="mt-4 pt-3 border-t border-gray-100">
+                <div @click="showProfileDetail = !showProfileDetail"
+                    class="flex items-center justify-between cursor-pointer text-xs text-gray-500 hover:text-brand-600 transition-colors">
+                    <span>查看完整画像数据</span>
+                    <span x-text="showProfileDetail ? '▲' : '▼'"></span>
+                </div>
+                <div x-show="showProfileDetail" class="mt-2 text-[10px] text-gray-400 bg-gray-50 rounded-lg p-3 max-h-40 overflow-y-auto">
+                    <pre x-text="JSON.stringify($store.app.rawProfile, null, 2)"></pre>
                 </div>
             </div>
         </div>
-
-        <!-- Quick Reply Suggestions -->
-        <div x-show="quickReplies.length > 0 && !isStreaming" class="px-6 pb-2 flex items-center gap-2 overflow-x-auto flex-shrink-0" x-ref="quickReplyBar">
-            <span class="text-[11px] text-gray-400 whitespace-nowrap">可一键回复</span>
-            <template x-for="qr in quickReplies" :key="qr">
-                <button @click="sendQuickReply(qr)"
-                    class="text-xs bg-white border border-gray-200 text-gray-600 hover:border-brand-300 hover:text-brand-600 rounded-full px-3 py-1.5 transition-colors whitespace-nowrap flex-shrink-0 shadow-sm">
-                    <span x-text="qr"></span>
-                </button>
-            </template>
-        </div>
-
-        <!-- Input Area -->
-        <div class="border-t border-gray-100 bg-white px-6 py-3 flex-shrink-0">
-            <div class="flex gap-3 max-w-4xl mx-auto">
-                <textarea x-model="chatInput" @keydown.enter.prevent="if(!$event.shiftKey) sendMessage()"
-                    :placeholder="profileUpdating ? '画像正在后台更新，你可以继续补充信息... (Shift+Enter 换行)' : '告诉我你的专业和正在学习的课程吧～ (Shift+Enter 换行)'"
-                    rows="1"
-                    class="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-400 focus:border-transparent outline-none resize-none bg-gray-50 placeholder-gray-400"
-                    :disabled="isStreaming || !$store.app.currentSessionId"
-                    x-ref="chatInput"
-                    @input="$refs.chatInput.style.height = 'auto'; $refs.chatInput.style.height = Math.min($refs.chatInput.scrollHeight, 120) + 'px'">
-                </textarea>
-                <button @click="sendMessage()"
-                    class="bg-gradient-to-br from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white rounded-xl px-5 py-2.5 text-sm font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
-                    :disabled="isStreaming || !chatInput.trim() || !$store.app.currentSessionId">
-                    <span x-show="!isStreaming">发送</span>
-                    <span x-show="isStreaming" class="flex items-center gap-1">
-                        <svg class="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                    </span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Profile Sidebar (right side, always visible when chatting) -->
-    <div class="w-72 bg-white/90 border-l border-gray-100 p-4 overflow-y-auto flex-shrink-0 hidden xl:block" id="profileSidebar">
-        <div class="flex items-center gap-2 mb-4">
-            <h3 class="text-sm font-semibold text-gray-700">学习画像</h3>
-            <span class="ml-auto text-[10px] bg-brand-100 text-brand-700 px-2 py-0.5 rounded-full" x-text="'版本 ' + profileVersion"></span>
-        </div>
-
-        <!-- Profile dimensions with progress bars -->
-        <div x-show="$store.app.profileDimensions.length === 0" class="text-center py-6">
-            <span class="empty-mark !w-12 !h-12 !text-sm">画像</span>
-            <p class="text-xs text-gray-400 mt-2">通过对话逐渐构建画像...</p>
-            <p class="text-[10px] text-gray-300 mt-1">每次对话后自动更新</p>
-        </div>
-
-        <template x-for="dim in $store.app.profileDimensions" :key="dim.label">
-            <div class="mb-3 bg-gradient-to-br from-gray-50 to-white border border-gray-100 rounded-xl p-3 hover:shadow-sm transition-shadow">
-                <div class="flex items-center justify-between mb-1">
-                    <p class="text-[11px] font-semibold text-gray-600" x-text="dim.label"></p>
-                    <span class="text-[10px] text-brand-500">●</span>
-                </div>
-                <p class="text-xs text-gray-700 leading-relaxed" x-text="dim.value || '待完善'"></p>
-            </div>
-        </template>
-
-        <div x-show="$store.app.profileDimensions.length > 0" class="mt-4 pt-3 border-t border-gray-100">
-            <div @click="showProfileDetail = !showProfileDetail"
-                class="flex items-center justify-between cursor-pointer text-xs text-gray-500 hover:text-brand-600 transition-colors">
-                <span>查看完整画像数据</span>
-                <span x-text="showProfileDetail ? '▲' : '▼'"></span>
-            </div>
-            <div x-show="showProfileDetail" class="mt-2 text-[10px] text-gray-400 bg-gray-50 rounded-lg p-3 max-h-40 overflow-y-auto">
-                <pre x-text="JSON.stringify($store.app.profileDimensions, null, 2)"></pre>
-            </div>
-        </div>
-    </div>
     </div>
 </div>
 {% endblock %}

@@ -1,4 +1,6 @@
 document.addEventListener('alpine:init', () => {
+    const CURRENT_SESSION_KEY = 'prlmad.currentSessionId';
+
     Alpine.store('app', {
         currentSessionId: '',
         sessions: [],
@@ -15,22 +17,20 @@ document.addEventListener('alpine:init', () => {
             this.loading = true;
             await this.loadSessions();
             const hash = window.location.hash.slice(1);
+            const savedSessionId = localStorage.getItem(CURRENT_SESSION_KEY) || '';
 
             if (hash && this.sessions.find(s => s.session_id === hash)) {
-                this.currentSessionId = hash;
+                await this.setCurrentSession(hash, { updateHash: false, notify: false });
+            } else if (savedSessionId && this.sessions.find(s => s.session_id === savedSessionId)) {
+                await this.setCurrentSession(savedSessionId, { updateHash: false, notify: false });
             } else if (this.sessions.length > 0) {
-                this.currentSessionId = this.sessions[0].session_id;
-            }
-
-            if (this.currentSessionId) {
-                await this.loadProfile();
+                await this.setCurrentSession(this.sessions[0].session_id, { updateHash: false, notify: false });
             }
 
             window.addEventListener('hashchange', async () => {
                 const h = window.location.hash.slice(1);
-                if (h && this.sessions.find(s => s.session_id === h)) {
-                    this.currentSessionId = h;
-                    await this.loadProfile();
+                if (h && h !== this.currentSessionId && this.sessions.find(s => s.session_id === h)) {
+                    await this.setCurrentSession(h, { updateHash: false });
                 }
             });
 
@@ -48,12 +48,59 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
+        makeUniqueSessionName(baseName) {
+            const base = (baseName || '操作系统学习').trim() || '操作系统学习';
+            const names = new Set(this.sessions.map(s => s.name));
+            if (!names.has(base)) return base;
+            let index = 2;
+            let candidate = `${base} ${index}`;
+            while (names.has(candidate)) {
+                index += 1;
+                candidate = `${base} ${index}`;
+            }
+            return candidate;
+        },
+
+        async setCurrentSession(sid, options = {}) {
+            const { updateHash = true, notify = true } = options;
+            const nextSessionId = sid || '';
+            if (nextSessionId && !this.sessions.find(s => s.session_id === nextSessionId)) {
+                return;
+            }
+            const changed = this.currentSessionId !== nextSessionId;
+            this.currentSessionId = nextSessionId;
+            if (nextSessionId) {
+                localStorage.setItem(CURRENT_SESSION_KEY, nextSessionId);
+            } else {
+                localStorage.removeItem(CURRENT_SESSION_KEY);
+            }
+            if (updateHash) {
+                if (nextSessionId) {
+                    history.replaceState(null, '', `${window.location.pathname}#${nextSessionId}`);
+                } else {
+                    history.replaceState(null, '', window.location.pathname);
+                }
+            }
+            await this.loadProfile();
+            if (notify && changed) {
+                window.dispatchEvent(new CustomEvent('prlmad:session-changed', {
+                    detail: { sessionId: nextSessionId },
+                }));
+            }
+        },
+
         async loadProfile() {
-            if (!this.currentSessionId) return;
+            const sid = this.currentSessionId;
+            if (!sid) {
+                this.rawProfile = {};
+                this.profileDimensions = [];
+                return;
+            }
             try {
-                const resp = await fetch(`/api/profile/${this.currentSessionId}`);
-                const profile = await resp.json();
-                this.rawProfile = profile || {};
+                const resp = await fetch(`/api/profile/${sid}`);
+                const profile = (await resp.json()) || {};
+                if (this.currentSessionId !== sid) return;
+                this.rawProfile = profile;
                 const dimNames = {
                     major: '专业方向', grade: '年级', goal: '学习目标',
                     knowledge_level: '知识基础', cognitive_style: '认知风格',
@@ -65,7 +112,7 @@ document.addEventListener('alpine:init', () => {
                 this.profileDimensions = Object.entries(profile)
                     .filter(([k, v]) => v && typeof v === 'string' && v.trim() && dimNames[k])
                     .map(([k, v]) => ({ label: dimNames[k], value: v.length > 60 ? v.slice(0, 57) + '...' : v }))
-                    .slice(0, 8);
+                    .slice(0, 10);
             } catch (e) {
                 console.error('Failed to load profile', e);
                 this.rawProfile = {};
@@ -74,7 +121,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         async createSession(name) {
-            const sessionName = name || '操作系统学习';
+            const sessionName = this.makeUniqueSessionName(name || '操作系统学习');
             try {
                 const resp = await fetch('/api/session', {
                     method: 'POST',
@@ -92,10 +139,9 @@ document.addEventListener('alpine:init', () => {
                     created_at: data.created_at,
                     updated_at: data.created_at,
                 });
-                this.currentSessionId = data.session_id;
                 this.rawProfile = {};
                 this.profileDimensions = [];
-                window.location.hash = data.session_id;
+                await this.setCurrentSession(data.session_id);
                 return data.session_id;
             } catch (e) {
                 alert('创建会话失败: ' + e.message);
@@ -104,15 +150,14 @@ document.addEventListener('alpine:init', () => {
         },
 
         async createSessionPrompt() {
-            const name = prompt('请输入会话名称:', '操作系统学习');
+            const defaultName = this.makeUniqueSessionName('操作系统学习');
+            const name = prompt('请输入会话名称:', defaultName);
             if (name === null) return null;
             return await this.createSession(name);
         },
 
-        switchSession(sid) {
-            this.currentSessionId = sid;
-            window.location.hash = sid;
-            this.loadProfile();
+        async switchSession(sid) {
+            await this.setCurrentSession(sid);
         },
 
         async renameCurrentSession() {
@@ -143,12 +188,10 @@ document.addEventListener('alpine:init', () => {
             try {
                 const resp = await fetch(`/api/session/${current.session_id}`, { method: 'DELETE' });
                 if (!resp.ok) throw new Error('服务端拒绝了删除请求');
+                const deletedIndex = this.sessions.findIndex(s => s.session_id === current.session_id);
                 this.sessions = this.sessions.filter(s => s.session_id !== current.session_id);
-                this.currentSessionId = this.sessions[0]?.session_id || '';
-                this.rawProfile = {};
-                this.profileDimensions = [];
-                window.location.hash = this.currentSessionId || '';
-                if (this.currentSessionId) await this.loadProfile();
+                const fallback = this.sessions[Math.max(0, deletedIndex - 1)] || this.sessions[0] || null;
+                await this.setCurrentSession(fallback?.session_id || '');
             } catch (e) {
                 alert('删除失败: ' + e.message);
             }

@@ -27,6 +27,31 @@
                         <p class="text-xs text-purple-500 font-medium mt-1">课程数</p>
                     </div>
                 </div>
+                <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-3">
+                        <p class="font-semibold text-slate-600 mb-1">当前知识库文件</p>
+                        <p class="text-slate-500 break-all" x-text="status.db_path || '未读取到路径'"></p>
+                        <p class="text-[11px] text-slate-400 mt-1"
+                            x-text="(status.db_exists ? '文件存在' : '文件不存在') + ' · ' + formatBytes(status.db_size_bytes || 0)"></p>
+                        <p x-show="status.using_fallback_db" class="text-[11px] text-amber-600 mt-1">
+                            已自动使用已有 active 知识库；配置路径为
+                            <span class="font-mono break-all" x-text="status.configured_db_path"></span>
+                        </p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-3">
+                        <p class="font-semibold text-slate-600 mb-1">教材目录</p>
+                        <p class="text-slate-500 break-all" x-text="status.knowledge_dir || '未读取到路径'"></p>
+                        <p class="text-[11px] text-slate-400 mt-1" x-text="status.knowledge_dir_exists ? '目录存在' : '目录不存在'"></p>
+                    </div>
+                </div>
+                <div x-show="(status.document_count || 0) === 0 && status.fallback_candidate && status.fallback_candidate.document_count > 0"
+                    class="mb-4 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl p-3 text-xs">
+                    检测到另一个知识库文件中已有内容：
+                    <span class="font-semibold" x-text="status.fallback_candidate.document_count"></span> 个文档、
+                    <span class="font-semibold" x-text="status.fallback_candidate.chunk_count"></span> 个切片。
+                    请检查 `.env` 中的 `PRLMAD_DB_PATH` 是否应指向
+                    <span class="font-mono break-all" x-text="status.fallback_candidate.path"></span>，修改后需要重启服务。
+                </div>
                 <div x-show="status.documents && status.documents.length > 0">
                     <p class="text-xs text-gray-500 font-semibold mb-2">已导入文档</p>
                     <div class="space-y-1.5">
@@ -47,6 +72,7 @@
                 <div x-show="!status.documents || status.documents.length === 0" class="text-center py-6">
                     <span class="empty-mark">空</span>
                     <p class="text-sm text-gray-400 mt-2">知识库为空，请先导入教材</p>
+                    <p class="text-xs text-gray-300 mt-1">如果你已经导入过，请核对上方“当前知识库文件”是否和 `.env` 一致，并重启后端服务。</p>
                 </div>
             </div>
 
@@ -180,7 +206,15 @@ document.addEventListener('alpine:init', () => {
             try {
                 const resp = await fetch('/api/knowledge/status');
                 this.status = await resp.json();
-            } catch (e) {}
+            } catch (e) {
+                this.status = { error: e.message };
+            }
+        },
+        formatBytes(bytes) {
+            const value = Number(bytes || 0);
+            if (value < 1024) return value + ' B';
+            if (value < 1024 * 1024) return (value / 1024).toFixed(1) + ' KB';
+            return (value / 1024 / 1024).toFixed(1) + ' MB';
         },
         async ingestDocument() {
             if (!this.ingestPath.trim()) { alert('请输入文件路径'); return; }

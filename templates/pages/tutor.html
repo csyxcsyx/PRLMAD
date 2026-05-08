@@ -168,6 +168,10 @@ document.addEventListener('alpine:init', () => {
                     const el = document.getElementById('tutorMsgContainer');
                     if (el) el.scrollTop = el.scrollHeight;
                 }
+                if (!assistantMsg.content) {
+                    assistantMsg.content = '暂时没有收到有效回答，请稍后重试，或换一个更具体的问题。';
+                    assistantMsg.content_md = marked.parse(assistantMsg.content);
+                }
             } catch (e) {
                 this.tutorMessages.push({
                     role: 'assistant',

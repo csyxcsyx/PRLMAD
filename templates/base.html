@@ -124,7 +124,7 @@
             <!-- Session Selector -->
             <div class="px-3 py-3 border-b border-gray-100">
                 <label class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1.5 block">当前会话</label>
-                <select x-model="$store.app.currentSessionId" @change="$store.app.switchSession($event.target.value)"
+                <select :value="$store.app.currentSessionId" @change="$store.app.switchSession($event.target.value)"
                     x-show="$store.app.sessions.length > 0"
                     class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-brand-400 focus:border-transparent outline-none text-gray-700">
                     <template x-for="s in $store.app.sessions" :key="s.session_id">
@@ -154,30 +154,30 @@
             <!-- Navigation -->
             <nav class="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
                 <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2 px-3">功能导航</p>
-                <a href="/page/chat" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600"
+                <a :href="'/page/chat' + ($store.app.currentSessionId ? '#' + $store.app.currentSessionId : '')" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600"
                     :class="{ 'active': '{{ page }}' === 'chat' }">
-                    <span class="nav-glyph">像</span> 对话画像
+                    <span class="nav-glyph">像</span> 学习画像
                     <span x-show="$store.app.profileDimensions.length > 0" class="ml-auto w-1.5 h-1.5 rounded-full bg-green-400"></span>
                     <span x-show="$store.app.profileDimensions.length === 0 && '{{ page }}' === 'chat'" class="ml-auto text-[10px] text-orange-400 bg-orange-50 px-1.5 py-0.5 rounded-full">待完善</span>
                 </a>
-                <a href="/page/generate" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600"
+                <a :href="'/page/generate' + ($store.app.currentSessionId ? '#' + $store.app.currentSessionId : '')" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600"
                     :class="{ 'active': '{{ page }}' === 'generate' }">
                     <span class="nav-glyph">资</span> 资源生成
                 </a>
-                <a href="/page/learning-path" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600"
+                <a :href="'/page/learning-path' + ($store.app.currentSessionId ? '#' + $store.app.currentSessionId : '')" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600"
                     :class="{ 'active': '{{ page }}' === 'learning_path' }">
                     <span class="nav-glyph">路</span> 学习路径
                 </a>
-                <a href="/page/tutor" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600"
+                <a :href="'/page/tutor' + ($store.app.currentSessionId ? '#' + $store.app.currentSessionId : '')" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600"
                     :class="{ 'active': '{{ page }}' === 'tutor' }">
                     <span class="nav-glyph">辅</span> 智能辅导
                 </a>
-                <a href="/page/evaluate" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600"
+                <a :href="'/page/evaluate' + ($store.app.currentSessionId ? '#' + $store.app.currentSessionId : '')" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600"
                     :class="{ 'active': '{{ page }}' === 'evaluate' }">
                     <span class="nav-glyph">评</span> 效果评估
                 </a>
                 <div class="my-2 border-t border-gray-100"></div>
-                <a href="/page/knowledge" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400"
+                <a :href="'/page/knowledge' + ($store.app.currentSessionId ? '#' + $store.app.currentSessionId : '')" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400"
                     :class="{ 'active': '{{ page }}' === 'knowledge' }">
                     <span class="nav-glyph">库</span> 知识库管理
                 </a>

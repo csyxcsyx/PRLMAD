@@ -6,7 +6,7 @@ PRLMAD（Personalized Resource Learning Multi-Agent Demo）是一个面向「操
 
 ## 主要功能
 
-- 对话式学习画像：通过自然对话提取专业、基础、目标、薄弱点、资源偏好、可用时间等维度。
+- 结构化学习画像：通过固定问题和丰富选项收集专业、基础、目标、薄弱点、资源偏好、可用时间等维度，降低首次使用门槛。
 - 本地知识库：支持 PDF/TXT/MD 导入，扫描版 PDF 可通过 OCR 提取文本。
 - RAG 检索：基于 SQLite 的中文 n-gram/词频检索，回答和资源尽量附带教材来源。
 - 多智能体资源生成：并行生成讲解文档、思维导图、题库、实操案例、PPT 大纲、任务清单等资源。
@@ -26,7 +26,7 @@ PRLMAD/
 │   ├── dependencies.py          # 配置、知识库、会话库、模型客户端依赖
 │   ├── models/schemas.py        # 请求模型
 │   ├── routers/                 # API 模块
-│   │   ├── chat.py              # 对话画像 SSE
+│   │   ├── chat.py              # 旧版对话画像 SSE
 │   │   ├── generate.py          # 多智能体资源生成 SSE
 │   │   ├── session.py           # 会话、画像、学习路径
 │   │   ├── tutor.py             # RAG 辅导
@@ -219,7 +219,7 @@ python -B run.py status
 ## 使用流程
 
 1. 打开首页后创建学习会话。
-2. 在「对话画像」中回答学习顾问的问题，形成学习画像。
+2. 在「学习画像」中按步骤选择学习背景、目标、基础、薄弱点、学习方式、实践状态和时间动机，保存学习画像。
 3. 在「资源生成」中输入知识点并选择至少 5 种资源类型。
 4. 在「学习路径」中生成或查看当前会话的路径。
 5. 在「智能辅导」中围绕课程知识提问。
@@ -235,7 +235,7 @@ python -B run.py status
 | `GET` | `/api/sessions` | 会话列表 |
 | `GET` | `/api/session/{session_id}` | 会话详情 |
 | `PUT` | `/api/profile/{session_id}` | 更新学习画像 |
-| `POST` | `/api/chat/stream` | 对话画像 SSE |
+| `POST` | `/api/chat/stream` | 兼容旧版对话画像 SSE；当前页面优先使用 `PUT /api/profile/{session_id}` 保存结构化画像 |
 | `GET` | `/api/chat/history/{session_id}` | 对话历史 |
 | `POST` | `/api/generate/stream` | 资源生成 SSE |
 | `GET` | `/api/generate/list/{session_id}` | 已生成资源 |
@@ -298,6 +298,14 @@ python run.py status
 ```
 
 如果文档数或切片数为 0，请重新执行 `python -B run.py train --course 操作系统 --ocr-mode auto`。扫描版 PDF 需要安装 OCR 相关依赖，并且首次导入可能比较慢。
+
+网页端「知识库管理」会显示当前后端实际读取的 SQLite 路径、文件大小和教材目录。如果页面显示 0，但你确认之前已经导入过，优先检查：
+
+- `.env` 中的 `PRLMAD_DB_PATH` 是否指向已经训练好的数据库。
+- 修改 `.env` 后是否已经重启 `python run.py serve`。
+- 页面提示的备用知识库文件是否才是你之前训练出来的文件。
+
+为了避免误把空的默认库当成可用知识库，后端在 `data/knowledge.sqlite3` 为空且 `data/knowledge_active.sqlite3` 已有切片时，会自动读取 `knowledge_active.sqlite3`。知识库管理页会显示这一点。
 
 如果状态显示 `partial`，说明只导入了部分页。常见原因是之前使用过 `--max-pages`。重新完整导入时使用：
 

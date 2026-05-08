@@ -174,13 +174,36 @@ async def search(req: SearchRequest):
 @router.get("/status")
 async def status():
     kb = get_knowledge_base()
+    settings = get_settings_cached()
     docs = kb.list_documents()
     courses = sorted({d.course for d in docs})
+    configured_db_path = settings.db_path
+    actual_db_path = kb.db_path
+    candidate_path = settings.data_dir / "knowledge_active.sqlite3"
+    fallback_candidate = None
+    if candidate_path != actual_db_path and candidate_path.exists():
+        try:
+            candidate_kb = KnowledgeBase(candidate_path)
+            fallback_candidate = {
+                "path": str(candidate_path),
+                "document_count": len(candidate_kb.list_documents()),
+                "chunk_count": candidate_kb.get_chunk_count(),
+            }
+        except Exception as exc:
+            fallback_candidate = {"path": str(candidate_path), "error": str(exc)}
     return {
         "doc_count": len(docs),
         "document_count": len(docs),
         "course_count": len(courses),
         "chunk_count": kb.get_chunk_count(),
+        "db_path": str(actual_db_path),
+        "configured_db_path": str(configured_db_path),
+        "using_fallback_db": actual_db_path != configured_db_path,
+        "db_exists": actual_db_path.exists(),
+        "db_size_bytes": actual_db_path.stat().st_size if actual_db_path.exists() else 0,
+        "knowledge_dir": str(settings.knowledge_dir),
+        "knowledge_dir_exists": settings.knowledge_dir.exists(),
+        "fallback_candidate": fallback_candidate,
         "documents": [
             {
                 "id": d.id,

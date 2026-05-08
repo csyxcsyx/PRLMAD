@@ -1,263 +1,352 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('chatPage', () => ({
-        chatInput: '',
-        chatMessages: [],
-        isStreaming: false,
-        profileUpdating: false,
-        requestSeq: 0,
-        activeRequestId: 0,
-        streamingContent: '',
-        streamingContentMd: '',
-        quickReplies: [],
-        currentStep: 1,
-        totalSteps: 7,
+        activeIndex: 0,
+        saving: false,
+        savedAt: '',
         profileVersion: 1,
         showProfileDetail: false,
+        profileDraft: {
+            major: '',
+            grade: '',
+            available_time: '',
+            learning_motivation: '',
+        },
+        selections: {
+            goal: [],
+            knowledge_level: '',
+            weak_points: [],
+            preferences: [],
+            practical_ability: [],
+            available_time: '',
+            learning_motivation: '',
+        },
+        customInputs: {
+            goal: '',
+            knowledge_level: '',
+            weak_points: '',
+            preferences: '',
+            practical_ability: '',
+            available_time: '',
+            learning_motivation: '',
+        },
+        profileSteps: [
+            {
+                key: 'identity',
+                nav: '学习背景',
+                mark: '背',
+                type: 'grouped',
+                title: '你现在的学习背景是什么？',
+                description: '先确认专业和年级，系统会据此调整解释深度。选项只是示例，也可以直接填写。',
+                fields: [
+                    {
+                        key: 'major',
+                        label: '专业方向',
+                        options: ['软件工程', '计算机科学与技术', '人工智能', '网络工程', '物联网工程', '非计算机专业'],
+                    },
+                    {
+                        key: 'grade',
+                        label: '年级阶段',
+                        options: ['大一', '大二', '大三', '大四', '研究生', '自学补基础'],
+                    },
+                ],
+            },
+            {
+                key: 'goal',
+                nav: '学习目标',
+                mark: '目',
+                type: 'choice',
+                target: 'goal',
+                multi: true,
+                title: '你学习这门课主要想达成什么？',
+                description: '可以多选。这里会直接影响资源生成时的讲解角度和练习难度。',
+                options: [
+                    '系统理解操作系统原理',
+                    '应对课程考试和作业',
+                    '能做典型题并说清思路',
+                    '为项目开发打基础',
+                    '为面试准备系统知识',
+                    '补齐计算机基础',
+                ],
+                customPlaceholder: '还有其他目标可以补充，例如：希望能看懂教材某一章、准备课程设计等。',
+            },
+            {
+                key: 'knowledge',
+                nav: '当前基础',
+                mark: '基',
+                type: 'choice',
+                target: 'knowledge_level',
+                multi: false,
+                title: '你现在大概处在什么基础水平？',
+                description: '不需要精确判断，选最接近的一项即可。',
+                options: [
+                    '刚入门，还需要从基本概念开始',
+                    '学过 C 语言和数据结构，但操作系统刚开始',
+                    '了解进程、线程等名词，但机制不稳',
+                    '已经学过部分章节，想查漏补缺',
+                    '能做一些题，但解释不够清楚',
+                    '基础较好，想做综合应用',
+                ],
+                customPlaceholder: '也可以写：你学到第几章、听课/自学情况、已经掌握哪些内容。',
+            },
+            {
+                key: 'weak',
+                nav: '薄弱知识',
+                mark: '弱',
+                type: 'choice',
+                target: 'weak_points',
+                multi: true,
+                title: '哪些内容目前最需要帮助？',
+                description: '这些选项会作为资源生成、学习路径和智能辅导的优先关注点。',
+                options: [
+                    '进程与线程',
+                    '进程调度',
+                    '同步与互斥',
+                    '信号量',
+                    '死锁',
+                    '内存管理',
+                    '虚拟内存',
+                    '文件系统',
+                    'I/O 与设备管理',
+                    '还不确定，需要系统梳理',
+                ],
+                customPlaceholder: '如果你知道具体问题，可以写在这里，例如：PV 操作、页面置换、银行家算法。',
+            },
+            {
+                key: 'preferences',
+                nav: '学习方式',
+                mark: '法',
+                type: 'choice',
+                target: 'preferences',
+                multi: true,
+                title: '你更喜欢怎样学习？',
+                description: '系统会根据这些偏好决定生成讲义、导图、题库和任务清单的比例。',
+                options: [
+                    '图解配合例子',
+                    '先讲概念再做题',
+                    '通过错题解析巩固',
+                    '代码或实验演示',
+                    '思维导图梳理结构',
+                    '短任务清单推进',
+                    '先给结论再解释原因',
+                    '慢一点、少术语、多类比',
+                ],
+                customPlaceholder: '也可以补充你不喜欢的学习方式，例如：不想一上来就看复杂公式。',
+            },
+            {
+                key: 'practice',
+                nav: '实践状态',
+                mark: '练',
+                type: 'choice',
+                target: 'practical_ability',
+                multi: true,
+                title: '你希望实践内容做到什么程度？',
+                description: '这会影响实操案例、代码示例和智能辅导中的举例方式。',
+                options: [
+                    '暂时更想先理解概念',
+                    '能跟着代码运行就好',
+                    '希望有小实验帮助观察机制',
+                    '希望结合 Linux 命令或系统调用',
+                    '希望练习画流程图和状态变化',
+                    '希望偏向题目推理而不是代码',
+                ],
+                customPlaceholder: '可以写你熟悉的语言或环境，例如：C、Python、Linux、Windows。',
+            },
+            {
+                key: 'time',
+                nav: '时间动机',
+                mark: '时',
+                type: 'grouped',
+                title: '你通常能投入多少时间？为什么想学好？',
+                description: '学习路径会根据时间做轻重安排，动机信息会影响反馈方式。',
+                fields: [
+                    {
+                        key: 'available_time',
+                        label: '可用学习时间',
+                        options: ['每天 30 分钟以内', '每天 45-60 分钟', '每周 4-6 小时', '周末集中学习', '时间不固定，需要碎片化任务'],
+                    },
+                    {
+                        key: 'learning_motivation',
+                        label: '学习动机',
+                        options: ['课程考试', '完成作业/实验', '课程设计或项目', '面试准备', '补齐基础', '个人兴趣'],
+                    },
+                ],
+            },
+        ],
 
         get showWelcome() {
             return !Alpine.store('app').currentSessionId;
         },
 
+        get totalSteps() {
+            return this.profileSteps.length;
+        },
+
+        get currentStep() {
+            return this.activeIndex + 1;
+        },
+
+        get activeStep() {
+            return this.profileSteps[this.activeIndex] || this.profileSteps[0];
+        },
+
         get profileProgress() {
-            const dims = Alpine.store('app').profileDimensions.length;
-            return Math.min(Math.round((dims / 8) * 100), 100);
+            const done = this.profileSteps.filter((step) => this.isStepComplete(step)).length;
+            return Math.round((done / this.totalSteps) * 100);
         },
 
         init() {
-            this.$watch('$store.app.initialized', (val) => {
-                if (val && Alpine.store('app').currentSessionId) {
-                    this.loadHistory();
-                    this.updateQuickReplies();
-                    this.currentStep = Math.min(Alpine.store('app').profileDimensions.length + 1, this.totalSteps);
-                }
+            this.$watch('$store.app.initialized', (ready) => {
+                if (ready) this.refreshForSession();
             });
-            if (Alpine.store('app').initialized && Alpine.store('app').currentSessionId) {
-                this.loadHistory();
-                this.updateQuickReplies();
+            this.$watch('$store.app.currentSessionId', () => this.refreshForSession());
+            this.$watch('$store.app.rawProfile', () => this.hydrateFromProfile());
+            if (Alpine.store('app').initialized) {
+                this.refreshForSession();
             }
         },
 
         async doQuickStart() {
-            const sid = await Alpine.store('app').createSessionPrompt();
-            if (sid) {
-                this.$nextTick(() => {
-                    this.loadHistory();
-                    this.scrollToBottom();
-                });
-            }
+            await Alpine.store('app').createSessionPrompt();
         },
 
-        async loadHistory() {
-            const sid = Alpine.store('app').currentSessionId;
-            if (!sid) return;
-            try {
-                const resp = await fetch(`/api/chat/history/${sid}`);
-                const messages = await resp.json();
-                this.chatMessages = messages.map(m => ({
-                    ...m,
-                    content_md: m.role === 'assistant' ? marked.parse(m.content) : null,
-                }));
-                this.$nextTick(() => this.scrollToBottom());
-            } catch (e) {
-                console.error('Failed to load chat history', e);
-            }
+        refreshForSession() {
+            this.activeIndex = 0;
+            this.savedAt = '';
+            this.hydrateFromProfile();
         },
 
-        sendQuickReply(text) {
-            this.chatInput = text;
-            this.sendMessage();
-        },
-
-        async sendMessage() {
-            const msg = this.chatInput.trim();
-            const sid = Alpine.store('app').currentSessionId;
-            if (!msg || !sid || this.isStreaming) return;
-
-            this.chatMessages.push({ role: 'user', content: msg, content_md: null });
-            this.chatInput = '';
-            this.quickReplies = [];
-            this.isStreaming = true;
-            const requestId = ++this.requestSeq;
-            this.activeRequestId = requestId;
-            this.streamingContent = '';
-            this.streamingContentMd = '';
-            this.$nextTick(() => {
-                this.scrollToBottom();
-                const ta = this.$refs.chatInput;
-                if (ta) ta.style.height = 'auto';
-            });
-
-            try {
-                const resp = await fetch('/api/chat/stream', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ session_id: sid, message: msg }),
-                });
-
-                const reader = resp.body.getReader();
-                const decoder = new TextDecoder();
-                let buffer = '';
-                let assistantContent = '';
-                let answerFinalized = false;
-
-                const finalizeAssistant = () => {
-                    if (answerFinalized) return;
-                    if (assistantContent) {
-                        this.chatMessages.push({
-                            role: 'assistant',
-                            content: assistantContent,
-                            content_md: marked.parse(assistantContent),
-                        });
-                    }
-                    this.streamingContent = '';
-                    this.streamingContentMd = '';
-                    assistantContent = '';
-                    answerFinalized = true;
-                    if (this.activeRequestId === requestId) {
-                        this.isStreaming = false;
-                    }
-                    this.updateQuickReplies();
-                    this.$nextTick(() => this.scrollToBottom());
-                };
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    buffer += decoder.decode(value, { stream: true });
-                    buffer = window.PRLMAD.parseSse(buffer, async (eventName, data) => {
-                        if (eventName === 'token') {
-                            assistantContent += String(data || '');
-                            this.streamingContent = assistantContent;
-                            this.streamingContentMd = marked.parse(assistantContent);
-                        } else if (eventName === 'answer_done') {
-                            if (!assistantContent && data.content) {
-                                assistantContent = data.content;
-                            }
-                            finalizeAssistant();
-                            this.profileUpdating = true;
-                        } else if (eventName === 'profile') {
-                            this.profileVersion++;
-                            await Alpine.store('app').loadProfile();
-                            this.currentStep = Math.min(Alpine.store('app').profileDimensions.length + 1, this.totalSteps);
-                            this.updateQuickReplies();
-                        } else if (eventName === 'done') {
-                            finalizeAssistant();
-                            this.profileUpdating = false;
-                        } else if (eventName === 'error') {
-                            const errMsg = data.message || '未知错误';
-                            this.chatMessages.push({
-                                role: 'assistant',
-                                content: '抱歉: ' + errMsg,
-                                content_md: '<p class="text-red-500">' + errMsg + '</p>',
-                            });
-                            this.streamingContent = '';
-                            this.streamingContentMd = '';
-                            assistantContent = '';
-                            answerFinalized = true;
-                            if (this.activeRequestId === requestId) {
-                                this.isStreaming = false;
-                            }
-                            this.profileUpdating = false;
-                        }
-                    });
-                    this.$nextTick(() => this.scrollToBottom());
-                }
-
-                if (assistantContent && !answerFinalized) {
-                    this.chatMessages.push({
-                        role: 'assistant',
-                        content: assistantContent,
-                        content_md: marked.parse(assistantContent),
-                    });
-                }
-
-                await Alpine.store('app').loadProfile();
-                this.updateQuickReplies();
-                this.profileVersion++;
-                this.currentStep = Math.min(Alpine.store('app').profileDimensions.length + 1, this.totalSteps);
-            } catch (e) {
-                this.chatMessages.push({
-                    role: 'assistant',
-                    content: '网络错误: ' + e.message,
-                    content_md: '<p class="text-red-500">网络错误: ' + e.message + '</p>',
-                });
-            }
-            this.streamingContent = '';
-            this.streamingContentMd = '';
-            if (this.activeRequestId === requestId) {
-                this.isStreaming = false;
-            }
-            this.profileUpdating = false;
-            this.$nextTick(() => this.scrollToBottom());
-        },
-
-        updateQuickReplies() {
+        hydrateFromProfile() {
             const raw = Alpine.store('app').rawProfile || {};
-            const hasValue = (key) => raw[key] && String(raw[key]).trim().length > 0;
-            const lastAssistant = [...this.chatMessages].reverse()
-                .find(m => m.role === 'assistant')?.content || '';
-            const includesAny = (text, words) => words.some(w => text.includes(w));
+            this.profileDraft.major = raw.major || '';
+            this.profileDraft.grade = raw.grade || '';
 
-            let focus = '';
-            if (includesAny(lastAssistant, ['专业', '年级', '课程'])) focus = 'identity';
-            else if (includesAny(lastAssistant, ['目标', '提升', '考试', '项目', '面试', '能力'])) focus = 'goal';
-            else if (includesAny(lastAssistant, ['基础', '学过', '学到哪里', '掌握', '当前水平'])) focus = 'knowledge';
-            else if (includesAny(lastAssistant, ['困难', '薄弱', '不明白', '抽象', '章节', '知识点', '题目'])) focus = 'weak';
-            else if (includesAny(lastAssistant, ['图解', '代码', '做题', '实验', '偏好', '喜欢', '资源'])) focus = 'preference';
-            else if (includesAny(lastAssistant, ['时间', '每天', '每周', '投入'])) focus = 'time';
-
-            if (!focus) {
-                if (!hasValue('major') || !hasValue('grade')) focus = 'identity';
-                else if (!hasValue('goal')) focus = 'goal';
-                else if (!hasValue('knowledge_level')) focus = 'knowledge';
-                else if (!hasValue('weak_points')) focus = 'weak';
-                else if (!hasValue('preferences') && !hasValue('cognitive_style')) focus = 'preference';
-                else if (!hasValue('available_time')) focus = 'time';
-                else focus = 'ready';
+            for (const step of this.profileSteps) {
+                if (step.type === 'grouped') {
+                    for (const field of step.fields || []) {
+                        if (raw[field.key]) {
+                            this.profileDraft[field.key] = raw[field.key];
+                        }
+                    }
+                    continue;
+                }
+                const target = step.target;
+                const rawValue = String(raw[target] || '');
+                const matched = (step.options || []).filter((option) => rawValue.includes(option));
+                if (step.multi) {
+                    this.selections[target] = matched;
+                } else {
+                    this.selections[target] = matched[0] || '';
+                }
+                this.customInputs[target] = matched.length ? '' : rawValue;
             }
-
-            const replies = {
-                identity: [
-                    '我是软件工程专业大二学生，正在学习操作系统',
-                    '我是计算机相关专业，想补齐操作系统基础',
-                    '我正在上操作系统课，教材主要讲进程、内存和文件系统',
-                ],
-                goal: [
-                    '我想系统掌握操作系统原理，为课程考试和项目开发打基础',
-                    '我希望能把进程、内存和文件系统讲清楚，也能做题',
-                    '我更想提升面试和项目中解释系统机制的能力',
-                ],
-                knowledge: [
-                    '我学过C语言、数据结构和一点计算机组成，操作系统刚入门',
-                    '我知道进程和线程的概念，但同步、死锁和内存管理不太稳',
-                    '我已经学到进程调度和同步，后面的虚拟内存还没掌握',
-                ],
-                weak: [
-                    '信号量和死锁这部分我一直不太明白',
-                    '页面置换算法和虚拟内存感觉比较抽象',
-                    '我做题时经常分不清进程同步、互斥和调度的条件',
-                ],
-                preference: [
-                    '我比较喜欢图解配合代码示例来学习',
-                    '我喜欢通过做题和错题解析来巩固知识点',
-                    '我希望有讲义、思维导图和小实验一起辅助学习',
-                ],
-                time: [
-                    '我每天大概有1小时学习时间，周末可以多学一点',
-                    '我每周能投入4到6小时，希望按7天计划推进',
-                    '我平时碎片时间多，希望每次任务控制在30分钟左右',
-                ],
-                ready: [
-                    '我觉得你已经比较了解我了，可以开始生成学习资源了',
-                    '请围绕我的薄弱点生成讲义、思维导图、练习和学习路径',
-                ],
-            };
-            this.quickReplies = (replies[focus] || replies.ready).slice(0, 4);
         },
 
-        scrollToBottom() {
-            const el = this.$refs.msgContainer;
-            if (el) el.scrollTop = el.scrollHeight;
+        selectFieldOption(key, value) {
+            this.profileDraft[key] = value;
+            this.savedAt = '';
+        },
+
+        isSelected(target, value) {
+            const current = this.selections[target];
+            if (Array.isArray(current)) return current.includes(value);
+            return current === value;
+        },
+
+        toggleOption(target, value, multi) {
+            this.savedAt = '';
+            if (multi) {
+                const set = new Set(this.selections[target] || []);
+                if (set.has(value)) set.delete(value);
+                else set.add(value);
+                this.selections[target] = Array.from(set);
+                return;
+            }
+            this.selections[target] = this.selections[target] === value ? '' : value;
+        },
+
+        buildChoiceValue(step) {
+            const target = step.target;
+            const custom = (this.customInputs[target] || '').trim();
+            const selected = this.selections[target];
+            const parts = Array.isArray(selected) ? selected.slice() : (selected ? [selected] : []);
+            if (custom) parts.push(custom);
+            return Array.from(new Set(parts)).join('；');
+        },
+
+        isStepComplete(step) {
+            if (step.type === 'grouped') {
+                return (step.fields || []).every((field) => String(this.profileDraft[field.key] || '').trim());
+            }
+            return Boolean(this.buildChoiceValue(step));
+        },
+
+        buildProfile() {
+            const profile = { ...(Alpine.store('app').rawProfile || {}) };
+            const fields = ['major', 'grade', 'available_time', 'learning_motivation'];
+            for (const key of fields) {
+                const value = String(this.profileDraft[key] || '').trim();
+                if (value) profile[key] = value;
+            }
+            for (const step of this.profileSteps) {
+                if (step.type === 'grouped') {
+                    for (const field of step.fields || []) {
+                        const value = String(this.profileDraft[field.key] || '').trim();
+                        if (value) profile[field.key] = value;
+                    }
+                    continue;
+                }
+                const value = this.buildChoiceValue(step);
+                if (value) profile[step.target] = value;
+            }
+            if (profile.preferences && !profile.cognitive_style) {
+                profile.cognitive_style = profile.preferences;
+            }
+            return profile;
+        },
+
+        async saveProfile(options = {}) {
+            const sid = Alpine.store('app').currentSessionId;
+            if (!sid || this.saving) return false;
+            this.saving = true;
+            try {
+                const resp = await fetch(`/api/profile/${sid}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ profile: this.buildProfile() }),
+                });
+                if (!resp.ok) throw new Error('服务端拒绝了画像保存请求');
+                await Alpine.store('app').loadProfile();
+                this.profileVersion += 1;
+                if (!options.silent) {
+                    this.savedAt = '已保存 ' + new Date().toLocaleTimeString('zh-CN', { hour12: false });
+                }
+                window.dispatchEvent(new CustomEvent('prlmad:profile-updated', {
+                    detail: { sessionId: sid },
+                }));
+                return true;
+            } catch (e) {
+                alert('保存画像失败: ' + e.message);
+                return false;
+            } finally {
+                this.saving = false;
+            }
+        },
+
+        async nextStep() {
+            await this.saveProfile({ silent: true });
+            if (this.activeIndex < this.totalSteps - 1) {
+                this.activeIndex += 1;
+                this.savedAt = '';
+            } else {
+                this.savedAt = '画像已完成，可生成资源';
+            }
+        },
+
+        prevStep() {
+            if (this.activeIndex > 0) {
+                this.activeIndex -= 1;
+                this.savedAt = '';
+            }
         },
     }));
 });

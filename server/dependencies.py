@@ -15,7 +15,18 @@ def get_settings_cached() -> Settings:
 
 def get_knowledge_base() -> KnowledgeBase:
     settings = get_settings_cached()
-    return KnowledgeBase(settings.db_path)
+    primary = KnowledgeBase(settings.db_path)
+    active_path = settings.data_dir / "knowledge_active.sqlite3"
+    if (
+        settings.db_path.name == "knowledge.sqlite3"
+        and active_path != settings.db_path
+        and active_path.exists()
+        and primary.get_chunk_count() == 0
+    ):
+        candidate = KnowledgeBase(active_path)
+        if candidate.get_chunk_count() > 0:
+            return candidate
+    return primary
 
 
 def get_session_store() -> SessionStore:

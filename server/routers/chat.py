@@ -11,7 +11,7 @@ from server.utils.sse import sse_event, sse_done, sse_error
 
 import logging
 
-from src.prlmad.spark_client import SparkClient
+from src.prlmad.spark_client import SparkAPIError, SparkClient
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +95,17 @@ def _profile_guidance(profile: dict) -> str:
 
 
 
+def _chat_error_message(exc: Exception) -> str:
+    text = str(exc)
+    if "NotFirstSystemError" in text:
+        return "Spark 接口拒绝了请求格式：系统提示必须合并放在第一条消息中。请刷新页面后重试。"
+    if "SPARK_API_KEY is not configured" in text:
+        return "Spark API Key 未配置或仍是示例值，请检查 .env 中的 SPARK_API_KEY。"
+    if "HTTP 400" in text:
+        return "Spark 接口返回 400，请稍后重试；如果持续出现，请检查模型名称和请求格式。"
+    return text
+
+
 async def _build_profile_response(
     client: SparkClient,
     session_store,
@@ -107,8 +118,10 @@ async def _build_profile_response(
     existing_profile = session_store.get_profile(session_id)
     history = session_store.get_chat_history(session_id)
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT_PROFILE},
-        {"role": "system", "content": _profile_guidance(existing_profile)},
+        {
+            "role": "system",
+            "content": SYSTEM_PROMPT_PROFILE + "\n\n## 当前画像追问策略\n" + _profile_guidance(existing_profile),
+        },
     ]
     for msg in history[-20:]:
         role = "assistant" if msg.role == "assistant" else "user"
@@ -121,8 +134,13 @@ async def _build_profile_response(
             if chunk.content:
                 full_response += chunk.content
                 yield sse_event("token", chunk.content)
+    except SparkAPIError as e:
+        logger.warning("Spark chat request failed: %s", e)
+        yield sse_error(_chat_error_message(e))
+        return
     except Exception as e:
-        yield sse_error(str(e))
+        logger.exception("Chat stream failed")
+        yield sse_error(_chat_error_message(e))
         return
 
     session_store.add_chat_message(session_id, "assistant", full_response, "profile_agent")
