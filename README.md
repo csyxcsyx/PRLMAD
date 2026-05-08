@@ -78,7 +78,7 @@ SPARK_USER_ID=prlmad-demo-user
 SPARK_ENABLE_WEB_SEARCH=false
 SPARK_TRUST_ENV_PROXY=false
 PRLMAD_DATA_DIR=data
-PRLMAD_DB_PATH=data/knowledge_active.sqlite3
+PRLMAD_DB_PATH=data/knowledge.sqlite3
 PRLMAD_KNOWLEDGE_DIR=knowledge
 PRLMAD_OCR_MODE=auto
 PRLMAD_OFFLINE_FALLBACK=false
@@ -320,5 +320,6 @@ python -B run.py status
 
 - 后端修改后先运行 `python -B -c "from server.main import app; print(app.title)"` 做导入烟测。
 - 前端改动后启动 `python run.py serve --no-reload`，再检查浏览器控制台和 Network 面板。
-- 数据库文件位于 `data/`，默认已被 `.gitignore` 忽略。
-- 教材 PDF 位于 `knowledge/`，默认忽略 PDF 文件，避免提交大文件。
+- `data/` 保存本地 SQLite 运行数据和已导入的知识库索引，默认不提交到 Git。
+- `knowledge/` 保存本地教材文件，默认不提交到 Git，避免把大 PDF 上传到 GitHub。
+- 协作者首次使用时需要自行准备教材文件，并通过 `python -B run.py train --course 操作系统 --ocr-mode off` 或网页端知识库管理页面构建本地知识库。

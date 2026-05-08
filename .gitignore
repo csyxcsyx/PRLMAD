@@ -4,9 +4,9 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .mypy_cache/
+# Local runtime data and large course assets are not committed.
 data/
-knowledge/*.pdf
-knowledge/*.PDF
+knowledge/
 dist/
 build/
 *.egg-info/

@@ -375,7 +375,8 @@ class AgentOrchestrator:
 {conversation_text}
 {existing_text}
 
-请从对话中提取或更新学生学习画像，以 JSON 格式输出，包含以下字段（至少 6 个有值）：
+请从对话中提取或更新学生学习画像，以 JSON 格式输出，包含以下字段。
+只填写对话中明确出现、可以合理归纳或已有画像中已经稳定存在的信息；不要为了凑字段而编造。
 - major: 专业方向
 - grade: 年级
 - goal: 课程学习目标
@@ -388,7 +389,7 @@ class AgentOrchestrator:
 - problem_solving: 问题解决能力
 - practical_ability: 实践能力
 
-只基于对话中明确提及的信息填写对应字段，未提及的字段留空字符串。
+只基于对话中明确提及的信息填写对应字段，未提及且已有画像中也没有的信息留空字符串；不要用空字符串覆盖已有画像。
 输出格式：纯 JSON，不要包含 markdown 代码块标记。"""
         return self.client.chat(_messages("你是学习画像提取智能体，输出 JSON，判断标准应像专业教师一样审慎。", prompt))
 

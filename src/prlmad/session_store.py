@@ -240,7 +240,14 @@ class SessionStore:
     def get_chat_history(self, session_id: str, limit: int = 50) -> list[ChatMessage]:
         with self.connect() as conn:
             rows = conn.execute(
-                "SELECT * FROM chat_history WHERE session_id = ? ORDER BY id ASC LIMIT ?",
+                """
+                SELECT * FROM (
+                    SELECT * FROM chat_history
+                    WHERE session_id = ?
+                    ORDER BY id DESC
+                    LIMIT ?
+                ) ORDER BY id ASC
+                """,
                 (session_id, limit),
             ).fetchall()
         return [

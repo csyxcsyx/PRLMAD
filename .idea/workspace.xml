@@ -4,36 +4,22 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f8c67ac5-c48e-4f05-a742-eacd3a0de6d9" name="更改" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/PRLMAD.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/PRLMAD.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+    <list default="true" id="f8c67ac5-c48e-4f05-a742-eacd3a0de6d9" name="更改" comment="上传了《操作系统》教材和已经完成导入的支持库...">
+      <change afterPath="$PROJECT_DIR$/.gitattributes" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/knowledge_active.sqlite3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/knowledge/教材-操作系统概念-亚伯拉罕·西尔伯沙茨-械工业出版社.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knowledge/.gitkeep" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/run_cli.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/run_web.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/prlmad/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/prlmad/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/routers/chat.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/routers/chat.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/prlmad/agents.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/prlmad/agents.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/prlmad/app.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/prlmad/cli.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/prlmad/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/prlmad/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/prlmad/knowledge_base.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/prlmad/knowledge_base.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/prlmad/pdf_loader.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/prlmad/pdf_loader.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/prlmad/safety.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/prlmad/safety.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/prlmad/spark_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/prlmad/spark_client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/prlmad/text_splitter.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/prlmad/text_splitter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/prlmad/training.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/prlmad/training.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/prlmad/web/app.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/prlmad/web/index.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/prlmad/web/style.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/streamlit_app.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_agents.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_knowledge_base.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_text_splitter.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/prlmad/session_store.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/prlmad/session_store.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/app.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/chat.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/chat.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/pages/chat.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/pages/chat.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/pages/generate.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/pages/generate.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,6 +52,7 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;ASKED_MARK_IGNORED_FILES_AS_EXCLUDED&quot;: &quot;true&quot;,
     &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
@@ -96,15 +83,47 @@
       <option name="presentableId" value="Default" />
       <updated>1778218151356</updated>
       <workItem from="1778218152855" duration="3266000" />
-      <workItem from="1778224999660" duration="9185000" />
+      <workItem from="1778224999660" duration="9497000" />
+      <workItem from="1778242328699" duration="5530000" />
+      <workItem from="1778254535722" duration="717000" />
     </task>
+    <task id="LOCAL-00001" summary="使用Python (FastAPI) + HTML + CSS + TailwindCSS + Alpine.js框架：&#10;重新构建代码逻辑，重新设计页面">
+      <option name="closed" value="true" />
+      <created>1778239124088</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1778239124088</updated>
+    </task>
+    <task id="LOCAL-00002" summary="上传了《操作系统》教材和已经完成导入的支持库...">
+      <option name="closed" value="true" />
+      <created>1778254310725</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1778254310725</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="重新设计了布局和代码逻辑，但界面还是丑丑的..." />
-    <option name="LAST_COMMIT_MESSAGE" value="" />
+    <MESSAGE value="使用Python (FastAPI) + HTML + CSS + TailwindCSS + Alpine.js框架：&#10;重新构建代码逻辑，重新设计页面" />
+    <MESSAGE value="上传了《操作系统》教材和已经完成导入的支持库..." />
+    <option name="LAST_COMMIT_MESSAGE" value="上传了《操作系统》教材和已经完成导入的支持库..." />
   </component>
 </project>

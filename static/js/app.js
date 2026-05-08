@@ -2,9 +2,14 @@ document.addEventListener('alpine:init', () => {
     Alpine.store('app', {
         currentSessionId: '',
         sessions: [],
+        rawProfile: {},
         profileDimensions: [],
         loading: false,
         initialized: false,
+
+        get currentSession() {
+            return this.sessions.find(s => s.session_id === this.currentSessionId) || null;
+        },
 
         async init() {
             this.loading = true;
@@ -48,6 +53,7 @@ document.addEventListener('alpine:init', () => {
             try {
                 const resp = await fetch(`/api/profile/${this.currentSessionId}`);
                 const profile = await resp.json();
+                this.rawProfile = profile || {};
                 const dimNames = {
                     major: '专业方向', grade: '年级', goal: '学习目标',
                     knowledge_level: '知识基础', cognitive_style: '认知风格',
@@ -62,6 +68,7 @@ document.addEventListener('alpine:init', () => {
                     .slice(0, 8);
             } catch (e) {
                 console.error('Failed to load profile', e);
+                this.rawProfile = {};
                 this.profileDimensions = [];
             }
         },
@@ -86,6 +93,7 @@ document.addEventListener('alpine:init', () => {
                     updated_at: data.created_at,
                 });
                 this.currentSessionId = data.session_id;
+                this.rawProfile = {};
                 this.profileDimensions = [];
                 window.location.hash = data.session_id;
                 return data.session_id;
@@ -105,6 +113,45 @@ document.addEventListener('alpine:init', () => {
             this.currentSessionId = sid;
             window.location.hash = sid;
             this.loadProfile();
+        },
+
+        async renameCurrentSession() {
+            const current = this.currentSession;
+            if (!current) return;
+            const name = prompt('重命名当前学习会话:', current.name);
+            if (name === null) return;
+            const nextName = name.trim();
+            if (!nextName || nextName === current.name) return;
+            try {
+                const resp = await fetch(`/api/session/${current.session_id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: nextName }),
+                });
+                if (!resp.ok) throw new Error('服务端拒绝了重命名请求');
+                current.name = nextName;
+            } catch (e) {
+                alert('重命名失败: ' + e.message);
+            }
+        },
+
+        async deleteCurrentSession() {
+            const current = this.currentSession;
+            if (!current) return;
+            const ok = confirm(`确定删除「${current.name}」吗？该会话的聊天记录、资源、路径和评估会一起删除。`);
+            if (!ok) return;
+            try {
+                const resp = await fetch(`/api/session/${current.session_id}`, { method: 'DELETE' });
+                if (!resp.ok) throw new Error('服务端拒绝了删除请求');
+                this.sessions = this.sessions.filter(s => s.session_id !== current.session_id);
+                this.currentSessionId = this.sessions[0]?.session_id || '';
+                this.rawProfile = {};
+                this.profileDimensions = [];
+                window.location.hash = this.currentSessionId || '';
+                if (this.currentSessionId) await this.loadProfile();
+            } catch (e) {
+                alert('删除失败: ' + e.message);
+            }
         },
     });
 });

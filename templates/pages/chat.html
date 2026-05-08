@@ -6,8 +6,8 @@
         <div class="max-w-lg text-center fade-in">
             <div class="w-20 h-20 rounded-2xl gradient-brand flex items-center justify-center text-white text-3xl font-bold shadow-xl mx-auto mb-6 pulse">P</div>
             <h2 class="text-2xl font-bold text-gray-800 mb-2">欢迎使用 PRLMAD</h2>
-            <p class="text-gray-500 mb-1">个性化学习资源多智能体系统</p>
-            <p class="text-sm text-gray-400 mb-8">基于大模型的智能学习伴侣，为你量身定制学习方案</p>
+            <p class="text-gray-500 mb-1">先聊几句，系统会为你生成学习画像</p>
+            <p class="text-sm text-gray-400 mb-8">画像越完整，后续资源、路径和评估越贴近你的真实情况</p>
 
             <div class="grid grid-cols-3 gap-3 mb-8">
                 <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
@@ -24,6 +24,15 @@
                     <span class="label-mark mx-auto">资</span>
                     <p class="text-xs text-gray-600 mt-2 font-medium">9种学习资源</p>
                     <p class="text-[10px] text-gray-400 mt-0.5">个性化定向生成</p>
+                </div>
+            </div>
+
+            <div class="bg-white border border-brand-100 rounded-2xl p-4 text-left shadow-sm mb-6">
+                <p class="text-xs font-semibold text-brand-700 mb-2">建议从这里开始</p>
+                <div class="grid grid-cols-1 gap-2 text-xs text-gray-600">
+                    <p><span class="label-mark mr-2">1</span>创建一个学习会话，告诉小P你的专业、课程和目标。</p>
+                    <p><span class="label-mark mr-2">2</span>按输入框上方的快捷提示补齐基础、薄弱点和学习偏好。</p>
+                    <p><span class="label-mark mr-2">3</span>画像达到 5 个维度后，去资源生成页创建个性化学习包。</p>
                 </div>
             </div>
 
@@ -57,6 +66,9 @@
                     </div>
                     <span class="text-[11px] font-medium text-brand-600" x-text="profileProgress + '%'"></span>
                 </div>
+                <span x-show="profileUpdating" class="hidden sm:inline-flex text-[11px] bg-amber-50 text-amber-600 border border-amber-100 rounded-full px-2.5 py-1">
+                    画像后台更新中，可继续输入
+                </span>
             </div>
         </div>
 
@@ -68,7 +80,7 @@
                     <div class="w-8 h-8 rounded-xl gradient-brand flex items-center justify-center text-white text-xs flex-shrink-0">AI</div>
                     <div class="bg-white border border-gray-100 rounded-2xl rounded-bl-md px-5 py-3.5 shadow-sm max-w-[80%]">
                         <p class="text-sm text-gray-700 font-medium mb-2">你好，我是你的专属学习顾问。</p>
-                        <p class="text-sm text-gray-600 mb-3">为了更好地为你规划学习方案，我想先了解一些你的情况。不用紧张，就像和朋友聊天一样～</p>
+                        <p class="text-sm text-gray-600 mb-3">我们先把画像建稳：请从专业、年级和正在学习的课程开始。你也可以直接点击下面的快捷回复。</p>
                         <div class="space-y-1.5">
                             <button @click="sendQuickReply('我是计算机科学与技术专业大二的学生，正在学习操作系统这门课')"
                                 class="block text-left text-xs bg-brand-50 text-brand-700 hover:bg-brand-100 rounded-lg px-3 py-2 transition-colors w-full border border-brand-100">
@@ -112,10 +124,11 @@
         </div>
 
         <!-- Quick Reply Suggestions -->
-        <div x-show="quickReplies.length > 0 && !isStreaming" class="px-6 pb-2 flex gap-2 overflow-x-auto flex-shrink-0" x-ref="quickReplyBar">
+        <div x-show="quickReplies.length > 0 && !isStreaming" class="px-6 pb-2 flex items-center gap-2 overflow-x-auto flex-shrink-0" x-ref="quickReplyBar">
+            <span class="text-[11px] text-gray-400 whitespace-nowrap">可一键回复</span>
             <template x-for="qr in quickReplies" :key="qr">
                 <button @click="sendQuickReply(qr)"
-                    class="text-xs bg-white border border-gray-200 text-gray-600 hover:border-brand-300 hover:text-brand-600 rounded-full px-3 py-1.5 transition-colors whitespace-nowrap flex-shrink-0">
+                    class="text-xs bg-white border border-gray-200 text-gray-600 hover:border-brand-300 hover:text-brand-600 rounded-full px-3 py-1.5 transition-colors whitespace-nowrap flex-shrink-0 shadow-sm">
                     <span x-text="qr"></span>
                 </button>
             </template>
@@ -125,7 +138,7 @@
         <div class="border-t border-gray-100 bg-white px-6 py-3 flex-shrink-0">
             <div class="flex gap-3 max-w-4xl mx-auto">
                 <textarea x-model="chatInput" @keydown.enter.prevent="if(!$event.shiftKey) sendMessage()"
-                    placeholder="告诉我你的专业和正在学习的课程吧～ (Shift+Enter 换行)"
+                    :placeholder="profileUpdating ? '画像正在后台更新，你可以继续补充信息... (Shift+Enter 换行)' : '告诉我你的专业和正在学习的课程吧～ (Shift+Enter 换行)'"
                     rows="1"
                     class="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-400 focus:border-transparent outline-none resize-none bg-gray-50 placeholder-gray-400"
                     :disabled="isStreaming || !$store.app.currentSessionId"
