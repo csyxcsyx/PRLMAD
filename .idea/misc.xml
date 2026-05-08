@@ -3,8 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="PRLMAD" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="PRLMAD" project-jdk-type="Python SDK" />
-  <component name="PythonCompatibilityInspectionAdvertiser">
-    <option name="version" value="3" />
-  </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="PRLMAD (2)" project-jdk-type="Python SDK" />
 </project>

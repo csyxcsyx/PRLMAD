@@ -72,7 +72,7 @@ def chunk_pages(
         for segment in _segments(text):
             while len(segment) > max_chars:
                 head = segment[:max_chars]
-                segment = segment[max_chars - overlap_chars :]
+                segment = segment[max_chars - overlap_chars:]
                 if buffer:
                     flush()
                 chunks.append(TextChunk(normalize_text(head), page.page_number, page.page_number))
@@ -89,4 +89,3 @@ def chunk_pages(
     if buffer:
         flush()
     return chunks
-

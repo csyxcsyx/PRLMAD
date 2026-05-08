@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block content %}
+<div x-data="pathPage" class="flex flex-col h-full">
+    <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white text-sm font-bold">P</div>
+            <div>
+                <h2 class="text-sm font-semibold text-gray-800">个性化学习路径</h2>
+                <p class="text-[11px] text-gray-400">基于画像的科学学习规划</p>
+            </div>
+        </div>
+        <div class="flex gap-2 items-center">
+            <input type="text" x-model="kpInput"
+                placeholder="关注的知识点（可选）"
+                class="border border-gray-200 rounded-lg px-3 py-2 text-sm w-48 focus:ring-2 focus:ring-brand-400 outline-none bg-gray-50 placeholder-gray-400" />
+            <button @click="generatePath()"
+                class="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg px-4 py-2 text-sm font-medium transition-all shadow-sm disabled:opacity-40"
+                :disabled="loading || !$store.app.currentSessionId">
+                <span x-show="!loading">生成路径</span>
+                <span x-show="loading" class="flex items-center gap-1">
+                    <svg class="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    生成中
+                </span>
+            </button>
+        </div>
+    </div>
+    <div class="flex-1 overflow-y-auto p-6">
+        <div class="max-w-3xl mx-auto">
+            <!-- Empty State -->
+            <div x-show="!pathData.title && !loading" class="text-center py-16 fade-in">
+                <span class="empty-mark">路</span>
+                <p class="text-lg font-medium text-gray-400 mt-4">尚未生成学习路径</p>
+                <p class="text-sm text-gray-400 mt-1">输入关注的知识点，点击「生成路径」按钮</p>
+                <p class="text-xs text-gray-300 mt-1">AI将基于你的学习画像，规划7天科学学习方案</p>
+                <div x-show="!$store.app.currentSessionId" class="mt-3 text-xs text-amber-500 bg-amber-50 rounded-lg px-4 py-2 inline-block">请先在侧边栏创建学习会话</div>
+            </div>
+
+            <div x-show="pathData.title" class="space-y-6 fade-in">
+                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800" x-text="pathData.title"></h3>
+                            <p class="text-sm text-gray-500 mt-1" x-text="pathData.adjustment_strategy || '根据学习进度动态调整'"></p>
+                        </div>
+                        <span class="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium" x-text="'共' + (pathData.steps ? pathData.steps.length : 0) + '天'"></span>
+                    </div>
+                    <div class="mt-4 bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                        <div class="bg-gradient-to-r from-green-400 to-emerald-500 h-full rounded-full transition-all duration-700"
+                            :style="'width: ' + progressPercent + '%'"></div>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2" x-text="'进度: 第 ' + (currentStep || 1) + ' 天 / 共 ' + (pathData.steps ? pathData.steps.length : 0) + ' 天 (' + progressPercent + '%)'"></p>
+                </div>
+
+                <div class="relative pl-8">
+                    <div class="absolute left-[15px] top-4 bottom-4 w-0.5 bg-gray-200"></div>
+                    <template x-for="(step, idx) in (pathData.steps || [])" :key="idx">
+                        <div class="relative pb-5" :class="idx >= currentStep ? '' : 'opacity-60'">
+                            <div class="absolute left-[-23px] w-4 h-4 rounded-full border-2 mt-1.5 z-10 bg-white"
+                                :class="idx < currentStep ? 'border-green-500 bg-green-500' : (idx === currentStep - 0 ? 'border-brand-500 ring-4 ring-brand-100' : 'border-gray-300')">
+                            </div>
+                            <div class="bg-white border rounded-2xl p-5 shadow-sm ml-2 transition-all"
+                                :class="idx === currentStep - 0 ? 'border-brand-200 ring-1 ring-brand-100' : 'border-gray-100'">
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="text-xs font-bold text-white gradient-brand px-3 py-1 rounded-full" x-text="'第' + (step.day || (idx+1)) + '天'"></span>
+                                    <span class="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full" x-text="step.estimated_time || '约45分钟'"></span>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 mb-1" x-text="step.topic || step.goal"></h4>
+                                <p class="text-sm text-gray-600 mb-3" x-text="step.content || step.goal"></p>
+                                <div x-show="step.exercises && step.exercises.length" class="mb-3">
+                                    <p class="text-xs font-semibold text-gray-500 mb-1.5">练习任务</p>
+                                    <div class="space-y-1">
+                                        <template x-for="(ex, exi) in (step.exercises || [])" :key="exi">
+                                            <div class="flex items-start gap-2 text-xs text-gray-600 bg-gray-50 rounded-lg p-2">
+                                                <span class="text-brand-500 font-bold mt-0.5" x-text="exi + 1 + '.'"></span>
+                                                <span x-text="ex"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                                <div x-show="idx === (currentStep || 0) - 0" class="mt-3 pt-3 border-t border-gray-100">
+                                    <button @click="markComplete(idx)"
+                                        class="text-xs bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-lg px-3 py-1.5 transition-colors font-medium">
+                                        ✓ 标记完成
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('pathPage', () => ({
+        kpInput: '',
+        loading: false,
+        pathData: {},
+        currentStep: 0,
+        init() {
+            this.$watch('$store.app.initialized', (ready) => {
+                if (ready) this.loadPath();
+            });
+            this.$watch('$store.app.currentSessionId', () => this.loadPath());
+            if (Alpine.store('app').initialized) this.loadPath();
+        },
+        get progressPercent() {
+            const steps = this.pathData.steps || [];
+            if (!steps.length) return 0;
+            return Math.round((this.currentStep / steps.length) * 100);
+        },
+        async loadPath() {
+            const sid = Alpine.store('app').currentSessionId;
+            if (!sid) {
+                this.pathData = {};
+                this.currentStep = 0;
+                return;
+            }
+            if (this.loading) return;
+            try {
+                const resp = await fetch(`/api/learning-path/${sid}`);
+                const data = await resp.json();
+                this.pathData = data.path || {};
+                this.currentStep = data.current_step || 0;
+            } catch (e) {
+                this.pathData = {};
+                this.currentStep = 0;
+            }
+        },
+        async generatePath() {
+            const sid = Alpine.store('app').currentSessionId;
+            if (!sid) { alert('请先创建会话'); return; }
+            this.loading = true;
+            try {
+                const resp = await fetch('/api/learning-path/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sid, knowledge_points: this.kpInput }),
+                });
+                const data = await resp.json();
+                this.pathData = data.path || {};
+                this.currentStep = 0;
+            } catch (e) {
+                alert('路径生成失败: ' + e.message);
+            }
+            this.loading = false;
+        },
+        async markComplete(idx) {
+            const sid = Alpine.store('app').currentSessionId;
+            this.currentStep = idx + 1;
+            try {
+                await fetch('/api/learning-path/' + sid + '/step', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ current_step: this.currentStep }),
+                });
+            } catch (e) {}
+        },
+    }));
+});
+</script>
+{% endblock %}

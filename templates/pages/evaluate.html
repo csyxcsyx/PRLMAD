@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block content %}
+<div x-data="evaluatePage" class="flex flex-col h-full">
+    <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center text-white text-sm font-bold">E</div>
+            <div>
+                <h2 class="text-sm font-semibold text-gray-800">学习效果评估</h2>
+                <p class="text-[11px] text-gray-400">多维度分析学习成果</p>
+            </div>
+        </div>
+        <button @click="runEvaluation()"
+            class="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-lg px-4 py-2 text-sm font-medium transition-all shadow-sm disabled:opacity-40"
+            :disabled="loading || !$store.app.currentSessionId">
+            <span x-show="!loading">开始评估</span>
+            <span x-show="loading" class="flex items-center gap-1">
+                <svg class="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                评估中
+            </span>
+        </button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-6">
+        <div x-show="!evalData.dimensions && !loading" class="text-center py-16 fade-in">
+            <span class="empty-mark">评</span>
+            <p class="text-lg font-medium text-gray-400 mt-4">尚未进行学习评估</p>
+            <p class="text-sm text-gray-400 mt-1">点击「开始评估」按钮，AI将分析你的学习情况</p>
+            <div x-show="!$store.app.currentSessionId" class="mt-3 text-xs text-amber-500 bg-amber-50 rounded-lg px-4 py-2 inline-block">请先在侧边栏创建学习会话</div>
+            <div x-show="$store.app.currentSessionId" class="mt-4 inline-flex items-center gap-2 text-xs text-gray-400 bg-gray-100 rounded-full px-4 py-2">
+                评估基于: 对话记录 · 练习 · 资源 · 辅导 · 路径
+            </div>
+        </div>
+
+        <div x-show="evalData.dimensions" class="max-w-5xl mx-auto space-y-5 fade-in">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-2">能力雷达图</h3>
+                    <div id="radarChart" style="width:100%;height:350px;"></div>
+                </div>
+                <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-3">维度评分</h3>
+                    <div class="space-y-3">
+                        <template x-for="(dim, key) in evalData.dimensions" :key="key">
+                            <div class="bg-gray-50 rounded-xl p-3">
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <span class="text-xs font-semibold text-gray-600" x-text="getDimName(key)"></span>
+                                    <span class="text-xs font-bold" :class="dim.score >= 70 ? 'text-green-600' : dim.score >= 40 ? 'text-yellow-600' : 'text-red-600'"
+                                        x-text="dim.score + '分'"></span>
+                                </div>
+                                <div class="bg-gray-200 rounded-full h-2 overflow-hidden">
+                                    <div class="h-full rounded-full transition-all duration-1000"
+                                        :class="dim.score >= 70 ? 'bg-gradient-to-r from-green-400 to-emerald-500' : dim.score >= 40 ? 'bg-gradient-to-r from-yellow-400 to-amber-500' : 'bg-gradient-to-r from-red-400 to-rose-500'"
+                                        :style="'width:' + Math.max((dim.score || 0), 3) + '%'"></div>
+                                </div>
+                                <p class="text-[11px] text-gray-500 mt-1.5" x-text="dim.comment"></p>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <div x-show="evalData.overall_assessment" class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                <h3 class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">综合评估</h3>
+                <div class="markdown-body text-sm" x-html="marked.parse(evalData.overall_assessment || '')"></div>
+            </div>
+
+            <div x-show="evalData.suggestions && evalData.suggestions.length" class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                <h3 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">改进建议</h3>
+                <div class="space-y-2">
+                    <template x-for="(s, si) in (evalData.suggestions || [])" :key="si">
+                        <div class="flex items-start gap-3 p-3 bg-gradient-to-r from-blue-50 to-transparent rounded-xl">
+                            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5" x-text="si + 1"></span>
+                            <span class="text-sm text-gray-700" x-text="s"></span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('evaluatePage', () => ({
+        loading: false,
+        evalData: {},
+        dimNames: {
+            knowledge_mastery: '知识掌握度',
+            progress_completion: '学习进度完成度',
+            exercise_accuracy: '练习正确率',
+            weak_points_improvement: '薄弱点改善',
+            resource_utilization: '资源利用率',
+            learning_engagement: '学习投入度',
+        },
+        getDimName(key) { return this.dimNames[key] || key; },
+        init() {
+            this.$watch('$store.app.initialized', (ready) => {
+                if (ready) this.loadLatest();
+            });
+            this.$watch('$store.app.currentSessionId', () => this.loadLatest());
+            if (Alpine.store('app').initialized) this.loadLatest();
+        },
+        async loadLatest() {
+            const sid = Alpine.store('app').currentSessionId;
+            if (!sid) {
+                this.evalData = {};
+                return;
+            }
+            if (this.loading) return;
+            try {
+                const resp = await fetch(`/api/evaluate/history/${sid}`);
+                const data = await resp.json();
+                this.evalData = data && data.length ? data[0].data : {};
+                this.$nextTick(() => this.renderRadar());
+            } catch (e) {
+                this.evalData = {};
+            }
+        },
+        async runEvaluation() {
+            const sid = Alpine.store('app').currentSessionId;
+            if (!sid) { alert('请先创建会话'); return; }
+            this.loading = true;
+            try {
+                const resp = await fetch('/api/evaluate/comprehensive', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sid }),
+                });
+                const data = await resp.json();
+                this.evalData = data.evaluation || {};
+                await Alpine.store('app').loadProfile();
+                this.$nextTick(() => this.renderRadar());
+            } catch (e) {
+                alert('评估失败: ' + e.message);
+            }
+            this.loading = false;
+        },
+        renderRadar() {
+            const dom = document.getElementById('radarChart');
+            if (!dom || !this.evalData.dimensions) return;
+            const chart = echarts.getInstanceByDom(dom) || echarts.init(dom);
+            const dims = Object.entries(this.evalData.dimensions);
+            chart.setOption({
+                tooltip: { trigger: 'item' },
+                legend: { bottom: 0, data: ['当前水平'], textStyle: { fontSize: 11 } },
+                radar: {
+                    center: ['50%', '50%'],
+                    radius: '65%',
+                    indicator: dims.map(([k]) => ({ name: this.getDimName(k), max: 100 })),
+                    axisName: { fontSize: 10, color: '#64748b' },
+                },
+                series: [{
+                    type: 'radar',
+                    data: [{ value: dims.map(([, v]) => v.score || 0), name: '当前水平' }],
+                    areaStyle: { color: 'rgba(99,102,241,0.15)' },
+                    lineStyle: { color: '#6366f1', width: 2 },
+                    itemStyle: { color: '#6366f1' },
+                    symbol: 'circle',
+                    symbolSize: 6,
+                }],
+            });
+        },
+    }));
+});
+</script>
+{% endblock %}

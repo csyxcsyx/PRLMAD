@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+{% block content %}
+<div x-data="generatePage" class="flex flex-col h-full">
+    <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-3 flex-shrink-0">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-sm font-bold">G</div>
+        <div>
+            <h2 class="text-sm font-semibold text-gray-800">多智能体协同资源生成</h2>
+            <p class="text-[11px] text-gray-400">12个AI智能体分工协作，为你生成个性化学习资源</p>
+        </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6">
+        <div class="max-w-4xl mx-auto space-y-5">
+            <!-- Step 1: Configuration -->
+            <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold">1</span>
+                    <h3 class="text-sm font-semibold text-gray-700">设置生成目标</h3>
+                </div>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-xs text-gray-500 font-medium mb-1.5 block">学习知识点 <span class="text-red-400">*</span></label>
+                        <textarea x-model="knowledgePoints" rows="2"
+                            placeholder="描述你想学习的内容，例如：操作系统 - 进程同步机制、死锁、内存管理"
+                            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-400 focus:border-transparent outline-none resize-none bg-gray-50 placeholder-gray-400"></textarea>
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-500 font-medium mb-2 block">选择资源类型 <span class="text-red-400">*</span> <span class="text-gray-400 font-normal">(最少5种)</span></label>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            <template x-for="rt in resourceTypes" :key="rt.key">
+                                <label class="flex items-center gap-2 p-2.5 border rounded-xl cursor-pointer transition-all"
+                                    :class="rt.selected ? 'border-brand-300 bg-brand-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 bg-white'">
+                                    <input type="checkbox" x-model="rt.selected" class="accent-brand-500 rounded" />
+                                    <span class="label-mark" x-text="rt.icon"></span>
+                                    <span class="text-xs text-gray-700 font-medium" x-text="rt.name"></span>
+                                </label>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <div x-show="$store.app.profileDimensions.length > 0" class="mt-4 p-3 bg-amber-50 border border-amber-100 rounded-xl">
+                    <p class="text-xs text-amber-700 flex items-center gap-1.5">
+                        <span class="label-mark">提示</span> 将基于你的学习画像（<span x-text="$store.app.profileDimensions.length"></span>个维度）进行个性化生成
+                    </p>
+                </div>
+                <div x-show="$store.app.profileDimensions.length === 0 && $store.app.currentSessionId" class="mt-4 p-3 bg-red-50 border border-red-100 rounded-xl">
+                    <p class="text-xs text-red-600">
+                        尚未构建学习画像，建议先去「对话画像」页面完善个人学习信息
+                    </p>
+                </div>
+                <div x-show="!$store.app.currentSessionId" class="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                    <p class="text-xs text-gray-500">请先在侧边栏创建或选择一个学习会话</p>
+                </div>
+
+                <button @click="startGeneration()"
+                    class="mt-4 w-full bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white rounded-xl px-6 py-3 text-sm font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
+                    :disabled="generating || !knowledgePoints.trim() || !$store.app.currentSessionId">
+                    <span x-show="!generating" class="flex items-center justify-center gap-2">启动多智能体协同生成</span>
+                    <span x-show="generating" class="flex items-center justify-center gap-2">
+                        <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                        智能体协作中...
+                    </span>
+                </button>
+            </div>
+
+            <!-- Step 2: Progress -->
+            <div x-show="stages.length > 0" class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm fade-in">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold">2</span>
+                    <h3 class="text-sm font-semibold text-gray-700">智能体协作进度</h3>
+                    <span class="ml-auto text-xs text-gray-400" x-text="stages.filter(function(s){return s.status==='done'}).length + '/' + stages.length"></span>
+                </div>
+                <div class="space-y-1.5">
+                    <template x-for="stage in stages" :key="stage.name">
+                        <div class="flex items-center gap-3 text-sm p-2 rounded-lg" :class="stage.status === 'running' ? 'bg-brand-50' : ''">
+                            <span x-show="stage.status === 'done'" class="text-green-500 text-base">✓</span>
+                            <span x-show="stage.status === 'running'" class="text-base">
+                                <svg class="animate-spin h-4 w-4 text-brand-500" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                            </span>
+                            <span x-show="stage.status === 'error'" class="text-red-500 text-base">✗</span>
+                            <span x-show="stage.status === 'pending'" class="text-gray-300 text-base">○</span>
+                            <span class="text-gray-700 font-medium" x-text="stage.name"></span>
+                            <span class="text-xs text-gray-400 ml-auto" x-show="stage.detail" x-text="stage.detail"></span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Step 3: Results -->
+            <div x-show="generatedResources.length > 0" class="space-y-3 fade-in">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold">3</span>
+                    <h3 class="text-sm font-semibold text-gray-700">生成结果 (<span x-text="generatedResources.length"></span>项)</h3>
+                </div>
+                <template x-for="res in generatedResources" :key="res.type">
+                    <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between px-5 py-3.5 cursor-pointer hover:bg-gray-50 transition-colors" @click="res.expanded = !res.expanded">
+                            <div class="flex items-center gap-3">
+                                <span class="label-mark" x-text="res.icon || 'RES'"></span>
+                                <div>
+                                    <span class="text-sm font-medium text-gray-700" x-text="res.name"></span>
+                                    <span class="text-[10px] text-gray-400 ml-2" x-text="res.status === 'error' ? '生成失败' : '已完成'"></span>
+                                </div>
+                            </div>
+                            <span class="text-xs text-gray-400 transition-transform" :class="res.expanded ? 'rotate-180' : ''">▼</span>
+                        </div>
+                        <div x-show="res.expanded" class="px-5 pb-5 border-t border-gray-100 pt-4">
+                            <div class="markdown-body text-sm" x-html="res.content_md || '<p class=text-red-500>生成失败</p>'"></div>
+                            <div class="mt-3 pt-3 border-t border-gray-100 flex gap-2">
+                                <button @click="copyContent(res)" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg px-3 py-1.5 transition-colors">复制内容</button>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <div x-show="pathPlan || assessment" class="grid grid-cols-1 lg:grid-cols-2 gap-4 fade-in">
+                <div x-show="pathPlan" class="soft-card p-5">
+                    <div class="flex items-center gap-2 mb-3">
+                        <h3 class="text-sm font-semibold text-gray-700">同步生成的学习路径</h3>
+                    </div>
+                    <div class="markdown-body text-sm max-h-96 overflow-y-auto pr-1" x-html="pathPlanMd"></div>
+                </div>
+                <div x-show="assessment" class="soft-card p-5">
+                    <div class="flex items-center gap-2 mb-3">
+                        <h3 class="text-sm font-semibold text-gray-700">效果评估方案</h3>
+                    </div>
+                    <div class="markdown-body text-sm max-h-96 overflow-y-auto pr-1" x-html="assessmentMd"></div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div x-show="!generating && stages.length === 0 && generatedResources.length === 0" class="text-center py-12">
+                <span class="empty-mark">AI</span>
+                <p class="text-sm text-gray-400 mt-3">设置知识点和资源类型后，点击按钮启动多智能体协同生成</p>
+                <p class="text-xs text-gray-300 mt-1">9种学习资源类型可选，最少选择5种</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('generatePage', () => ({
+        knowledgePoints: '',
+        generating: false,
+        stages: [],
+        generatedResources: [],
+        pathPlan: '',
+        pathPlanMd: '',
+        assessment: '',
+        assessmentMd: '',
+        resourceIcons: {
+            lecture_note: '讲', concept_map: '图', exercises: '题',
+            case_project: '练', ppt_outline: '纲', task_checklist: '单',
+            extended_reading: '读', video_script: '脚', review_material: '复',
+        },
+        resourceTypes: [
+            { key: 'lecture_note', name: '课程讲解', icon: '讲', selected: true },
+            { key: 'concept_map', name: '思维导图', icon: '图', selected: true },
+            { key: 'exercises', name: '练习题库', icon: '题', selected: true },
+            { key: 'case_project', name: '实操案例', icon: '练', selected: true },
+            { key: 'ppt_outline', name: 'PPT大纲', icon: '纲', selected: true },
+            { key: 'task_checklist', name: '任务清单', icon: '单', selected: true },
+            { key: 'extended_reading', name: '拓展阅读', icon: '读', selected: false },
+            { key: 'video_script', name: '视频脚本', icon: '脚', selected: false },
+            { key: 'review_material', name: '复习资料', icon: '复', selected: false },
+        ],
+
+        init() {
+            this.$watch('$store.app.initialized', (ready) => {
+                if (ready) this.loadExistingResources();
+            });
+            this.$watch('$store.app.currentSessionId', () => this.loadExistingResources());
+            if (Alpine.store('app').initialized) this.loadExistingResources();
+        },
+
+        async loadExistingResources() {
+            const sid = Alpine.store('app').currentSessionId;
+            if (!sid) {
+                this.generatedResources = [];
+                this.pathPlan = '';
+                this.pathPlanMd = '';
+                this.assessment = '';
+                this.assessmentMd = '';
+                return;
+            }
+            if (this.generating) return;
+            try {
+                const resp = await fetch(`/api/generate/list/${sid}`);
+                const data = await resp.json();
+                this.generatedResources = (data || []).slice().reverse().map(r => ({
+                    type: r.resource_type,
+                    name: r.resource_name,
+                    icon: this.resourceIcons[r.resource_type] || 'RES',
+                    content_md: marked.parse(r.content || ''),
+                    expanded: false,
+                    status: 'done',
+                    rawContent: r.content || '',
+                }));
+            } catch (e) {
+                this.generatedResources = [];
+            }
+        },
+
+        async startGeneration() {
+            const sid = Alpine.store('app').currentSessionId;
+            if (!sid) { alert('请先创建会话'); return; }
+            const selectedTypes = this.resourceTypes.filter(r => r.selected).map(r => r.key);
+            if (selectedTypes.length < 5) { alert('请至少选择5种资源类型'); return; }
+            if (!this.knowledgePoints.trim()) { alert('请输入学习知识点'); return; }
+
+            this.generating = true;
+            this.stages = [];
+            this.generatedResources = [];
+            this.pathPlan = '';
+            this.pathPlanMd = '';
+            this.assessment = '';
+            this.assessmentMd = '';
+
+            this.stages = [
+                { name: '内容安全审核', status: 'pending' },
+                { name: '教材知识检索', status: 'pending' },
+                { name: '学习画像分析', status: 'pending' },
+                { name: '多智能体并行生成', status: 'pending' },
+                { name: '学习路径规划', status: 'pending' },
+                { name: '效果评估方案', status: 'pending' },
+            ];
+            let failed = false;
+
+            try {
+                const resp = await fetch('/api/generate/stream', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sid,
+                        knowledge_points: this.knowledgePoints,
+                        resource_types: selectedTypes,
+                        top_k: 6,
+                    }),
+                });
+                const reader = resp.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    buffer += decoder.decode(value, { stream: true });
+                    buffer = window.PRLMAD.parseSse(buffer, (eventName, data) => {
+                        if (eventName === 'stage') {
+                            const idx = ['safety_check','knowledge_retrieval','profile_analysis','resource_generation','path_planning','assessment'].indexOf(data.stage);
+                            if (idx >= 0 && this.stages[idx]) this.stages[idx].status = data.status;
+                        } else if (eventName === 'resource') {
+                            const existing = this.generatedResources.find(r => r.type === data.type);
+                            const item = {
+                                type: data.type,
+                                name: data.name,
+                                icon: this.resourceIcons[data.type] || 'RES',
+                                content_md: data.content ? marked.parse(data.content) : '<p class="text-red-500">生成失败</p>',
+                                expanded: false,
+                                status: data.error ? 'error' : 'done',
+                                rawContent: data.content || '',
+                            };
+                            if (existing) Object.assign(existing, item);
+                            else this.generatedResources.push(item);
+                        } else if (eventName === 'path') {
+                            this.pathPlan = data.content || '';
+                            this.pathPlanMd = marked.parse(this.pathPlan);
+                        } else if (eventName === 'assessment') {
+                            this.assessment = data.content || '';
+                            this.assessmentMd = marked.parse(this.assessment);
+                        } else if (eventName === 'error') {
+                            failed = true;
+                            this.stages.forEach(s => { if (s.status === 'running') s.status = 'error'; });
+                            alert(data.message || '生成失败');
+                        }
+                    });
+                }
+            } catch (e) {
+                failed = true;
+                alert('生成请求失败: ' + e.message);
+            }
+            this.generating = false;
+            if (!failed) this.stages.forEach(s => { if (s.status === 'pending') s.status = 'done'; });
+        },
+
+        async copyContent(res) {
+            try {
+                await navigator.clipboard.writeText(res.rawContent);
+                alert('已复制到剪贴板');
+            } catch (e) {
+                alert('复制失败');
+            }
+        },
+    }));
+});
+</script>
+{% endblock %}

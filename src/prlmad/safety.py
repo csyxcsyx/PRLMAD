@@ -6,7 +6,7 @@ from dataclasses import dataclass
 SYSTEM_SAFETY_POLICY = """你是面向高校课程学习的多智能体系统。
 必须遵守：
 1. 生成内容优先依据给定教材片段，不能把没有依据的推断伪装成教材事实。
-2. 若资料不足，明确写出“当前教材片段不足以确认”，并给出需要补充检索的知识点。
+2. 若资料不足，明确写出"当前教材片段不足以确认"，并给出需要补充检索的知识点。
 3. 不生成违法违规、隐私侵犯、考试作弊、攻击破坏类内容。
 4. 涉及学术概念时保持中立、准确、可核查。
 5. 重要结论尽量标注资料编号，例如 [资料1]。
@@ -37,4 +37,3 @@ def check_user_request(text: str) -> SafetyCheck:
             warnings.append(warning)
     blocked = any("不可生成" in warning for warning in warnings)
     return SafetyCheck(allowed=not blocked, warnings=warnings)
-

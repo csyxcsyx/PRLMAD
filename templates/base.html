@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PRLMAD — 个性化学习资源多智能体系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc', 400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 800: '#3730a3', 900: '#312e81' },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        .markdown-body { color: #1e293b; }
+        .markdown-body h1 { font-size: 1.4rem; font-weight: 700; margin-top: 1.25rem; margin-bottom: 0.75rem; color: #1e293b; }
+        .markdown-body h2 { font-size: 1.15rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; color: #334155; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.25rem; }
+        .markdown-body h3 { font-size: 1.05rem; font-weight: 600; margin-top: 0.75rem; margin-bottom: 0.25rem; color: #475569; }
+        .markdown-body p { margin-bottom: 0.5rem; line-height: 1.75; }
+        .markdown-body ul, .markdown-body ol { padding-left: 1.5rem; margin-bottom: 0.5rem; }
+        .markdown-body li { margin-bottom: 0.2rem; line-height: 1.6; }
+        .markdown-body code { background: #f1f5f9; padding: 0.1rem 0.35rem; border-radius: 0.25rem; font-size: 0.85rem; color: #e11d48; }
+        .markdown-body pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 0.75rem; overflow-x: auto; margin: 0.75rem 0; }
+        .markdown-body pre code { background: transparent; padding: 0; color: inherit; font-size: 0.85rem; }
+        .markdown-body table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .markdown-body th, .markdown-body td { border: 1px solid #e2e8f0; padding: 0.5rem 0.75rem; text-align: left; }
+        .markdown-body th { background: #f8fafc; font-weight: 600; color: #475569; }
+        .markdown-body blockquote { border-left: 3px solid #6366f1; padding-left: 1rem; color: #64748b; margin: 0.5rem 0; background: #f8fafc; padding: 0.5rem 1rem; border-radius: 0 0.5rem 0.5rem 0; }
+        .typing::after { content: ' ▌'; animation: blink 1s step-end infinite; color: #6366f1; }
+        @keyframes blink { 50% { opacity: 0; } }
+        .slide-up { animation: slideUp 0.35s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .app-shell { background: radial-gradient(circle at top left, rgba(99,102,241,0.08), transparent 34%), #f8fafc; }
+        .glass-panel { background: rgba(255,255,255,0.92); backdrop-filter: blur(16px); }
+        .surface { background: #fff; border: 1px solid #e5e7eb; border-radius: 0.75rem; box-shadow: 0 10px 30px rgba(15,23,42,0.04); }
+        .soft-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 0.75rem; box-shadow: 0 8px 24px rgba(15,23,42,0.05); }
+        .nav-glyph {
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 0.45rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #eef2ff;
+            color: #4f46e5;
+            font-size: 0.65rem;
+            font-weight: 700;
+        }
+        .label-mark {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.75rem;
+            height: 1.5rem;
+            border-radius: 0.45rem;
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 0.68rem;
+            font-weight: 700;
+        }
+        .empty-mark {
+            width: 4rem;
+            height: 4rem;
+            border-radius: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #eef2ff;
+            color: #6366f1;
+            font-size: 1.2rem;
+            font-weight: 800;
+            opacity: 0.75;
+        }
+        .nav-link { transition: all 0.2s ease; border-radius: 0.75rem; }
+        .nav-link:hover { background: #f1f5f9; transform: translateX(2px); }
+        .nav-link.active { background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); color: #4f46e5; font-weight: 600; box-shadow: 0 1px 3px rgba(99,102,241,0.1); }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .gradient-brand { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%); }
+        .gradient-card { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); }
+        .rounded-2xl { border-radius: 0.75rem !important; }
+        .rounded-xl { border-radius: 0.625rem !important; }
+        button, input, textarea, select { letter-spacing: 0; }
+        button { transform: translateZ(0); }
+        button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+            outline: 2px solid #818cf8;
+            outline-offset: 2px;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .step-indicator { position: relative; }
+        .step-indicator::before { content: ''; position: absolute; left: 11px; top: 24px; bottom: 4px; width: 2px; background: #e2e8f0; }
+        .step-indicator.completed::before { background: #6366f1; }
+    </style>
+</head>
+<body class="app-shell min-h-screen text-slate-800" data-page="{{ page }}" x-data x-init="Alpine.store('app').init()">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 glass-panel border-r border-gray-100 flex flex-col flex-shrink-0 shadow-sm z-10">
+            <div class="p-5 border-b border-gray-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg gradient-brand flex items-center justify-center text-white font-bold text-sm shadow-md">P</div>
+                    <div>
+                        <h1 class="text-base font-bold text-gray-800 tracking-tight">PRLMAD</h1>
+                        <p class="text-[10px] text-gray-400 mt-0.5">多智能体学习系统</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Session Selector -->
+            <div class="px-3 py-3 border-b border-gray-100">
+                <label class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1.5 block">当前会话</label>
+                <select x-model="$store.app.currentSessionId" @change="$store.app.switchSession($event.target.value)"
+                    x-show="$store.app.sessions.length > 0"
+                    class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-brand-400 focus:border-transparent outline-none text-gray-700">
+                    <template x-for="s in $store.app.sessions" :key="s.session_id">
+                        <option :value="s.session_id" x-text="s.name + ' (' + s.course + ')'"></option>
+                    </template>
+                </select>
+                <p x-show="$store.app.sessions.length === 0" class="text-xs text-gray-400 italic">暂无学习会话</p>
+                <button @click="$store.app.createSessionPrompt()"
+                    class="mt-2 w-full text-xs bg-brand-50 text-brand-600 hover:bg-brand-100 rounded-lg px-3 py-2 transition-all font-medium border border-brand-100 hover:border-brand-200">
+                    + 新建学习会话
+                </button>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
+                <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2 px-3">功能导航</p>
+                <a href="/page/chat" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600"
+                    :class="{ 'active': '{{ page }}' === 'chat' }">
+                    <span class="nav-glyph">像</span> 对话画像
+                    <span x-show="$store.app.profileDimensions.length > 0" class="ml-auto w-1.5 h-1.5 rounded-full bg-green-400"></span>
+                    <span x-show="$store.app.profileDimensions.length === 0 && '{{ page }}' === 'chat'" class="ml-auto text-[10px] text-orange-400 bg-orange-50 px-1.5 py-0.5 rounded-full">待完善</span>
+                </a>
+                <a href="/page/generate" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600"
+                    :class="{ 'active': '{{ page }}' === 'generate' }">
+                    <span class="nav-glyph">资</span> 资源生成
+                </a>
+                <a href="/page/learning-path" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600"
+                    :class="{ 'active': '{{ page }}' === 'learning_path' }">
+                    <span class="nav-glyph">路</span> 学习路径
+                </a>
+                <a href="/page/tutor" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600"
+                    :class="{ 'active': '{{ page }}' === 'tutor' }">
+                    <span class="nav-glyph">辅</span> 智能辅导
+                </a>
+                <a href="/page/evaluate" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600"
+                    :class="{ 'active': '{{ page }}' === 'evaluate' }">
+                    <span class="nav-glyph">评</span> 效果评估
+                </a>
+                <div class="my-2 border-t border-gray-100"></div>
+                <a href="/page/knowledge" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400"
+                    :class="{ 'active': '{{ page }}' === 'knowledge' }">
+                    <span class="nav-glyph">库</span> 知识库管理
+                </a>
+            </nav>
+
+            <!-- Profile Preview -->
+            <div class="p-3 border-t border-gray-100">
+                <div x-show="$store.app.profileDimensions.length > 0" class="bg-gradient-to-br from-brand-50 to-purple-50 rounded-xl p-3 text-xs border border-brand-100">
+                    <div class="flex items-center gap-1.5 mb-2">
+                        <p class="font-semibold text-brand-800">学习画像</p>
+                        <span class="ml-auto text-[10px] bg-brand-200 text-brand-700 px-1.5 py-0.5 rounded-full" x-text="$store.app.profileDimensions.length + '维'"></span>
+                    </div>
+                    <div class="space-y-1">
+                        <template x-for="dim in $store.app.profileDimensions.slice(0, 5)" :key="dim.label">
+                            <div class="flex items-start gap-1.5 text-brand-700">
+                                <span class="mt-0.5 w-1.5 h-1.5 rounded-full bg-brand-400 flex-shrink-0"></span>
+                                <span class="leading-relaxed"><span class="font-medium" x-text="dim.label"></span>: <span x-text="dim.value"></span></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                <div x-show="$store.app.profileDimensions.length === 0 && $store.app.sessions.length > 0" class="text-center py-3">
+                    <p class="text-xs text-gray-400">开始对话以构建画像</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
