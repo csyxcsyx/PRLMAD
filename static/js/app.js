@@ -8,9 +8,26 @@ document.addEventListener('alpine:init', () => {
         profileDimensions: [],
         loading: false,
         initialized: false,
+        busyTasks: {},
 
         get currentSession() {
             return this.sessions.find(s => s.session_id === this.currentSessionId) || null;
+        },
+
+        get hasBusyTasks() {
+            return Object.values(this.busyTasks).some(Boolean);
+        },
+
+        get busyTaskNames() {
+            const names = {
+                generate: '资源生成',
+                tutor: '智能辅导',
+                path: '学习路径生成',
+                evaluate: '效果评估',
+            };
+            return Object.keys(this.busyTasks)
+                .filter(key => this.busyTasks[key])
+                .map(key => names[key] || key);
         },
 
         async init() {
@@ -33,9 +50,33 @@ document.addEventListener('alpine:init', () => {
                     await this.setCurrentSession(h, { updateHash: false });
                 }
             });
+            window.addEventListener('beforeunload', (event) => {
+                if (!this.hasBusyTasks) return;
+                event.preventDefault();
+                event.returnValue = '';
+            });
 
             this.initialized = true;
             this.loading = false;
+        },
+
+        setBusy(task, value) {
+            this.busyTasks = { ...this.busyTasks, [task]: Boolean(value) };
+        },
+
+        confirmBusyAction(actionText = '切换页面') {
+            if (!this.hasBusyTasks) return true;
+            const tasks = this.busyTaskNames.join('、') || 'AI 生成任务';
+            return confirm(`${tasks}正在进行中。${actionText}会中断当前页面的生成过程，确定继续吗？`);
+        },
+
+        confirmNavigation(event) {
+            if (!this.confirmBusyAction('切换板块')) {
+                event.preventDefault();
+                event.stopPropagation();
+                return false;
+            }
+            return true;
         },
 
         async loadSessions() {
@@ -68,6 +109,10 @@ document.addEventListener('alpine:init', () => {
                 return;
             }
             const changed = this.currentSessionId !== nextSessionId;
+            if (changed) {
+                this.rawProfile = {};
+                this.profileDimensions = [];
+            }
             this.currentSessionId = nextSessionId;
             if (nextSessionId) {
                 localStorage.setItem(CURRENT_SESSION_KEY, nextSessionId);
@@ -150,6 +195,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         async createSessionPrompt() {
+            if (!this.confirmBusyAction('新建会话')) return null;
             const defaultName = this.makeUniqueSessionName('操作系统学习');
             const name = prompt('请输入会话名称:', defaultName);
             if (name === null) return null;
@@ -157,6 +203,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         async switchSession(sid) {
+            if (sid !== this.currentSessionId && !this.confirmBusyAction('切换会话')) return;
             await this.setCurrentSession(sid);
         },
 
@@ -183,6 +230,7 @@ document.addEventListener('alpine:init', () => {
         async deleteCurrentSession() {
             const current = this.currentSession;
             if (!current) return;
+            if (!this.confirmBusyAction('删除会话')) return;
             const ok = confirm(`确定删除「${current.name}」吗？该会话的聊天记录、资源、路径和评估会一起删除。`);
             if (!ok) return;
             try {

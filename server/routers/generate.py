@@ -6,7 +6,7 @@ from fastapi.responses import StreamingResponse
 from server.dependencies import get_knowledge_base, get_session_store, get_spark_client
 from server.models.schemas import GenerateRequest
 from server.utils.sse import sse_event, sse_done, sse_error
-from src.prlmad.agents import AgentOrchestrator, GenerationRequest, LearnerInput
+from src.prlmad.agents import AgentOrchestrator, LearnerInput
 from src.prlmad.spark_client import SparkClient
 from src.prlmad.session_store import SessionStore
 
@@ -34,13 +34,6 @@ async def _generate_resources_stream(
         preferences=profile.get("preferences", ""),
         weak_points=profile.get("weak_points", ""),
         available_time=profile.get("available_time", ""),
-    )
-
-    request = GenerationRequest(
-        course=course,
-        learner=learner,
-        resource_types=resource_types,
-        top_k=top_k,
     )
 
     try:
@@ -124,16 +117,6 @@ async def _generate_resources_stream(
             "status": "done",
             "generated": len(resources),
         })
-
-        yield sse_event("stage", {"stage": "path_planning", "status": "running"})
-        path_plan = orchestrator._path_planner(course, learner_brief, profile_md, context, resources, focus_topic=focus_topic)
-        yield sse_event("path", {"content": path_plan})
-        yield sse_event("stage", {"stage": "path_planning", "status": "done"})
-
-        yield sse_event("stage", {"stage": "assessment", "status": "running"})
-        assessment = orchestrator._assessment_agent(course, learner_brief, profile_md, context, focus_topic=focus_topic)
-        yield sse_event("assessment", {"content": assessment})
-        yield sse_event("stage", {"stage": "assessment", "status": "done"})
 
         yield sse_event("done", {"resource_count": len(resources)})
 

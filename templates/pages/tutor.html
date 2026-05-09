@@ -134,6 +134,7 @@ document.addEventListener('alpine:init', () => {
             this.tutorMessages.push({ role: 'user', content: q });
             this.tutorInput = '';
             this.loading = true;
+            Alpine.store('app').setBusy('tutor', true);
             this.$nextTick(() => {
                 const el = document.getElementById('tutorMsgContainer');
                 if (el) el.scrollTop = el.scrollHeight;
@@ -145,11 +146,12 @@ document.addEventListener('alpine:init', () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ session_id: sid, question: q }),
                 });
+                if (!resp.ok) throw new Error('服务端返回 ' + resp.status);
                 const reader = resp.body.getReader();
                 const decoder = new TextDecoder();
                 let buffer = '';
-                let assistantMsg = { role: 'assistant', content: '', content_md: '', citations: [] };
-                this.tutorMessages.push(assistantMsg);
+                let answerContent = '';
+                let answerCitations = [];
 
                 while (true) {
                     const { done, value } = await reader.read();
@@ -157,21 +159,25 @@ document.addEventListener('alpine:init', () => {
                     buffer += decoder.decode(value, { stream: true });
                     buffer = window.PRLMAD.parseSse(buffer, (eventName, data) => {
                         if (eventName === 'answer') {
-                            assistantMsg.content = data.content || '';
-                            assistantMsg.content_md = marked.parse(data.content || '');
-                            assistantMsg.citations = data.citations || [];
+                            answerContent = data.content || '';
+                            answerCitations = data.citations || [];
                         } else if (eventName === 'error') {
-                            assistantMsg.content = '错误: ' + data.message;
-                            assistantMsg.content_md = '<p class="text-red-500">' + data.message + '</p>';
+                            answerContent = '错误: ' + (data.message || '未知错误');
+                            answerCitations = [];
                         }
                     });
                     const el = document.getElementById('tutorMsgContainer');
                     if (el) el.scrollTop = el.scrollHeight;
                 }
-                if (!assistantMsg.content) {
-                    assistantMsg.content = '暂时没有收到有效回答，请稍后重试，或换一个更具体的问题。';
-                    assistantMsg.content_md = marked.parse(assistantMsg.content);
+                if (!answerContent) {
+                    answerContent = '暂时没有收到有效回答，请稍后重试，或换一个更具体的问题。';
                 }
+                this.tutorMessages.push({
+                    role: 'assistant',
+                    content: answerContent,
+                    content_md: marked.parse(answerContent),
+                    citations: answerCitations,
+                });
             } catch (e) {
                 this.tutorMessages.push({
                     role: 'assistant',
@@ -181,6 +187,7 @@ document.addEventListener('alpine:init', () => {
                 });
             }
             this.loading = false;
+            Alpine.store('app').setBusy('tutor', false);
             const el = document.getElementById('tutorMsgContainer');
             if (el) el.scrollTop = el.scrollHeight;
         },

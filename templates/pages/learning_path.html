@@ -135,6 +135,7 @@ document.addEventListener('alpine:init', () => {
             const sid = Alpine.store('app').currentSessionId;
             if (!sid) { alert('请先创建会话'); return; }
             this.loading = true;
+            Alpine.store('app').setBusy('path', true);
             try {
                 const resp = await fetch('/api/learning-path/generate', {
                     method: 'POST',
@@ -149,6 +150,7 @@ document.addEventListener('alpine:init', () => {
                 alert('路径生成失败: ' + e.message);
             }
             this.loading = false;
+            Alpine.store('app').setBusy('path', false);
         },
         async markComplete(idx) {
             const sid = Alpine.store('app').currentSessionId;

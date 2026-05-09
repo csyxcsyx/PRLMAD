@@ -4,6 +4,7 @@ document.addEventListener('alpine:init', () => {
         saving: false,
         savedAt: '',
         profileVersion: 1,
+        lastSavedProfileSignature: '',
         showProfileDetail: false,
         profileDraft: {
             major: '',
@@ -212,11 +213,40 @@ document.addEventListener('alpine:init', () => {
         refreshForSession() {
             this.activeIndex = 0;
             this.savedAt = '';
+            this.profileVersion = 1;
             this.hydrateFromProfile();
+        },
+
+        resetFormState() {
+            this.profileDraft = {
+                major: '',
+                grade: '',
+                available_time: '',
+                learning_motivation: '',
+            };
+            this.selections = {
+                goal: [],
+                knowledge_level: '',
+                weak_points: [],
+                preferences: [],
+                practical_ability: [],
+                available_time: '',
+                learning_motivation: '',
+            };
+            this.customInputs = {
+                goal: '',
+                knowledge_level: '',
+                weak_points: '',
+                preferences: '',
+                practical_ability: '',
+                available_time: '',
+                learning_motivation: '',
+            };
         },
 
         hydrateFromProfile() {
             const raw = Alpine.store('app').rawProfile || {};
+            this.resetFormState();
             this.profileDraft.major = raw.major || '';
             this.profileDraft.grade = raw.grade || '';
 
@@ -239,6 +269,7 @@ document.addEventListener('alpine:init', () => {
                 }
                 this.customInputs[target] = matched.length ? '' : rawValue;
             }
+            this.lastSavedProfileSignature = this.profileSignature(this.normalizeProfile(raw));
         },
 
         selectFieldOption(key, value) {
@@ -268,7 +299,9 @@ document.addEventListener('alpine:init', () => {
             const target = step.target;
             const custom = (this.customInputs[target] || '').trim();
             const selected = this.selections[target];
-            const parts = Array.isArray(selected) ? selected.slice() : (selected ? [selected] : []);
+            const parts = Array.isArray(selected)
+                ? (step.options || []).filter((option) => selected.includes(option))
+                : (selected ? [selected] : []);
             if (custom) parts.push(custom);
             return Array.from(new Set(parts)).join('；');
         },
@@ -281,11 +314,14 @@ document.addEventListener('alpine:init', () => {
         },
 
         buildProfile() {
-            const profile = { ...(Alpine.store('app').rawProfile || {}) };
-            const fields = ['major', 'grade', 'available_time', 'learning_motivation'];
-            for (const key of fields) {
-                const value = String(this.profileDraft[key] || '').trim();
-                if (value) profile[key] = value;
+            const knownFields = new Set([
+                'major', 'grade', 'goal', 'knowledge_level', 'weak_points',
+                'preferences', 'practical_ability', 'available_time',
+                'learning_motivation', 'cognitive_style',
+            ]);
+            const profile = {};
+            for (const [key, value] of Object.entries(Alpine.store('app').rawProfile || {})) {
+                if (!knownFields.has(key) && value) profile[key] = value;
             }
             for (const step of this.profileSteps) {
                 if (step.type === 'grouped') {
@@ -304,18 +340,50 @@ document.addEventListener('alpine:init', () => {
             return profile;
         },
 
+        normalizeProfile(profile) {
+            const normalized = {};
+            for (const [key, value] of Object.entries(profile || {})) {
+                if (typeof value === 'string') {
+                    const trimmed = value.trim();
+                    if (trimmed) normalized[key] = trimmed;
+                } else if (value !== null && value !== undefined && value !== '') {
+                    normalized[key] = value;
+                }
+            }
+            return normalized;
+        },
+
+        profileSignature(profile) {
+            const normalized = this.normalizeProfile(profile);
+            return JSON.stringify(
+                Object.keys(normalized).sort().reduce((acc, key) => {
+                    acc[key] = normalized[key];
+                    return acc;
+                }, {})
+            );
+        },
+
         async saveProfile(options = {}) {
             const sid = Alpine.store('app').currentSessionId;
             if (!sid || this.saving) return false;
+            const nextProfile = this.normalizeProfile(this.buildProfile());
+            const nextSignature = this.profileSignature(nextProfile);
+            if (nextSignature === this.lastSavedProfileSignature) {
+                if (!options.silent) {
+                    this.savedAt = '选项没有变化，已保持当前版本';
+                }
+                return true;
+            }
             this.saving = true;
             try {
                 const resp = await fetch(`/api/profile/${sid}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ profile: this.buildProfile() }),
+                    body: JSON.stringify({ profile: nextProfile }),
                 });
                 if (!resp.ok) throw new Error('服务端拒绝了画像保存请求');
                 await Alpine.store('app').loadProfile();
+                this.lastSavedProfileSignature = nextSignature;
                 this.profileVersion += 1;
                 if (!options.silent) {
                     this.savedAt = '已保存 ' + new Date().toLocaleTimeString('zh-CN', { hour12: false });

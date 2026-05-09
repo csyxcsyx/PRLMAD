@@ -87,11 +87,41 @@
                 </div>
             </div>
 
+            <div x-show="generationDone" class="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-2xl p-5 shadow-sm fade-in">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-xl font-bold">✓</div>
+                    <div class="min-w-0">
+                        <h3 class="text-base font-bold text-emerald-800">全部资源已生成完毕</h3>
+                        <p class="text-sm text-emerald-700 mt-1">
+                            已围绕「<span class="font-semibold" x-text="lastTopic"></span>」生成
+                            <span class="font-semibold" x-text="generatedResources.length"></span> 项学习资源。
+                        </p>
+                    </div>
+                    <button @click="generatedResources.forEach(r => r.expanded = true)"
+                        class="ml-auto hidden sm:inline-flex text-xs bg-white text-emerald-700 border border-emerald-200 rounded-lg px-3 py-2 hover:bg-emerald-50">
+                        展开全部
+                    </button>
+                </div>
+            </div>
+
             <!-- Step 3: Results -->
-            <div x-show="generatedResources.length > 0" class="space-y-3 fade-in">
-                <div class="flex items-center gap-2 mb-1">
-                    <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold">3</span>
-                    <h3 class="text-sm font-semibold text-gray-700">生成结果 (<span x-text="generatedResources.length"></span>项)</h3>
+            <div x-show="generatedResources.length > 0" class="space-y-4 fade-in">
+                <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold">3</span>
+                        <h3 class="text-sm font-semibold text-gray-700">生成结果 (<span x-text="generatedResources.length"></span>项)</h3>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        <template x-for="res in generatedResources" :key="'tile-' + res.type">
+                            <button @click="res.expanded = !res.expanded"
+                                class="flex items-center gap-2 rounded-xl border px-3 py-2 text-left transition-all"
+                                :class="res.status === 'error' ? 'border-red-200 bg-red-50' : 'border-emerald-100 bg-emerald-50 hover:border-emerald-200'">
+                                <span class="label-mark" x-text="res.icon || '资'"></span>
+                                <span class="text-xs font-semibold truncate" :class="res.status === 'error' ? 'text-red-600' : 'text-emerald-700'" x-text="res.name"></span>
+                                <span class="ml-auto text-xs" x-text="res.status === 'error' ? '!' : '✓'"></span>
+                            </button>
+                        </template>
+                    </div>
                 </div>
                 <template x-for="res in generatedResources" :key="res.type">
                     <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
@@ -101,6 +131,7 @@
                                 <div>
                                     <span class="text-sm font-medium text-gray-700" x-text="res.name"></span>
                                     <span class="text-[10px] text-gray-400 ml-2" x-text="res.status === 'error' ? '生成失败' : '已完成'"></span>
+                                    <p class="text-xs text-gray-400 mt-1 truncate max-w-xl" x-text="res.preview"></p>
                                 </div>
                             </div>
                             <span class="text-xs text-gray-400 transition-transform" :class="res.expanded ? 'rotate-180' : ''">▼</span>
@@ -113,21 +144,6 @@
                         </div>
                     </div>
                 </template>
-            </div>
-
-            <div x-show="pathPlan || assessment" class="grid grid-cols-1 lg:grid-cols-2 gap-4 fade-in">
-                <div x-show="pathPlan" class="soft-card p-5">
-                    <div class="flex items-center gap-2 mb-3">
-                        <h3 class="text-sm font-semibold text-gray-700">同步生成的学习路径</h3>
-                    </div>
-                    <div class="markdown-body text-sm max-h-96 overflow-y-auto pr-1" x-html="pathPlanMd"></div>
-                </div>
-                <div x-show="assessment" class="soft-card p-5">
-                    <div class="flex items-center gap-2 mb-3">
-                        <h3 class="text-sm font-semibold text-gray-700">效果评估方案</h3>
-                    </div>
-                    <div class="markdown-body text-sm max-h-96 overflow-y-auto pr-1" x-html="assessmentMd"></div>
-                </div>
             </div>
 
             <!-- Empty State -->
@@ -146,12 +162,10 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('generatePage', () => ({
         knowledgePoints: '',
         generating: false,
+        generationDone: false,
+        lastTopic: '',
         stages: [],
         generatedResources: [],
-        pathPlan: '',
-        pathPlanMd: '',
-        assessment: '',
-        assessmentMd: '',
         resourceIcons: {
             lecture_note: '讲', concept_map: '图', exercises: '题',
             case_project: '练', ppt_outline: '纲', task_checklist: '单',
@@ -181,10 +195,8 @@ document.addEventListener('alpine:init', () => {
             const sid = Alpine.store('app').currentSessionId;
             if (!sid) {
                 this.generatedResources = [];
-                this.pathPlan = '';
-                this.pathPlanMd = '';
-                this.assessment = '';
-                this.assessmentMd = '';
+                this.generationDone = false;
+                this.lastTopic = '';
                 return;
             }
             if (this.generating) return;
@@ -199,6 +211,7 @@ document.addEventListener('alpine:init', () => {
                     expanded: false,
                     status: 'done',
                     rawContent: r.content || '',
+                    preview: this.makePreview(r.content || ''),
                 }));
             } catch (e) {
                 this.generatedResources = [];
@@ -213,20 +226,17 @@ document.addEventListener('alpine:init', () => {
             if (!this.knowledgePoints.trim()) { alert('请输入学习知识点'); return; }
 
             this.generating = true;
+            Alpine.store('app').setBusy('generate', true);
             this.stages = [];
             this.generatedResources = [];
-            this.pathPlan = '';
-            this.pathPlanMd = '';
-            this.assessment = '';
-            this.assessmentMd = '';
+            this.generationDone = false;
+            this.lastTopic = this.knowledgePoints.trim();
 
             this.stages = [
                 { name: '内容安全审核', status: 'pending' },
                 { name: '教材知识检索', status: 'pending' },
                 { name: '学习画像分析', status: 'pending' },
                 { name: '多智能体并行生成', status: 'pending' },
-                { name: '学习路径规划', status: 'pending' },
-                { name: '效果评估方案', status: 'pending' },
             ];
             let failed = false;
 
@@ -251,8 +261,13 @@ document.addEventListener('alpine:init', () => {
                     buffer += decoder.decode(value, { stream: true });
                     buffer = window.PRLMAD.parseSse(buffer, (eventName, data) => {
                         if (eventName === 'stage') {
-                            const idx = ['safety_check','knowledge_retrieval','profile_analysis','resource_generation','path_planning','assessment'].indexOf(data.stage);
-                            if (idx >= 0 && this.stages[idx]) this.stages[idx].status = data.status;
+                            const idx = ['safety_check','knowledge_retrieval','profile_analysis','resource_generation'].indexOf(data.stage);
+                            if (idx >= 0 && this.stages[idx]) {
+                                this.stages[idx].status = data.status;
+                                if (data.generated || data.total || data.snippet_count) {
+                                    this.stages[idx].detail = data.generated ? `已完成 ${data.generated} 项` : (data.total ? `共 ${data.total} 项` : `检索到 ${data.snippet_count} 段`);
+                                }
+                            }
                         } else if (eventName === 'resource') {
                             const existing = this.generatedResources.find(r => r.type === data.type);
                             const item = {
@@ -260,22 +275,19 @@ document.addEventListener('alpine:init', () => {
                                 name: data.name,
                                 icon: this.resourceIcons[data.type] || 'RES',
                                 content_md: data.content ? marked.parse(data.content) : '<p class="text-red-500">生成失败</p>',
-                                expanded: false,
+                                expanded: this.generatedResources.length === 0,
                                 status: data.error ? 'error' : 'done',
                                 rawContent: data.content || '',
+                                preview: this.makePreview(data.content || data.error || ''),
                             };
                             if (existing) Object.assign(existing, item);
                             else this.generatedResources.push(item);
-                        } else if (eventName === 'path') {
-                            this.pathPlan = data.content || '';
-                            this.pathPlanMd = marked.parse(this.pathPlan);
-                        } else if (eventName === 'assessment') {
-                            this.assessment = data.content || '';
-                            this.assessmentMd = marked.parse(this.assessment);
                         } else if (eventName === 'error') {
                             failed = true;
                             this.stages.forEach(s => { if (s.status === 'running') s.status = 'error'; });
                             alert(data.message || '生成失败');
+                        } else if (eventName === 'done') {
+                            this.generationDone = true;
                         }
                     });
                 }
@@ -284,7 +296,17 @@ document.addEventListener('alpine:init', () => {
                 alert('生成请求失败: ' + e.message);
             }
             this.generating = false;
+            Alpine.store('app').setBusy('generate', false);
             if (!failed) this.stages.forEach(s => { if (s.status === 'pending') s.status = 'done'; });
+            if (!failed) this.generationDone = true;
+        },
+
+        makePreview(content) {
+            return String(content || '')
+                .replace(/[#>*_`~-]/g, '')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .slice(0, 90);
         },
 
         async copyContent(res) {
