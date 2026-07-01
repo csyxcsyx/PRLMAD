@@ -124,6 +124,7 @@ def cmd_train(args: argparse.Namespace) -> None:
         replace=args.force_rebuild,
         ocr_mode=args.ocr_mode,
         ocr_max_pages=args.max_pages,
+        ocr_dpi=args.ocr_dpi or settings.ocr_dpi,
         on_progress=progress,
     )
     if progress:
@@ -208,6 +209,7 @@ def main() -> None:
     train_parser.add_argument("--course", default="操作系统")
     train_parser.add_argument("--ocr-mode", choices=["off", "auto", "on"], default="auto")
     train_parser.add_argument("--max-pages", type=int, help="Max pages to OCR")
+    train_parser.add_argument("--ocr-dpi", type=int, help="OCR render DPI, default from PRLMAD_OCR_DPI or 150")
     train_parser.add_argument("--quiet", action="store_true", help="Hide progress output")
     train_parser.add_argument("--force-rebuild", action="store_true", help="Delete existing document records and rebuild from page 1")
     train_parser.set_defaults(func=cmd_train)

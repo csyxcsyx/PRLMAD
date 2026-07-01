@@ -28,7 +28,11 @@ async def ingest(req: IngestRequest):
         return {"ok": False, "error": f"文件不存在: {req.path}"}
 
     try:
-        pages = load_document_pages(file_path, ocr_mode=req.ocr_mode)
+        pages = load_document_pages(
+            file_path,
+            ocr_mode=req.ocr_mode,
+            ocr_dpi=req.ocr_dpi or settings.ocr_dpi,
+        )
         info = kb.add_document(
             title=req.title or file_path.stem,
             course=req.course,
@@ -63,6 +67,7 @@ async def train(req: TrainRequest):
             replace=req.force_rebuild,
             ocr_mode=req.ocr_mode,
             ocr_max_pages=req.max_pages,
+            ocr_dpi=req.ocr_dpi or settings.ocr_dpi,
         )
         return {
             "ok": True,
@@ -110,6 +115,7 @@ async def train_stream(req: TrainRequest):
                     replace=req.force_rebuild,
                     ocr_mode=req.ocr_mode,
                     ocr_max_pages=req.max_pages,
+                    ocr_dpi=req.ocr_dpi or settings.ocr_dpi,
                     on_progress=on_progress,
                 )
                 events.put(sse_event("summary", {
@@ -203,6 +209,8 @@ async def status():
         "db_size_bytes": actual_db_path.stat().st_size if actual_db_path.exists() else 0,
         "knowledge_dir": str(settings.knowledge_dir),
         "knowledge_dir_exists": settings.knowledge_dir.exists(),
+        "ocr_mode": settings.ocr_mode,
+        "ocr_dpi": settings.ocr_dpi,
         "fallback_candidate": fallback_candidate,
         "documents": [
             {

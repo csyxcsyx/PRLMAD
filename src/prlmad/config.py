@@ -43,6 +43,7 @@ class Settings:
     spark_offline_fallback: bool
     spark_trust_env_proxy: bool
     ocr_mode: str
+    ocr_dpi: int
 
 
 def get_settings() -> Settings:
@@ -64,6 +65,12 @@ def get_settings() -> Settings:
     if not knowledge_dir.is_absolute():
         knowledge_dir = BASE_DIR / knowledge_dir
 
+    try:
+        ocr_dpi = int(os.getenv("PRLMAD_OCR_DPI", "150"))
+    except ValueError:
+        ocr_dpi = 150
+    ocr_dpi = min(240, max(90, ocr_dpi))
+
     return Settings(
         base_dir=BASE_DIR,
         data_dir=data_dir,
@@ -81,4 +88,5 @@ def get_settings() -> Settings:
         spark_offline_fallback=_as_bool(os.getenv("PRLMAD_OFFLINE_FALLBACK"), False),
         spark_trust_env_proxy=_as_bool(os.getenv("SPARK_TRUST_ENV_PROXY"), False),
         ocr_mode=os.getenv("PRLMAD_OCR_MODE", "auto"),
+        ocr_dpi=ocr_dpi,
     )

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from io import BytesIO
+import gc
 from pathlib import Path
 from typing import Callable, Literal
 
@@ -26,7 +26,7 @@ def load_pdf_pages(
     ocr_mode: OcrMode = "off",
     ocr_max_pages: int | None = None,
     start_page: int = 1,
-    ocr_dpi: int = 180,
+    ocr_dpi: int = 150,
     on_progress: ProgressCallback | None = None,
 ) -> list[PageText]:
     pdf_path = Path(path)
@@ -115,6 +115,7 @@ def load_document_pages(
     path: str | Path,
     ocr_mode: OcrMode = "off",
     ocr_max_pages: int | None = None,
+    ocr_dpi: int = 150,
     start_page: int = 1,
     on_progress: ProgressCallback | None = None,
 ) -> list[PageText]:
@@ -125,6 +126,7 @@ def load_document_pages(
             doc_path,
             ocr_mode=ocr_mode,
             ocr_max_pages=ocr_max_pages,
+            ocr_dpi=ocr_dpi,
             start_page=start_page,
             on_progress=on_progress,
         )
@@ -149,13 +151,12 @@ def load_pdf_pages_with_ocr(
     path: str | Path,
     max_pages: int | None = None,
     start_page: int = 1,
-    dpi: int = 180,
+    dpi: int = 150,
     on_progress: ProgressCallback | None = None,
 ) -> list[PageText]:
     try:
         import fitz
         import numpy as np
-        from PIL import Image
         from rapidocr_onnxruntime import RapidOCR
     except ImportError as exc:
         raise RuntimeError(
@@ -166,6 +167,7 @@ def load_pdf_pages_with_ocr(
     pdf_path = Path(path)
     reader = fitz.open(str(pdf_path))
     ocr = RapidOCR()
+    dpi = min(240, max(90, int(dpi or 150)))
     matrix = fitz.Matrix(dpi / 72, dpi / 72)
     pages: list[PageText] = []
 
@@ -184,9 +186,8 @@ def load_pdf_pages_with_ocr(
     )
     for offset, index in enumerate(range(start_page - 1, end_page), start=1):
         page = reader[index]
-        pixmap = page.get_pixmap(matrix=matrix, alpha=False)
-        image = Image.open(BytesIO(pixmap.tobytes("png"))).convert("RGB")
-        image_array = np.array(image)
+        pixmap = page.get_pixmap(matrix=matrix, colorspace=fitz.csRGB, alpha=False)
+        image_array = _pixmap_to_rgb_array(pixmap, np)
         result, _ = ocr(image_array)
         lines = _ocr_lines(result)
         if lines:
@@ -200,9 +201,22 @@ def load_pdf_pages_with_ocr(
             total=page_limit,
             extracted_pages=len(pages),
         )
+        del image_array, pixmap, result
+        if offset % 20 == 0:
+            gc.collect()
     reader.close()
     _emit(on_progress, "pdf_ocr_done", path=str(pdf_path), total=page_limit, extracted_pages=len(pages))
     return pages
+
+
+def _pixmap_to_rgb_array(pixmap, np):
+    array = np.frombuffer(pixmap.samples, dtype=np.uint8)
+    array = array.reshape(pixmap.height, pixmap.width, pixmap.n)
+    if pixmap.n == 4:
+        array = array[:, :, :3]
+    elif pixmap.n == 1:
+        array = np.repeat(array, 3, axis=2)
+    return np.ascontiguousarray(array)
 
 
 def _ocr_lines(result: object) -> list[str]:

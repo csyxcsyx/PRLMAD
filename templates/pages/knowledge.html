@@ -109,6 +109,21 @@
                             </select>
                         </div>
                     </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-xs text-gray-500 font-medium mb-1 block">训练到第几页</label>
+                            <input type="number" min="1" x-model.number="trainMaxPages"
+                                placeholder="留空表示整本"
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50 focus:ring-2 focus:ring-brand-400 outline-none" />
+                            <p class="text-[11px] text-gray-400 mt-1">建议先 100，再 200/300 逐步续训。</p>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500 font-medium mb-1 block">OCR DPI</label>
+                            <input type="number" min="90" max="240" step="10" x-model.number="ocrDpi"
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50 focus:ring-2 focus:ring-brand-400 outline-none" />
+                            <p class="text-[11px] text-gray-400 mt-1">默认 150；更快可用 120，识别差再调高。</p>
+                        </div>
+                    </div>
                     <label class="flex items-center gap-2 text-xs text-gray-500">
                         <input type="checkbox" x-model="forceRebuild" class="accent-brand-500 rounded" />
                         强制重建已有教材（默认关闭；关闭时会跳过完整教材，部分教材从断点继续）
@@ -192,6 +207,8 @@ document.addEventListener('alpine:init', () => {
         ingestPath: '',
         ingestCourse: '操作系统',
         ingestOcr: 'auto',
+        trainMaxPages: null,
+        ocrDpi: 150,
         forceRebuild: false,
         ingestResult: null,
         searchQuery: '',
@@ -223,7 +240,12 @@ document.addEventListener('alpine:init', () => {
                 const resp = await fetch('/api/knowledge/ingest', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ path: this.ingestPath, course: this.ingestCourse, ocr_mode: this.ingestOcr }),
+                    body: JSON.stringify({
+                        path: this.ingestPath,
+                        course: this.ingestCourse,
+                        ocr_mode: this.ingestOcr,
+                        ocr_dpi: this.normalizedOcrDpi(),
+                    }),
                 });
                 this.ingestResult = await resp.json();
                 await this.loadStatus();
@@ -242,6 +264,8 @@ document.addEventListener('alpine:init', () => {
                     body: JSON.stringify({
                         course: this.ingestCourse,
                         ocr_mode: this.ingestOcr,
+                        max_pages: this.normalizedMaxPages(),
+                        ocr_dpi: this.normalizedOcrDpi(),
                         force_rebuild: this.forceRebuild,
                     }),
                 });
@@ -273,6 +297,14 @@ document.addEventListener('alpine:init', () => {
                 this.ingestResult = { ok: false, error: e.message };
             }
             this.loading = false; this.training = false;
+        },
+        normalizedMaxPages() {
+            const value = Number(this.trainMaxPages || 0);
+            return value > 0 ? Math.floor(value) : null;
+        },
+        normalizedOcrDpi() {
+            const value = Number(this.ocrDpi || 150);
+            return Math.min(240, Math.max(90, Math.floor(value)));
         },
         updateTrainProgress(data) {
             const stage = data.stage;

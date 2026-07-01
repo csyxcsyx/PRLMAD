@@ -70,6 +70,7 @@ def train_from_folder(
     replace: bool = False,
     ocr_mode: OcrMode = "auto",
     ocr_max_pages: int | None = None,
+    ocr_dpi: int = 150,
     on_progress: ProgressCallback | None = None,
 ) -> TrainingSummary:
     files = discover_knowledge_files(knowledge_dir)
@@ -128,6 +129,7 @@ def train_from_folder(
                 path,
                 ocr_mode=ocr_mode,
                 ocr_max_pages=ocr_max_pages,
+                ocr_dpi=ocr_dpi,
                 start_page=start_page,
                 on_progress=lambda stage, detail, p=path, i=file_index: _emit(
                     on_progress,

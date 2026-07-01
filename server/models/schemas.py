@@ -35,6 +35,7 @@ class IngestRequest(BaseModel):
     course: str = "操作系统"
     title: str | None = None
     ocr_mode: str = "auto"
+    ocr_dpi: int | None = None
 
 
 class TrainRequest(BaseModel):
@@ -42,6 +43,7 @@ class TrainRequest(BaseModel):
     course: str = "操作系统"
     ocr_mode: str = "auto"
     max_pages: int | None = None
+    ocr_dpi: int | None = None
     force_rebuild: bool = False
 
 
