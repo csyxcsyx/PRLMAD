@@ -112,7 +112,7 @@
                         <h3 class="text-sm font-semibold text-gray-700">生成结果 (<span x-text="generatedResources.length"></span>项)</h3>
                     </div>
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        <template x-for="res in generatedResources" :key="'tile-' + res.type">
+                        <template x-for="res in generatedResources" :key="'tile-' + res.key">
                             <button @click="res.expanded = !res.expanded"
                                 class="flex items-center gap-2 rounded-xl border px-3 py-2 text-left transition-all"
                                 :class="res.status === 'error' ? 'border-red-200 bg-red-50' : 'border-emerald-100 bg-emerald-50 hover:border-emerald-200'">
@@ -123,7 +123,7 @@
                         </template>
                     </div>
                 </div>
-                <template x-for="res in generatedResources" :key="res.type">
+                <template x-for="res in generatedResources" :key="res.key">
                     <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                         <div class="flex items-center justify-between px-5 py-3.5 cursor-pointer hover:bg-gray-50 transition-colors" @click="res.expanded = !res.expanded">
                             <div class="flex items-center gap-3">
@@ -204,6 +204,7 @@ document.addEventListener('alpine:init', () => {
                 const resp = await fetch(`/api/generate/list/${sid}`);
                 const data = await resp.json();
                 this.generatedResources = (data || []).slice().reverse().map(r => ({
+                    key: `resource-${r.id}`,
                     type: r.resource_type,
                     name: r.resource_name,
                     icon: this.resourceIcons[r.resource_type] || 'RES',
@@ -271,6 +272,7 @@ document.addEventListener('alpine:init', () => {
                         } else if (eventName === 'resource') {
                             const existing = this.generatedResources.find(r => r.type === data.type);
                             const item = {
+                                key: existing?.key || `run-${data.type}`,
                                 type: data.type,
                                 name: data.name,
                                 icon: this.resourceIcons[data.type] || 'RES',

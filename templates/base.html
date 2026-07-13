@@ -133,10 +133,22 @@
         }
         .page-loading-bar.active { transform: scaleX(.72); opacity: 1; }
         .page-loading-bar.done { transform: scaleX(1); opacity: 0; }
-        .app-main { scroll-behavior: smooth; }
-        .app-main.is-navigating { pointer-events: none; }
-        .app-main.is-navigating > * { opacity: .55; }
-        .app-main > * { transition: opacity .16s ease; }
+        .app-main { scroll-behavior: smooth; view-transition-name: workspace; }
+        .app-main.is-navigating { pointer-events: none; cursor: progress; }
+        .workspace-enter > * { animation: workspaceEnter .22s cubic-bezier(.22,.8,.25,1) both; }
+        @keyframes workspaceEnter {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        ::view-transition-group(workspace) { animation-duration: .24s; }
+        ::view-transition-old(workspace) { animation: workspaceOut .14s ease both; }
+        ::view-transition-new(workspace) { animation: workspaceIn .22s cubic-bezier(.22,.8,.25,1) both; }
+        @keyframes workspaceOut { to { opacity: 0; transform: translateY(-4px); } }
+        @keyframes workspaceIn { from { opacity: 0; transform: translateY(7px); } }
+        .nav-link, .mobile-nav a { transition: color .16s ease, background-color .16s ease, box-shadow .16s ease; }
+        @media (prefers-reduced-motion: reduce) {
+            .workspace-enter > *, ::view-transition-old(workspace), ::view-transition-new(workspace) { animation: none !important; }
+        }
         .page-header-title { font-size: 1rem !important; line-height: 1.35; }
         .page-header { min-height: 64px; }
         .page-content { padding: 1.25rem; }
@@ -276,7 +288,7 @@
 
     <div id="pageLoadingBar" class="page-loading-bar" aria-hidden="true"></div>
 
-    <script src="/static/js/app.js"></script>
+    <script src="/static/js/app.js?v=0.4.1"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

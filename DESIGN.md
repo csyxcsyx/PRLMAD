@@ -48,7 +48,12 @@ cards 12px, and major containers 16px. Maintain minimum 40px control height.
   controls reachable without horizontal scrolling.
 - Treat the left navigation and session context as a persistent application
   shell. Switching modules replaces only the main workspace, preserves browser
-  history, and returns the workspace scroll position to the top.
+  history, and restores each workspace at its previous scroll position.
+- Prefetch the small set of primary workspaces during browser idle time. Keep
+  visited workspaces alive in memory so inputs, scroll positions, charts, and
+  in-progress generation survive module switches without reconstruction.
+- Use a 220ms fade-and-lift workspace transition. Delay loading indicators long
+  enough to avoid flashes on cache hits, and honor reduced-motion preferences.
 - Prefer one intentional scroll container per module. Keep page context and
   primary actions visible; use responsive columns for paths and summaries to
   reduce unnecessary vertical travel.
