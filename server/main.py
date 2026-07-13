@@ -12,7 +12,7 @@ from server.routers import chat, generate, session, tutor, evaluate, knowledge
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
-app = FastAPI(title="PRLMAD", version="0.2.0")
+app = FastAPI(title="KnowStack 知栈", version="0.2.0")
 
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
