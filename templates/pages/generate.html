@@ -1,18 +1,19 @@
 {% extends "base.html" %}
 {% block content %}
-<div x-data="generatePage" class="flex flex-col h-full">
-    <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-3 flex-shrink-0">
-        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-sm font-bold">G</div>
+<div x-data="generatePage" class="generate-workspace flex flex-col h-full">
+    <div class="page-header bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-3 flex-shrink-0">
+        <div class="page-emblem w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-semibold">G</div>
         <div>
-            <h2 class="text-sm font-semibold text-gray-800">多智能体协同资源生成</h2>
-            <p class="text-[11px] text-gray-400">多类课程智能体协作生成讲义、导图、题库、案例和学习任务</p>
+            <h2 class="page-header-title text-gray-800">学习资源工作台</h2>
+            <p class="text-xs text-gray-400">设定一个主题，并行生成讲义、导图、练习与实践材料</p>
         </div>
     </div>
 
-    <div class="flex-1 overflow-y-auto p-6">
-        <div class="max-w-4xl mx-auto space-y-5">
+    <div class="page-content flex-1 overflow-y-auto">
+        <div class="content-shell space-y-4">
+            <div class="generation-orchestrator">
             <!-- Step 1: Configuration -->
-            <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+            <div class="generation-config bg-white border border-gray-100 rounded-2xl p-5 shadow-sm" :class="stages.length ? 'generation-config--compact' : ''">
                 <div class="flex items-center gap-2 mb-4">
                     <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold">1</span>
                     <h3 class="text-sm font-semibold text-gray-700">设置生成目标</h3>
@@ -54,7 +55,7 @@
                 </div>
 
                 <button @click="startGeneration()"
-                    class="mt-4 w-full bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white rounded-xl px-6 py-3 text-sm font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
+                    class="mt-4 w-full bg-brand-500 hover:bg-brand-700 text-white rounded-lg px-6 py-3 text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     :disabled="generating || !knowledgePoints.trim() || !$store.app.currentSessionId">
                     <span x-show="!generating" class="flex items-center justify-center gap-2">启动多智能体协同生成</span>
                     <span x-show="generating" class="flex items-center justify-center gap-2">
@@ -65,7 +66,7 @@
             </div>
 
             <!-- Step 2: Progress -->
-            <div x-show="stages.length > 0" class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm fade-in">
+            <div x-show="stages.length > 0" class="generation-progress bg-white border border-gray-100 rounded-2xl p-5 shadow-sm fade-in">
                 <div class="flex items-center gap-2 mb-4">
                     <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold">2</span>
                     <h3 class="text-sm font-semibold text-gray-700">智能体协作进度</h3>
@@ -86,6 +87,7 @@
                     </template>
                 </div>
             </div>
+            </div>
 
             <div x-show="generationDone" class="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-2xl p-5 shadow-sm fade-in">
                 <div class="flex items-center gap-4">
@@ -97,58 +99,53 @@
                             <span class="font-semibold" x-text="generatedResources.length"></span> 项学习资源。
                         </p>
                     </div>
-                    <button @click="generatedResources.forEach(r => r.expanded = true)"
+                    <button @click="readerFocus = true; selectedResourceKey = activeResource ? activeResource.key : ''"
                         class="ml-auto hidden sm:inline-flex text-xs bg-white text-emerald-700 border border-emerald-200 rounded-lg px-3 py-2 hover:bg-emerald-50">
-                        展开全部
+                        进入专注阅读
                     </button>
                 </div>
             </div>
 
             <!-- Step 3: Results -->
             <div x-show="generatedResources.length > 0" class="space-y-4 fade-in">
-                <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-                    <div class="flex items-center gap-2 mb-3">
-                        <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold">3</span>
-                        <h3 class="text-sm font-semibold text-gray-700">生成结果 (<span x-text="generatedResources.length"></span>项)</h3>
-                    </div>
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        <template x-for="res in generatedResources" :key="'tile-' + res.type">
-                            <button @click="res.expanded = !res.expanded"
-                                class="flex items-center gap-2 rounded-xl border px-3 py-2 text-left transition-all"
-                                :class="res.status === 'error' ? 'border-red-200 bg-red-50' : 'border-emerald-100 bg-emerald-50 hover:border-emerald-200'">
+                <div class="flex items-center gap-2 px-1">
+                    <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold">3</span>
+                    <h3 class="text-sm font-semibold text-gray-700">资源阅读室</h3>
+                    <span class="text-xs text-gray-400" x-text="generatedResources.length + ' 项内容'"></span>
+                </div>
+                <div class="resource-library" :class="readerFocus ? 'is-reading' : ''">
+                    <aside class="resource-index" aria-label="学习资源索引">
+                        <template x-for="res in generatedResources" :key="'index-' + res.key">
+                            <button type="button" @click="selectResource(res)" :class="activeResource && activeResource.key === res.key ? 'is-active' : ''">
                                 <span class="label-mark" x-text="res.icon || '资'"></span>
-                                <span class="text-xs font-semibold truncate" :class="res.status === 'error' ? 'text-red-600' : 'text-emerald-700'" x-text="res.name"></span>
-                                <span class="ml-auto text-xs" x-text="res.status === 'error' ? '!' : '✓'"></span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="block text-xs font-semibold truncate" x-text="res.name"></span>
+                                    <span class="block text-[10px] opacity-70 mt-0.5" x-text="res.status === 'error' ? '生成失败' : '已完成'"></span>
+                                </span>
                             </button>
                         </template>
-                    </div>
+                    </aside>
+                    <article class="resource-reader" x-show="activeResource">
+                        <div class="resource-reader-toolbar">
+                            <span class="label-mark" x-text="activeResource ? activeResource.icon : '资'"></span>
+                            <div class="min-w-0">
+                                <h4 class="text-sm font-semibold text-gray-800" x-text="activeResource ? activeResource.name : ''"></h4>
+                                <p class="text-[11px] text-gray-400 truncate" x-text="activeResource ? activeResource.preview : ''"></p>
+                            </div>
+                            <div class="reader-actions">
+                                <button type="button" @click="copyContent(activeResource)">复制全文</button>
+                                <button type="button" @click="readerFocus = !readerFocus" x-text="readerFocus ? '退出专注' : '专注阅读'"></button>
+                            </div>
+                        </div>
+                        <div class="resource-reader-body markdown-body ai-document text-sm"
+                            x-ai-markdown="{ content: activeResource ? activeResource.rawContent : '', final: true }"></div>
+                    </article>
                 </div>
-                <template x-for="res in generatedResources" :key="res.type">
-                    <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                        <div class="flex items-center justify-between px-5 py-3.5 cursor-pointer hover:bg-gray-50 transition-colors" @click="res.expanded = !res.expanded">
-                            <div class="flex items-center gap-3">
-                                <span class="label-mark" x-text="res.icon || 'RES'"></span>
-                                <div>
-                                    <span class="text-sm font-medium text-gray-700" x-text="res.name"></span>
-                                    <span class="text-[10px] text-gray-400 ml-2" x-text="res.status === 'error' ? '生成失败' : '已完成'"></span>
-                                    <p class="text-xs text-gray-400 mt-1 truncate max-w-xl" x-text="res.preview"></p>
-                                </div>
-                            </div>
-                            <span class="text-xs text-gray-400 transition-transform" :class="res.expanded ? 'rotate-180' : ''">▼</span>
-                        </div>
-                        <div x-show="res.expanded" class="px-5 pb-5 border-t border-gray-100 pt-4">
-                            <div class="markdown-body text-sm" x-html="res.content_md || '<p class=text-red-500>生成失败</p>'"></div>
-                            <div class="mt-3 pt-3 border-t border-gray-100 flex gap-2">
-                                <button @click="copyContent(res)" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg px-3 py-1.5 transition-colors">复制内容</button>
-                            </div>
-                        </div>
-                    </div>
-                </template>
             </div>
 
             <!-- Empty State -->
             <div x-show="!generating && stages.length === 0 && generatedResources.length === 0" class="text-center py-12">
-                <span class="empty-mark">AI</span>
+                {% include "components/learning_motif.html" %}
                 <p class="text-sm text-gray-400 mt-3">先输入一个具体知识点，再选择至少 5 种资源类型</p>
                 <p class="text-xs text-gray-300 mt-1">建议从当前薄弱点开始，例如信号量、死锁、虚拟内存或页面置换</p>
             </div>
@@ -166,6 +163,13 @@ document.addEventListener('alpine:init', () => {
         lastTopic: '',
         stages: [],
         generatedResources: [],
+        selectedResourceKey: '',
+        readerFocus: false,
+        get activeResource() {
+            return this.generatedResources.find(item => item.key === this.selectedResourceKey)
+                || this.generatedResources[0]
+                || null;
+        },
         resourceIcons: {
             lecture_note: '讲', concept_map: '图', exercises: '题',
             case_project: '练', ppt_outline: '纲', task_checklist: '单',
@@ -195,6 +199,8 @@ document.addEventListener('alpine:init', () => {
             const sid = Alpine.store('app').currentSessionId;
             if (!sid) {
                 this.generatedResources = [];
+                this.selectedResourceKey = '';
+                this.readerFocus = false;
                 this.generationDone = false;
                 this.lastTopic = '';
                 return;
@@ -204,15 +210,16 @@ document.addEventListener('alpine:init', () => {
                 const resp = await fetch(`/api/generate/list/${sid}`);
                 const data = await resp.json();
                 this.generatedResources = (data || []).slice().reverse().map(r => ({
+                    key: `resource-${r.id}`,
                     type: r.resource_type,
                     name: r.resource_name,
                     icon: this.resourceIcons[r.resource_type] || 'RES',
-                    content_md: marked.parse(r.content || ''),
-                    expanded: false,
                     status: 'done',
                     rawContent: r.content || '',
                     preview: this.makePreview(r.content || ''),
                 }));
+                this.selectedResourceKey = this.generatedResources[0]?.key || '';
+                this.readerFocus = false;
             } catch (e) {
                 this.generatedResources = [];
             }
@@ -220,15 +227,17 @@ document.addEventListener('alpine:init', () => {
 
         async startGeneration() {
             const sid = Alpine.store('app').currentSessionId;
-            if (!sid) { alert('请先创建会话'); return; }
+            if (!sid) { window.PRLMAD.notify('请先创建会话', 'error'); return; }
             const selectedTypes = this.resourceTypes.filter(r => r.selected).map(r => r.key);
-            if (selectedTypes.length < 5) { alert('请至少选择5种资源类型'); return; }
-            if (!this.knowledgePoints.trim()) { alert('请输入学习知识点'); return; }
+            if (selectedTypes.length < 5) { window.PRLMAD.notify('请至少选择5种资源类型', 'error'); return; }
+            if (!this.knowledgePoints.trim()) { window.PRLMAD.notify('请输入学习知识点', 'error'); return; }
 
             this.generating = true;
             Alpine.store('app').setBusy('generate', true);
             this.stages = [];
             this.generatedResources = [];
+            this.selectedResourceKey = '';
+            this.readerFocus = false;
             this.generationDone = false;
             this.lastTopic = this.knowledgePoints.trim();
 
@@ -271,21 +280,21 @@ document.addEventListener('alpine:init', () => {
                         } else if (eventName === 'resource') {
                             const existing = this.generatedResources.find(r => r.type === data.type);
                             const item = {
+                                key: existing?.key || `run-${data.type}`,
                                 type: data.type,
                                 name: data.name,
                                 icon: this.resourceIcons[data.type] || 'RES',
-                                content_md: data.content ? marked.parse(data.content) : '<p class="text-red-500">生成失败</p>',
-                                expanded: this.generatedResources.length === 0,
                                 status: data.error ? 'error' : 'done',
-                                rawContent: data.content || '',
+                                rawContent: data.content || `**生成失败。**\n\n${data.error || '请稍后重试。'}`,
                                 preview: this.makePreview(data.content || data.error || ''),
                             };
                             if (existing) Object.assign(existing, item);
                             else this.generatedResources.push(item);
+                            if (!this.selectedResourceKey) this.selectedResourceKey = item.key;
                         } else if (eventName === 'error') {
                             failed = true;
                             this.stages.forEach(s => { if (s.status === 'running') s.status = 'error'; });
-                            alert(data.message || '生成失败');
+                            window.PRLMAD.notify(data.message || '生成失败', 'error');
                         } else if (eventName === 'done') {
                             this.generationDone = true;
                         }
@@ -293,7 +302,7 @@ document.addEventListener('alpine:init', () => {
                 }
             } catch (e) {
                 failed = true;
-                alert('生成请求失败: ' + e.message);
+                window.PRLMAD.notify('生成请求失败: ' + e.message, 'error');
             }
             this.generating = false;
             Alpine.store('app').setBusy('generate', false);
@@ -309,12 +318,18 @@ document.addEventListener('alpine:init', () => {
                 .slice(0, 90);
         },
 
+        selectResource(resource) {
+            if (!resource) return;
+            this.selectedResourceKey = resource.key;
+            this.readerFocus = false;
+        },
+
         async copyContent(res) {
             try {
-                await navigator.clipboard.writeText(res.rawContent);
-                alert('已复制到剪贴板');
+                await navigator.clipboard.writeText(res?.rawContent || '');
+                window.PRLMAD.notify('内容已复制', 'success');
             } catch (e) {
-                alert('复制失败');
+                window.PRLMAD.notify('复制失败', 'error');
             }
         },
     }));

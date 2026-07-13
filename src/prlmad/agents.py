@@ -51,6 +51,15 @@ RESOURCE_TYPE_NAMES = {
 }
 
 
+MARKDOWN_OUTPUT_STYLE = """\
+\n呈现规范：
+- 开头先给出一句可直接理解的结论或学习目标，再展开依据。
+- 只使用二级、三级标题组织内容；段落保持简短，步骤、条件和对比优先使用列表或表格。
+- 代码围栏只用于真正的代码、命令或 Mermaid 图，不要把普通说明文字放进代码块。
+- 避免重复题目、空泛开场、连续大段文字和过度使用加粗；术语首次出现时用一句话解释。
+- 引用教材时沿用 [资料1]、[资料2] 的标记，并把引用放在对应结论之后。"""
+
+
 @dataclass
 class LearnerInput:
     major: str = ""
@@ -278,7 +287,8 @@ class AgentOrchestrator:
 
 请构建动态学习画像，至少包含 6 个维度：
 知识基础、认知风格、学习目标、学习历史、资源偏好、易错点偏好、学习节奏、动机/反馈偏好。
-输出 Markdown，不要编造未提供的个人隐私。"""
+输出 Markdown，不要编造未提供的个人隐私。
+{MARKDOWN_OUTPUT_STYLE}"""
         return self.client.chat(_messages("你是学习画像智能体，也是一名课程学习诊断教师。", prompt))
 
     def _resource_agent(
@@ -310,7 +320,8 @@ class AgentOrchestrator:
 - 使用专业教师授课口吻，先给出定义和条件，再解释推理过程，最后给学习检查点。
 - 关键概念和结论尽量引用 [资料1]、[资料2] 等来源。
 - 如果教材片段不足，明确说明不足位置。
-- 内容要适合大学生自主学习，不生成与课程目标无关的泛泛建议。"""
+- 内容要适合大学生自主学习，不生成与课程目标无关的泛泛建议。
+{MARKDOWN_OUTPUT_STYLE}"""
         return self.client.chat(_messages(role_prompt, prompt))
 
     def _path_planner(
@@ -339,7 +350,8 @@ class AgentOrchestrator:
 {context}
 
 请规划 7 天以内的个性化学习路径，包含学习步骤、资源使用顺序、每日检查点、复习触发条件和动态调整策略。
-路径主题必须紧扣“知识点关注”；若未指定，则围绕学习者薄弱点和课程目标规划。"""
+路径主题必须紧扣“知识点关注”；若未指定，则围绕学习者薄弱点和课程目标规划。
+{MARKDOWN_OUTPUT_STYLE}"""
         return self.client.chat(_messages("你是学习路径规划智能体，也是一名课程教学设计教师。", prompt))
 
     def _assessment_agent(
@@ -362,7 +374,8 @@ class AgentOrchestrator:
 教材依据：
 {context}
 
-请围绕“知识点关注”设计学习效果评估方案，包含行为数据、练习表现、资源使用反馈、知识掌握度和后续推送调整规则。"""
+请围绕“知识点关注”设计学习效果评估方案，包含行为数据、练习表现、资源使用反馈、知识掌握度和后续推送调整规则。
+{MARKDOWN_OUTPUT_STYLE}"""
         return self.client.chat(_messages("你是学习效果评估智能体，也是一名课程评价教师。", prompt))
 
     def build_profile_from_conversation(
@@ -403,13 +416,13 @@ class AgentOrchestrator:
 输出格式：纯 JSON，不要包含 markdown 代码块标记。"""
         return self.client.chat(_messages("你是学习画像提取智能体，输出 JSON，判断标准应像专业教师一样审慎。", prompt))
 
-    def tutor_chat(
+    def build_tutor_messages(
         self,
         course: str,
         learner_brief: str,
         question: str,
         context: str = "",
-    ) -> str:
+    ) -> list[dict[str, str]]:
         if not context:
             query = f"{course} {question}"
             snippets = self.knowledge_base.search(query, course=course, top_k=5)
@@ -431,8 +444,20 @@ class AgentOrchestrator:
 - 标注关键知识点和易错提醒
 - 若教材片段不足，明确说明并建议查阅方向
 - 提供进一步学习建议
-- 用 Markdown 格式输出。"""
-        return self.client.chat(_messages("你是智能辅导智能体，也是一名操作系统课程教师。", prompt))
+- 用 Markdown 格式输出。
+{MARKDOWN_OUTPUT_STYLE}"""
+        return _messages("你是智能辅导智能体，也是一名操作系统课程教师。", prompt)
+
+    def tutor_chat(
+        self,
+        course: str,
+        learner_brief: str,
+        question: str,
+        context: str = "",
+    ) -> str:
+        return self.client.chat(
+            self.build_tutor_messages(course, learner_brief, question, context)
+        )
 
     def generate_learning_path(
         self,
@@ -515,6 +540,12 @@ class AgentOrchestrator:
   "suggestions": ["改进建议1", "改进建议2"],
   "profile_updates": {{ "字段名": "建议更新值" }}
 }}
+
+内容要求：
+- 每个维度的 comment 用一到两句说明证据与下一步，不重复分数。
+- overall_assessment 使用简洁 Markdown，先写“### 诊断结论”，再写“### 关键依据”，不要逐项复述全部维度。
+- suggestions 给出 3-5 条可执行建议，每条包含具体动作或完成标准，避免“继续努力”等空泛表达。
+- 分数必须结合实际活动记录；缺少练习正确率等证据时，应在评语中明确数据不足。
 
 输出格式：纯 JSON，不要包含 markdown 代码块标记。"""
         return self.client.chat(_messages("你是学习效果评估智能体，也是一名课程评价教师。", prompt))

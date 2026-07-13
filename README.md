@@ -328,6 +328,9 @@ python -B run.py status
 
 - 后端修改后先运行 `python -B -c "from server.main import app; print(app.title)"` 做导入烟测。
 - 前端改动后启动 `python run.py serve --no-reload`，再检查浏览器控制台和 Network 面板。
+- 浏览器运行时所需的 CSS、字体和前端库已提交到 `static/`，正常启动只需要 Python，不依赖 Node 或外网 CDN。
+- 如需修改 Tailwind 类名或升级前端库，请使用 Node.js 20+ 和 pnpm，依次运行 `pnpm install --frozen-lockfile` 与 `pnpm run check`；构建后的静态文件需要一并提交。
+- `pnpm run check:assets` 会阻止重新引入外部运行依赖、未经过安全渲染的 `x-html`，以及过大的首屏关键资源。
 - `data/` 保存本地 SQLite 运行数据和已导入的知识库索引，默认不提交到 Git。
 - `knowledge/` 保存本地教材文件，默认不提交到 Git，避免把大 PDF 上传到 GitHub。
 - 协作者首次使用时需要自行准备教材文件，并通过 `python -B run.py train --course 操作系统 --ocr-mode off` 或网页端知识库管理页面构建本地知识库。

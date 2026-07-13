@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
-<div x-data="tutorPage" class="flex flex-col h-full">
-    <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-3 flex-shrink-0">
-        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white text-sm font-bold">T</div>
+<div x-data="tutorPage" class="tutor-workspace flex flex-col h-full">
+    <div class="page-header bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-3 flex-shrink-0">
+        <div class="page-emblem w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-semibold">T</div>
         <div>
-            <h2 class="text-sm font-semibold text-gray-800">智能辅导</h2>
-            <p class="text-[11px] text-gray-400">基于教材知识库的个性化问答</p>
+            <h2 class="page-header-title text-gray-800">智能辅导</h2>
+            <p class="text-xs text-gray-400">结合教材证据回答问题，并保留可追溯引用</p>
         </div>
     </div>
-    <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4" id="tutorMsgContainer">
+    <div class="tutor-canvas flex-1 overflow-y-auto px-5 py-4 space-y-4" id="tutorMsgContainer">
         <div x-show="tutorMessages.length === 0 && !loading" class="text-center py-16 fade-in">
-            <span class="empty-mark">辅</span>
+            {% include "components/learning_motif.html" %}
             <p class="text-lg font-medium text-gray-400 mt-4">有什么学习问题？</p>
             <p class="text-sm text-gray-400 mt-1">我会基于教材知识库为你提供个性化解答</p>
             <div x-show="!$store.app.currentSessionId" class="mt-3 text-xs text-amber-500 bg-amber-50 rounded-lg px-4 py-2 inline-block">请先在侧边栏创建学习会话</div>
@@ -30,17 +30,23 @@
             </div>
         </div>
 
-        <template x-for="(msg, idx) in tutorMessages" :key="idx">
+        <template x-for="(msg, idx) in tutorMessages" :key="msg.id || idx">
             <div class="slide-up">
                 <div x-show="msg.role === 'user'" class="flex justify-end mb-4">
-                    <div class="bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-2xl rounded-br-md px-4 py-2.5 max-w-[75%] shadow-sm">
+                    <div class="bg-brand-500 text-white rounded-2xl rounded-br-md px-4 py-2.5 max-w-[75%]">
                         <p class="text-sm whitespace-pre-wrap" x-text="msg.content"></p>
                     </div>
                 </div>
                 <div x-show="msg.role === 'assistant'" class="flex gap-3 mb-4">
-                    <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white text-xs flex-shrink-0 shadow-sm">AI</div>
-                    <div class="bg-white border border-gray-100 rounded-2xl rounded-bl-md px-5 py-3.5 max-w-[80%] shadow-sm">
-                        <div class="markdown-body text-sm" x-html="msg.content_md || ''"></div>
+                    <div class="page-emblem w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs flex-shrink-0">AI</div>
+                    <div class="bg-white border border-gray-100 rounded-2xl rounded-bl-md px-5 py-3.5 max-w-[86%] lg:max-w-[78%] shadow-sm">
+                        <div x-show="msg.streaming && !msg.content" class="inline-flex items-center gap-2 text-xs text-gray-500 bg-gray-50 rounded-full px-3 py-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-brand-500 pulse"></span>
+                            <span x-text="msg.stage || '正在准备回答'"></span>
+                        </div>
+                        <div x-show="msg.content" class="markdown-body ai-document text-sm"
+                            :class="msg.streaming ? 'streaming-answer' : ''"
+                            x-ai-markdown="{ content: msg.content, final: !msg.streaming }"></div>
                         <div x-show="msg.citations && msg.citations.length" class="mt-3 pt-3 border-t border-gray-100">
                             <p class="text-[10px] text-gray-400 mb-1.5">教材参考来源</p>
                             <div class="flex flex-wrap gap-1">
@@ -54,16 +60,8 @@
             </div>
         </template>
 
-        <div x-show="loading" class="slide-up mb-4">
-            <div class="flex gap-3">
-                <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white text-xs flex-shrink-0 pulse">AI</div>
-                <div class="bg-white border border-gray-100 rounded-2xl rounded-bl-md px-5 py-3.5 max-w-[80%] shadow-sm">
-                    <div class="text-sm text-gray-400 typing">正在检索教材知识并生成辅导...</div>
-                </div>
-            </div>
-        </div>
     </div>
-    <div class="border-t border-gray-100 bg-white px-6 py-3 flex-shrink-0">
+    <div class="tutor-input-dock border-t border-gray-100 bg-white px-6 py-3 flex-shrink-0">
         <div class="flex gap-3 max-w-4xl mx-auto">
             <textarea x-model="tutorInput" @keydown.enter.prevent="if(!$event.shiftKey) askQuestion()"
                 placeholder="输入你的学习问题... (Shift+Enter 换行)"
@@ -74,7 +72,7 @@
                 @input="$refs.tutorInput.style.height = 'auto'; $refs.tutorInput.style.height = Math.min($refs.tutorInput.scrollHeight, 100) + 'px'">
             </textarea>
             <button @click="askQuestion()"
-                class="bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl px-5 py-2.5 text-sm font-semibold transition-all shadow-md disabled:opacity-40 flex-shrink-0"
+                class="bg-brand-500 hover:bg-brand-700 text-white rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors disabled:opacity-40 flex-shrink-0"
                 :disabled="loading || !tutorInput.trim() || !$store.app.currentSessionId">
                 提问
             </button>
@@ -107,13 +105,14 @@ document.addEventListener('alpine:init', () => {
                 const resp = await fetch(`/api/tutor/logs/${sid}`);
                 const logs = await resp.json();
                 const messages = [];
-                (logs || []).slice().reverse().forEach(log => {
-                    messages.push({ role: 'user', content: log.question });
+                (logs || []).slice().reverse().forEach((log, index) => {
+                    messages.push({ id: `log-user-${index}`, role: 'user', content: log.question });
                     messages.push({
+                        id: `log-assistant-${index}`,
                         role: 'assistant',
                         content: log.answer,
-                        content_md: marked.parse(log.answer || ''),
                         citations: log.citations || [],
+                        streaming: false,
                     });
                 });
                 this.tutorMessages = messages;
@@ -126,19 +125,73 @@ document.addEventListener('alpine:init', () => {
             }
         },
         askQuick(q) { this.tutorInput = q; this.askQuestion(); },
-        async askQuestion() {
-            const sid = Alpine.store('app').currentSessionId;
-            if (!sid) { alert('请先创建会话'); return; }
-            const q = this.tutorInput.trim();
-            if (!q) return;
-            this.tutorMessages.push({ role: 'user', content: q });
-            this.tutorInput = '';
-            this.loading = true;
-            Alpine.store('app').setBusy('tutor', true);
-            this.$nextTick(() => {
+        scrollToLatest() {
+            window.requestAnimationFrame(() => {
                 const el = document.getElementById('tutorMsgContainer');
                 if (el) el.scrollTop = el.scrollHeight;
             });
+        },
+        renderStreamingMessage(message, final = false) {
+            this.scrollToLatest();
+        },
+        enqueueToken(message, token) {
+            const text = String(token || '');
+            if (!text) return;
+            message.receivedContent += text;
+            message.tokenQueue.push(...(text.match(/[\s\S]{1,2}/g) || []));
+            if (!message.tokenTimer) this.playTokenQueue(message);
+        },
+        playTokenQueue(message) {
+            if (!message.tokenQueue.length) {
+                message.tokenTimer = null;
+                this.tryFinalizeMessage(message);
+                return;
+            }
+            message.content += message.tokenQueue.shift();
+            this.renderStreamingMessage(message);
+            const delay = message.tokenQueue.length > 120 ? 8 : message.tokenQueue.length > 40 ? 14 : 22;
+            message.tokenTimer = window.setTimeout(() => {
+                message.tokenTimer = null;
+                this.playTokenQueue(message);
+            }, delay);
+        },
+        tryFinalizeMessage(message) {
+            if (!message.pendingComplete || message.tokenQueue.length || message.tokenTimer) return;
+            const finalData = message.pendingComplete;
+            if (finalData.content) message.content = finalData.content;
+            message.citations = finalData.citations || [];
+            message.pendingComplete = null;
+            message.streaming = false;
+            message.stage = '回答生成完成';
+            this.renderStreamingMessage(message, true);
+            this.loading = false;
+            Alpine.store('app').setBusy('tutor', false);
+            this.scrollToLatest();
+        },
+        async askQuestion() {
+            const sid = Alpine.store('app').currentSessionId;
+            if (!sid) { window.PRLMAD.notify('请先创建会话', 'error'); return; }
+            const q = this.tutorInput.trim();
+            if (!q) return;
+            const messageId = `live-${Date.now()}`;
+            this.tutorMessages.push({ id: `${messageId}-user`, role: 'user', content: q });
+            this.tutorMessages.push({
+                id: `${messageId}-assistant`,
+                role: 'assistant',
+                content: '',
+                citations: [],
+                streaming: true,
+                stage: '正在检索教材证据',
+                receivedContent: '',
+                tokenQueue: [],
+                tokenTimer: null,
+                pendingComplete: null,
+            });
+            const assistantMessage = this.tutorMessages[this.tutorMessages.length - 1];
+            this.tutorInput = '';
+            this.loading = true;
+            Alpine.store('app').setBusy('tutor', true);
+            this.scrollToLatest();
 
             try {
                 const resp = await fetch('/api/tutor/stream', {
@@ -150,46 +203,53 @@ document.addEventListener('alpine:init', () => {
                 const reader = resp.body.getReader();
                 const decoder = new TextDecoder();
                 let buffer = '';
-                let answerContent = '';
-                let answerCitations = [];
 
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
                     buffer += decoder.decode(value, { stream: true });
                     buffer = window.PRLMAD.parseSse(buffer, (eventName, data) => {
-                        if (eventName === 'answer') {
-                            answerContent = data.content || '';
-                            answerCitations = data.citations || [];
+                        if (eventName === 'stage') {
+                            if (data.stage === 'knowledge_retrieval') {
+                                assistantMessage.stage = data.status === 'done'
+                                    ? `已定位 ${data.snippet_count || 0} 条教材依据，正在组织回答`
+                                    : '正在检索教材证据';
+                            } else if (data.stage === 'answer_generation') {
+                                assistantMessage.stage = data.status === 'done' ? '回答生成完成' : '正在逐步生成回答';
+                            }
+                        } else if (eventName === 'token') {
+                            this.enqueueToken(assistantMessage, data.content || '');
+                        } else if (eventName === 'answer_complete' || eventName === 'answer') {
+                            if (eventName === 'answer' && !assistantMessage.receivedContent && data.content) {
+                                this.enqueueToken(assistantMessage, data.content);
+                            }
+                            assistantMessage.pendingComplete = data;
+                            this.tryFinalizeMessage(assistantMessage);
                         } else if (eventName === 'error') {
-                            answerContent = '错误: ' + (data.message || '未知错误');
-                            answerCitations = [];
+                            if (assistantMessage.tokenTimer) window.clearTimeout(assistantMessage.tokenTimer);
+                            assistantMessage.tokenTimer = null;
+                            assistantMessage.tokenQueue = [];
+                            assistantMessage.content = `**暂时无法完成回答。**\n\n${data.message || '请稍后重试。'}`;
+                            assistantMessage.pendingComplete = { content: assistantMessage.content, citations: [] };
+                            this.tryFinalizeMessage(assistantMessage);
                         }
                     });
-                    const el = document.getElementById('tutorMsgContainer');
-                    if (el) el.scrollTop = el.scrollHeight;
                 }
-                if (!answerContent) {
-                    answerContent = '暂时没有收到有效回答，请稍后重试，或换一个更具体的问题。';
+                if (!assistantMessage.pendingComplete && assistantMessage.streaming) {
+                    const fallback = assistantMessage.receivedContent
+                        || '暂时没有收到有效回答。请稍后重试，或把问题描述得更具体一些。';
+                    if (!assistantMessage.receivedContent) this.enqueueToken(assistantMessage, fallback);
+                    assistantMessage.pendingComplete = { content: fallback, citations: assistantMessage.citations || [] };
+                    this.tryFinalizeMessage(assistantMessage);
                 }
-                this.tutorMessages.push({
-                    role: 'assistant',
-                    content: answerContent,
-                    content_md: marked.parse(answerContent),
-                    citations: answerCitations,
-                });
             } catch (e) {
-                this.tutorMessages.push({
-                    role: 'assistant',
-                    content: '请求失败: ' + e.message,
-                    content_md: '<p class="text-red-500">网络错误，请重试</p>',
-                    citations: [],
-                });
+                if (assistantMessage.tokenTimer) window.clearTimeout(assistantMessage.tokenTimer);
+                assistantMessage.tokenTimer = null;
+                assistantMessage.tokenQueue = [];
+                assistantMessage.content = `**网络请求失败。**\n\n${e.message}，请检查连接后重试。`;
+                assistantMessage.pendingComplete = { content: assistantMessage.content, citations: [] };
+                this.tryFinalizeMessage(assistantMessage);
             }
-            this.loading = false;
-            Alpine.store('app').setBusy('tutor', false);
-            const el = document.getElementById('tutorMsgContainer');
-            if (el) el.scrollTop = el.scrollHeight;
         },
     }));
 });
