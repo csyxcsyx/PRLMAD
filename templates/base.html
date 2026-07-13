@@ -28,6 +28,7 @@
             --coral-active: #a9583e; --dark: #181715; --success: #5db872;
         }
         * { font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        [x-cloak] { display: none !important; }
         body { color: var(--body); }
         .display-title, main h1, main h2 { font-family: 'Noto Serif SC', 'Cormorant Garamond', Georgia, serif; font-weight: 500 !important; letter-spacing: -0.02em; color: var(--ink); }
         .markdown-body { color: var(--body); line-height: 1.72; overflow-wrap: anywhere; }
@@ -99,6 +100,25 @@
         .nav-link { transition: all 0.2s ease; border-radius: 0.75rem; }
         .nav-link:hover { background: var(--surface-soft); }
         .nav-link.active { background: var(--surface-card); color: var(--ink); font-weight: 600; box-shadow: inset 3px 0 0 var(--coral); }
+        .session-switcher-trigger {
+            background: rgba(250,249,245,.82);
+            border: 1px solid var(--hairline);
+            transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease;
+        }
+        .session-switcher-trigger:hover, .session-switcher-trigger.is-open {
+            background: var(--canvas);
+            border-color: rgba(204,120,92,.48);
+            box-shadow: 0 0 0 3px rgba(204,120,92,.09);
+        }
+        .session-switcher-menu {
+            background: rgba(250,249,245,.98);
+            border: 1px solid var(--hairline);
+            box-shadow: 0 14px 34px rgba(62,49,42,.14);
+            backdrop-filter: blur(16px);
+        }
+        .session-switcher-option { transition: color .16s ease, background-color .16s ease; }
+        .session-switcher-option:hover { background: var(--surface-soft); }
+        .session-switcher-option.is-selected { background: var(--surface-card); color: var(--ink); }
         .pulse { animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
         .gradient-brand { background: var(--coral); }
@@ -197,10 +217,25 @@
                 <p class="display-title text-lg leading-none">PRLMAD</p>
                 <p class="text-[10px] text-gray-500 mt-1 truncate" x-text="$store.app.currentSession ? $store.app.currentSession.name : '个性化学习工作台'"></p>
             </div>
-            <select class="ml-auto max-w-[45%] text-xs border border-[#e6dfd8] rounded-lg px-2 py-2 bg-transparent" :value="$store.app.currentSessionId" @change="$store.app.switchSession($event.target.value)">
-                <option value="">选择会话</option>
-                <template x-for="s in $store.app.sessions" :key="s.session_id"><option :value="s.session_id" x-text="s.name"></option></template>
-            </select>
+            <div x-data="sessionSwitcher" class="relative ml-auto max-w-[48%]" @click.outside="close()" @keydown.escape.window="close()">
+                <button type="button" @click="toggle()" :disabled="sessions.length === 0"
+                    class="session-switcher-trigger w-full rounded-lg px-2.5 py-2 flex items-center gap-2 text-xs text-gray-700 disabled:opacity-50"
+                    :class="open ? 'is-open' : ''" aria-haspopup="listbox" :aria-expanded="open">
+                    <span class="truncate" x-text="currentSession ? currentSession.name : '选择会话'"></span>
+                    <svg class="w-3.5 h-3.5 flex-shrink-0 text-gray-400 transition-transform" :class="open ? 'rotate-180' : ''" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 7.5 5 5 5-5"/></svg>
+                </button>
+                <div x-cloak x-show="open" x-transition.origin.top.right role="listbox"
+                    class="session-switcher-menu absolute right-0 top-full z-50 mt-2 w-64 max-h-64 overflow-y-auto rounded-xl p-1.5">
+                    <template x-for="s in sessions" :key="s.session_id">
+                        <button type="button" role="option" @click="choose(s.session_id)" :aria-selected="s.session_id === $store.app.currentSessionId"
+                            class="session-switcher-option w-full rounded-lg px-3 py-2.5 flex items-center gap-2 text-left"
+                            :class="s.session_id === $store.app.currentSessionId ? 'is-selected' : ''">
+                            <span class="min-w-0 flex-1 truncate text-xs font-medium" x-text="s.name"></span>
+                            <span x-show="s.session_id === $store.app.currentSessionId" class="text-brand-600 text-xs">✓</span>
+                        </button>
+                    </template>
+                </div>
+            </div>
             <nav class="mobile-nav w-full flex items-center gap-1 overflow-x-auto pt-2 text-xs text-gray-600">
                 <a href="/page/chat" data-app-nav data-page-target="chat" class="px-3 py-1.5 rounded-lg {% if page == 'chat' %}active{% endif %}">画像</a>
                 <a href="/page/generate" data-app-nav data-page-target="generate" class="px-3 py-1.5 rounded-lg {% if page == 'generate' %}active{% endif %}">资源</a>
@@ -225,13 +260,34 @@
             <!-- Session Selector -->
             <div class="px-3 py-3 border-b border-gray-100">
                 <label class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1.5 block">当前会话</label>
-                <select :value="$store.app.currentSessionId" @change="$store.app.switchSession($event.target.value)"
-                    x-show="$store.app.sessions.length > 0"
-                    class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-brand-400 focus:border-transparent outline-none text-gray-700">
-                    <template x-for="s in $store.app.sessions" :key="s.session_id">
-                        <option :value="s.session_id" x-text="s.name + ' (' + s.course + ')'"></option>
-                    </template>
-                </select>
+                <div x-data="sessionSwitcher" x-show="$store.app.sessions.length > 0" class="relative" @click.outside="close()" @keydown.escape.window="close()">
+                    <button type="button" @click="toggle()"
+                        class="session-switcher-trigger w-full rounded-xl px-3 py-2.5 flex items-center gap-2.5 text-left"
+                        :class="open ? 'is-open' : ''" aria-haspopup="listbox" :aria-expanded="open">
+                        <span class="w-7 h-7 rounded-lg bg-brand-50 text-brand-700 flex items-center justify-center text-[10px] font-semibold flex-shrink-0">会</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-medium text-gray-700" x-text="currentSession ? currentSession.name : '选择学习会话'"></span>
+                            <span class="block truncate text-[10px] text-gray-400 mt-0.5" x-text="currentSession ? currentSession.course : ''"></span>
+                        </span>
+                        <svg class="w-4 h-4 flex-shrink-0 text-gray-400 transition-transform" :class="open ? 'rotate-180' : ''" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 7.5 5 5 5-5"/></svg>
+                    </button>
+                    <div x-cloak x-show="open" x-transition.origin.top role="listbox"
+                        class="session-switcher-menu absolute left-0 right-0 top-full z-50 mt-2 max-h-64 overflow-y-auto rounded-xl p-1.5">
+                        <template x-for="s in sessions" :key="s.session_id">
+                            <button type="button" role="option" @click="choose(s.session_id)" :aria-selected="s.session_id === $store.app.currentSessionId"
+                                class="session-switcher-option w-full rounded-lg px-2.5 py-2.5 flex items-center gap-2.5 text-left"
+                                :class="s.session_id === $store.app.currentSessionId ? 'is-selected' : ''">
+                                <span class="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-semibold flex-shrink-0"
+                                    :class="s.session_id === $store.app.currentSessionId ? 'bg-brand-100 text-brand-700' : 'bg-gray-50 text-gray-400'"
+                                    x-text="s.session_id === $store.app.currentSessionId ? '✓' : '会'"></span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="block truncate text-xs font-medium" x-text="s.name"></span>
+                                    <span class="block truncate text-[10px] text-gray-400 mt-0.5" x-text="s.course"></span>
+                                </span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
                 <p x-show="$store.app.sessions.length === 0" class="text-xs text-gray-400 italic">暂无学习会话</p>
                 <div x-show="$store.app.sessions.length > 0" class="mt-2 grid grid-cols-2 gap-2">
                     <button @click="$store.app.renameCurrentSession()"
@@ -308,7 +364,7 @@
 
     <div id="pageLoadingBar" class="page-loading-bar" aria-hidden="true"></div>
 
-    <script src="/static/js/app.js?v=0.4.1"></script>
+    <script src="/static/js/app.js?v=0.4.2"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
