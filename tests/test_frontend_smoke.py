@@ -39,12 +39,15 @@ class FrontendSmokeTests(unittest.TestCase):
                 self.assertNotIn("x-html=", response.text)
                 self.assertIn('/static/css/app.css', response.text)
                 self.assertIn('/static/js/ai-renderer.js', response.text)
+                self.assertIn('KnowStack', response.text)
+                self.assertIn('/static/images/knowstack.png', response.text)
 
     def test_required_static_assets_are_served(self) -> None:
         assets = (
             "/static/css/app.css",
             "/static/js/app.js",
             "/static/js/ai-renderer.js",
+            "/static/images/knowstack.png",
             "/static/vendor/alpine.min.js",
             "/static/vendor/marked.umd.js",
             "/static/vendor/purify.min.js",

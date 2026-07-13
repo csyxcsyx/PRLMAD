@@ -7,6 +7,7 @@ const required = [
   'static/css/app.css',
   'static/js/app.js',
   'static/js/ai-renderer.js',
+  'static/images/knowstack.png',
   'static/vendor/alpine.min.js',
   'static/vendor/marked.umd.js',
   'static/vendor/purify.min.js',
