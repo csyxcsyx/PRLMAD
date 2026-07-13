@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
+from starlette.concurrency import iterate_in_threadpool
 
 from server.dependencies import get_knowledge_base, get_session_store, get_spark_client
 from server.models.schemas import TutorRequest
@@ -25,6 +26,11 @@ def _fallback_tutor_answer(course: str, question: str, error: str = "") -> str:
 """
 
 
+def _text_chunks(text: str, size: int = 12):
+    for start in range(0, len(text), size):
+        yield text[start:start + size]
+
+
 async def _tutor_stream(
     client,
     orchestrator: AgentOrchestrator,
@@ -36,6 +42,7 @@ async def _tutor_stream(
     profile = session_store.get_profile(session_id)
     learner_brief = _learner_brief_from_profile(profile)
     citations: list[str] = []
+    answer_parts: list[str] = []
 
     try:
         yield sse_event("stage", {"stage": "knowledge_retrieval", "status": "running"})
@@ -48,12 +55,28 @@ async def _tutor_stream(
         ]
         yield sse_event("stage", {"stage": "knowledge_retrieval", "status": "done", "snippet_count": len(snippets)})
 
-        answer = orchestrator.tutor_chat(course, learner_brief, question, context).strip()
+        messages = orchestrator.build_tutor_messages(course, learner_brief, question, context)
+        yield sse_event("stage", {"stage": "answer_generation", "status": "running"})
+        async for chunk in iterate_in_threadpool(client.stream_chat(messages)):
+            if not chunk.content:
+                continue
+            answer_parts.append(chunk.content)
+            yield sse_event("token", {"content": chunk.content})
+
+        answer = "".join(answer_parts).strip()
         if not answer:
-            answer = _fallback_tutor_answer(course, question, "模型返回了空内容")
+            raise ValueError("模型返回了空内容")
+        yield sse_event("stage", {"stage": "answer_generation", "status": "done"})
     except Exception as exc:
-        answer = _fallback_tutor_answer(course, question, str(exc))
-    yield sse_event("answer", {"content": answer, "citations": citations})
+        fallback = _fallback_tutor_answer(course, question, str(exc))
+        if answer_parts:
+            fallback = f"\n\n> 生成中断，以下为补充学习建议。\n\n{fallback}"
+        for part in _text_chunks(fallback):
+            answer_parts.append(part)
+            yield sse_event("token", {"content": part})
+        answer = "".join(answer_parts).strip()
+
+    yield sse_event("answer_complete", {"content": answer, "citations": citations})
 
     session_store.add_tutor_log(session_id, question, answer, citations)
     yield sse_done()

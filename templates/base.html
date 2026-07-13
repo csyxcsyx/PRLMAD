@@ -30,20 +30,26 @@
         * { font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
         body { color: var(--body); }
         .display-title, main h1, main h2 { font-family: 'Noto Serif SC', 'Cormorant Garamond', Georgia, serif; font-weight: 500 !important; letter-spacing: -0.02em; color: var(--ink); }
-        .markdown-body { color: var(--body); }
-        .markdown-body h1 { font-family: 'Noto Serif SC', Georgia, serif; font-size: 1.5rem; font-weight: 500; margin-top: 1.25rem; margin-bottom: 0.75rem; color: var(--ink); }
-        .markdown-body h2 { font-family: 'Noto Serif SC', Georgia, serif; font-size: 1.2rem; font-weight: 500; margin-top: 1rem; margin-bottom: 0.5rem; color: #252523; border-bottom: 1px solid var(--hairline); padding-bottom: 0.35rem; }
-        .markdown-body h3 { font-size: 1.05rem; font-weight: 500; margin-top: 0.75rem; margin-bottom: 0.25rem; color: var(--body); }
-        .markdown-body p { margin-bottom: 0.5rem; line-height: 1.75; }
-        .markdown-body ul, .markdown-body ol { padding-left: 1.5rem; margin-bottom: 0.5rem; }
-        .markdown-body li { margin-bottom: 0.2rem; line-height: 1.6; }
-        .markdown-body code { background: var(--surface-card); padding: 0.1rem 0.35rem; border-radius: 0.25rem; font-size: 0.85rem; color: var(--coral-active); }
-        .markdown-body pre { background: var(--dark); color: var(--canvas); padding: 1rem; border-radius: 0.75rem; overflow-x: auto; margin: 0.75rem 0; }
-        .markdown-body pre code { background: transparent; padding: 0; color: inherit; font-size: 0.85rem; }
-        .markdown-body table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .markdown-body { color: var(--body); line-height: 1.72; overflow-wrap: anywhere; }
+        .markdown-body > :first-child { margin-top: 0 !important; }
+        .markdown-body > :last-child { margin-bottom: 0 !important; }
+        .markdown-body h1 { font-family: 'Noto Serif SC', Georgia, serif; font-size: 1.35rem; font-weight: 500; margin-top: 1.35rem; margin-bottom: 0.7rem; color: var(--ink); }
+        .markdown-body h2 { font-family: 'Noto Serif SC', Georgia, serif; font-size: 1.15rem; font-weight: 500; margin-top: 1.25rem; margin-bottom: 0.65rem; color: #252523; border-bottom: 1px solid var(--hairline); padding-bottom: 0.4rem; }
+        .markdown-body h3 { font-size: 1rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.4rem; color: var(--body); }
+        .markdown-body p { margin-bottom: 0.65rem; line-height: 1.78; }
+        .markdown-body ul, .markdown-body ol { padding-left: 1.35rem; margin-bottom: 0.7rem; }
+        .markdown-body li { margin-bottom: 0.3rem; line-height: 1.68; }
+        .markdown-body li::marker { color: var(--coral); font-weight: 600; }
+        .markdown-body strong { color: var(--ink); font-weight: 600; }
+        .markdown-body a { color: var(--coral-active); text-decoration: underline; text-underline-offset: 3px; }
+        .markdown-body code { background: var(--surface-card); border: 1px solid rgba(204,120,92,.12); padding: 0.08rem 0.32rem; border-radius: 0.3rem; font-size: 0.85rem; color: var(--coral-active); }
+        .markdown-body pre { background: #f4efe7; color: #302f2b; border: 1px solid var(--hairline); border-left: 3px solid rgba(204,120,92,.72); padding: 0.95rem 1rem; border-radius: 0.65rem; overflow-x: auto; margin: 0.85rem 0; box-shadow: inset 0 1px 0 rgba(255,255,255,.7); }
+        .markdown-body pre code { background: transparent; border: 0; padding: 0; color: inherit; font-size: 0.84rem; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .markdown-body table { width: 100%; border-collapse: collapse; margin: 0.85rem 0; font-size: 0.88rem; display: block; overflow-x: auto; }
         .markdown-body th, .markdown-body td { border: 1px solid var(--hairline); padding: 0.5rem 0.75rem; text-align: left; }
         .markdown-body th { background: var(--surface-soft); font-weight: 600; color: var(--body); }
-        .markdown-body blockquote { border-left: 3px solid var(--coral); padding-left: 1rem; color: var(--muted); margin: 0.5rem 0; background: var(--surface-soft); padding: 0.5rem 1rem; border-radius: 0 0.5rem 0.5rem 0; }
+        .markdown-body blockquote { border-left: 3px solid var(--coral); color: var(--muted); margin: 0.75rem 0; background: rgba(245,240,232,.72); padding: 0.65rem 1rem; border-radius: 0 0.5rem 0.5rem 0; }
+        .markdown-body hr { border: 0; border-top: 1px solid var(--hairline); margin: 1.15rem 0; }
         .typing::after { content: ' ▌'; animation: blink 1s step-end infinite; color: var(--coral); }
         @keyframes blink { 50% { opacity: 0; } }
         .slide-up { animation: slideUp 0.35s ease-out; }
@@ -124,7 +130,21 @@
         main button[class*="bg-gradient"], main button.gradient-brand { background: var(--coral) !important; }
         main button[class*="bg-gradient"]:hover, main button.gradient-brand:hover { background: var(--coral-active) !important; }
         main > [x-data] > div:first-child { background: rgba(250,249,245,0.96) !important; border-color: var(--hairline) !important; min-height: 64px; }
-        .page-emblem { background: var(--dark) !important; color: var(--canvas) !important; box-shadow: none !important; }
+        .page-emblem { background: var(--surface-card) !important; color: var(--coral-active) !important; border: 1px solid rgba(204,120,92,.16); box-shadow: none !important; }
+        .streaming-answer::after { content: '▋'; display: inline-block; margin-left: .15rem; color: var(--coral); animation: blink .8s step-end infinite; }
+        .path-progress-card {
+            position: sticky; top: 0; z-index: 20;
+            background: rgba(250,249,245,.94) !important;
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            transition: border-color .24s ease, box-shadow .24s ease, transform .24s ease, background-color .24s ease;
+        }
+        .path-progress-card.is-docked {
+            border-color: rgba(204,120,92,.3) !important;
+            box-shadow: 0 10px 30px rgba(69,55,47,.11) !important;
+            transform: translateY(0);
+        }
+        .diagnosis-shell { max-width: 90rem; }
+        .diagnosis-radar { min-height: 340px; height: clamp(340px, 38vw, 460px); }
         .mobile-header { display: none; }
         .page-loading-bar {
             position: fixed; top: 0; left: 0; z-index: 60; height: 3px; width: 100%;
