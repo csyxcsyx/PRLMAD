@@ -46,6 +46,12 @@ cards 12px, and major containers 16px. Maintain minimum 40px control height.
 - Status colors remain semantic; do not turn every positive state coral.
 - On mobile, collapse the permanent sidebar into a compact top bar and keep all
   controls reachable without horizontal scrolling.
+- Treat the left navigation and session context as a persistent application
+  shell. Switching modules replaces only the main workspace, preserves browser
+  history, and returns the workspace scroll position to the top.
+- Prefer one intentional scroll container per module. Keep page context and
+  primary actions visible; use responsive columns for paths and summaries to
+  reduce unnecessary vertical travel.
 
 ## Guardrails
 

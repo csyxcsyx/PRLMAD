@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
 <div x-data="knowledgePage" class="flex flex-col h-full" x-init="loadStatus()">
-    <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-3 flex-shrink-0">
+    <div class="page-header bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-3 flex-shrink-0">
         <div class="page-emblem w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-semibold">K</div>
         <div>
-            <h2 class="text-sm font-semibold text-gray-800">知识库管理</h2>
-            <p class="text-[11px] text-gray-400">教材导入 · 知识检索 · 状态监控</p>
+            <h2 class="page-header-title text-gray-800">教材知识库</h2>
+            <p class="text-xs text-gray-400">管理教材索引，并即时验证检索质量</p>
         </div>
     </div>
-    <div class="flex-1 overflow-y-auto p-6">
-        <div class="max-w-4xl mx-auto space-y-5">
+    <div class="page-content flex-1 overflow-y-auto">
+        <div class="content-shell space-y-4">
             <!-- Status Dashboard -->
             <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
                 <h3 class="text-sm font-semibold text-gray-700 mb-4">知识库概览</h3>

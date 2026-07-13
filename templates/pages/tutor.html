@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
 <div x-data="tutorPage" class="flex flex-col h-full">
-    <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-3 flex-shrink-0">
+    <div class="page-header bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-3 flex-shrink-0">
         <div class="page-emblem w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-semibold">T</div>
         <div>
-            <h2 class="text-sm font-semibold text-gray-800">智能辅导</h2>
-            <p class="text-[11px] text-gray-400">基于教材知识库的个性化问答</p>
+            <h2 class="page-header-title text-gray-800">智能辅导</h2>
+            <p class="text-xs text-gray-400">结合教材证据回答问题，并保留可追溯引用</p>
         </div>
     </div>
-    <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4" id="tutorMsgContainer">
+    <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4" id="tutorMsgContainer">
         <div x-show="tutorMessages.length === 0 && !loading" class="text-center py-16 fade-in">
             <span class="empty-mark">辅</span>
             <p class="text-lg font-medium text-gray-400 mt-4">有什么学习问题？</p>

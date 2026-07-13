@@ -5,8 +5,8 @@
         <div class="max-w-lg text-center fade-in">
             <div class="w-20 h-20 rounded-2xl gradient-brand flex items-center justify-center text-white text-3xl font-bold shadow-xl mx-auto mb-6">P</div>
             <h2 class="text-3xl text-gray-800 mb-2">欢迎使用 PRLMAD</h2>
-            <p class="text-gray-500 mb-1">先建立一份学习画像，再生成资源、路径和辅导建议</p>
-            <p class="text-sm text-gray-400 mb-8">画像由固定问题和选项构成，不需要你一开始就懂很多专业概念。</p>
+            <p class="text-gray-500 mb-1">用几分钟建立学习画像，系统会据此调整内容深度与节奏</p>
+            <p class="text-sm text-gray-400 mb-8">不需要提前准备材料，按当前真实状态选择即可。</p>
 
             <div class="grid grid-cols-3 gap-3 mb-8">
                 <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
@@ -45,12 +45,12 @@
 
     <div x-show="!showWelcome" class="flex h-full">
         <div class="flex-1 flex flex-col h-full min-w-0">
-            <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between flex-shrink-0">
+            <div class="page-header bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between flex-shrink-0">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 rounded-lg gradient-brand flex items-center justify-center text-white text-sm font-bold">P</div>
                     <div>
-                        <h2 class="text-sm font-semibold text-gray-800">学习画像构建</h2>
-                        <p class="text-[11px] text-gray-400">固定问题 · Step <span x-text="currentStep + '/' + totalSteps"></span></p>
+                        <h2 class="page-header-title text-gray-800">学习画像</h2>
+                        <p class="text-xs text-gray-400">逐步完成 · <span x-text="currentStep + '/' + totalSteps"></span></p>
                     </div>
                 </div>
                 <div class="hidden sm:flex items-center gap-2">
@@ -63,7 +63,7 @@
                 </div>
             </div>
 
-            <div class="flex-1 overflow-y-auto p-6">
+            <div class="page-content flex-1 overflow-y-auto">
                 <div class="max-w-5xl mx-auto space-y-5">
                     <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">

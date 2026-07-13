@@ -126,6 +126,21 @@
         main > [x-data] > div:first-child { background: rgba(250,249,245,0.96) !important; border-color: var(--hairline) !important; min-height: 64px; }
         .page-emblem { background: var(--dark) !important; color: var(--canvas) !important; box-shadow: none !important; }
         .mobile-header { display: none; }
+        .page-loading-bar {
+            position: fixed; top: 0; left: 0; z-index: 60; height: 3px; width: 100%;
+            transform: scaleX(0); transform-origin: left; opacity: 0;
+            background: var(--coral); transition: transform 0.35s ease, opacity 0.2s ease;
+        }
+        .page-loading-bar.active { transform: scaleX(.72); opacity: 1; }
+        .page-loading-bar.done { transform: scaleX(1); opacity: 0; }
+        .app-main { scroll-behavior: smooth; }
+        .app-main.is-navigating { pointer-events: none; }
+        .app-main.is-navigating > * { opacity: .55; }
+        .app-main > * { transition: opacity .16s ease; }
+        .page-header-title { font-size: 1rem !important; line-height: 1.35; }
+        .page-header { min-height: 64px; }
+        .page-content { padding: 1.25rem; }
+        .content-shell { width: 100%; max-width: 72rem; margin-inline: auto; }
         @media (max-width: 767px) {
             .app-frame { flex-direction: column; }
             .app-sidebar { display: none !important; }
@@ -135,6 +150,9 @@
             .mobile-nav::-webkit-scrollbar { display: none; }
             .mobile-nav a { white-space: nowrap; border: 1px solid transparent; }
             .mobile-nav a.active { background: var(--surface-card); border-color: var(--hairline); color: var(--ink); }
+            .page-header { min-height: 64px; gap: .75rem; flex-wrap: wrap; }
+            .page-header input[type="text"] { width: 9rem; }
+            .page-content { padding: 1rem; }
             main > [x-data] > div:first-child { padding-left: 1rem !important; padding-right: 1rem !important; }
         }
     </style>
@@ -152,12 +170,12 @@
                 <template x-for="s in $store.app.sessions" :key="s.session_id"><option :value="s.session_id" x-text="s.name"></option></template>
             </select>
             <nav class="mobile-nav w-full flex items-center gap-1 overflow-x-auto pt-2 text-xs text-gray-600">
-                <a href="/page/chat" class="px-3 py-1.5 rounded-lg" :class="{ 'active': '{{ page }}' === 'chat' }">画像</a>
-                <a href="/page/generate" class="px-3 py-1.5 rounded-lg" :class="{ 'active': '{{ page }}' === 'generate' }">资源</a>
-                <a href="/page/learning-path" class="px-3 py-1.5 rounded-lg" :class="{ 'active': '{{ page }}' === 'learning_path' }">路径</a>
-                <a href="/page/tutor" class="px-3 py-1.5 rounded-lg" :class="{ 'active': '{{ page }}' === 'tutor' }">辅导</a>
-                <a href="/page/evaluate" class="px-3 py-1.5 rounded-lg" :class="{ 'active': '{{ page }}' === 'evaluate' }">评估</a>
-                <a href="/page/knowledge" class="px-3 py-1.5 rounded-lg" :class="{ 'active': '{{ page }}' === 'knowledge' }">知识库</a>
+                <a href="/page/chat" data-app-nav data-page-target="chat" class="px-3 py-1.5 rounded-lg {% if page == 'chat' %}active{% endif %}">画像</a>
+                <a href="/page/generate" data-app-nav data-page-target="generate" class="px-3 py-1.5 rounded-lg {% if page == 'generate' %}active{% endif %}">资源</a>
+                <a href="/page/learning-path" data-app-nav data-page-target="learning_path" class="px-3 py-1.5 rounded-lg {% if page == 'learning_path' %}active{% endif %}">路径</a>
+                <a href="/page/tutor" data-app-nav data-page-target="tutor" class="px-3 py-1.5 rounded-lg {% if page == 'tutor' %}active{% endif %}">辅导</a>
+                <a href="/page/evaluate" data-app-nav data-page-target="evaluate" class="px-3 py-1.5 rounded-lg {% if page == 'evaluate' %}active{% endif %}">评估</a>
+                <a href="/page/knowledge" data-app-nav data-page-target="knowledge" class="px-3 py-1.5 rounded-lg {% if page == 'knowledge' %}active{% endif %}">知识库</a>
             </nav>
         </header>
         <!-- Sidebar -->
@@ -205,31 +223,25 @@
             <!-- Navigation -->
             <nav class="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
                 <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2 px-3">功能导航</p>
-                <a :href="'/page/chat' + ($store.app.currentSessionId ? '#' + $store.app.currentSessionId : '')" @click="$store.app.confirmNavigation($event)" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600"
-                    :class="{ 'active': '{{ page }}' === 'chat' }">
+                <a href="/page/chat" data-app-nav data-page-target="chat" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 {% if page == 'chat' %}active{% endif %}">
                     <span class="nav-glyph">像</span> 学习画像
                     <span x-show="$store.app.profileDimensions.length > 0" class="ml-auto w-1.5 h-1.5 rounded-full bg-green-400"></span>
-                    <span x-show="$store.app.profileDimensions.length === 0 && '{{ page }}' === 'chat'" class="ml-auto text-[10px] text-orange-400 bg-orange-50 px-1.5 py-0.5 rounded-full">待完善</span>
+                    <span x-show="$store.app.profileDimensions.length === 0" class="ml-auto text-[10px] text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded-full">待完善</span>
                 </a>
-                <a :href="'/page/generate' + ($store.app.currentSessionId ? '#' + $store.app.currentSessionId : '')" @click="$store.app.confirmNavigation($event)" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600"
-                    :class="{ 'active': '{{ page }}' === 'generate' }">
+                <a href="/page/generate" data-app-nav data-page-target="generate" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 {% if page == 'generate' %}active{% endif %}">
                     <span class="nav-glyph">资</span> 资源生成
                 </a>
-                <a :href="'/page/learning-path' + ($store.app.currentSessionId ? '#' + $store.app.currentSessionId : '')" @click="$store.app.confirmNavigation($event)" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600"
-                    :class="{ 'active': '{{ page }}' === 'learning_path' }">
+                <a href="/page/learning-path" data-app-nav data-page-target="learning_path" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 {% if page == 'learning_path' %}active{% endif %}">
                     <span class="nav-glyph">路</span> 学习路径
                 </a>
-                <a :href="'/page/tutor' + ($store.app.currentSessionId ? '#' + $store.app.currentSessionId : '')" @click="$store.app.confirmNavigation($event)" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600"
-                    :class="{ 'active': '{{ page }}' === 'tutor' }">
+                <a href="/page/tutor" data-app-nav data-page-target="tutor" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 {% if page == 'tutor' %}active{% endif %}">
                     <span class="nav-glyph">辅</span> 智能辅导
                 </a>
-                <a :href="'/page/evaluate' + ($store.app.currentSessionId ? '#' + $store.app.currentSessionId : '')" @click="$store.app.confirmNavigation($event)" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600"
-                    :class="{ 'active': '{{ page }}' === 'evaluate' }">
+                <a href="/page/evaluate" data-app-nav data-page-target="evaluate" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 {% if page == 'evaluate' %}active{% endif %}">
                     <span class="nav-glyph">评</span> 效果评估
                 </a>
                 <div class="my-2 border-t border-gray-100"></div>
-                <a :href="'/page/knowledge' + ($store.app.currentSessionId ? '#' + $store.app.currentSessionId : '')" @click="$store.app.confirmNavigation($event)" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400"
-                    :class="{ 'active': '{{ page }}' === 'knowledge' }">
+                <a href="/page/knowledge" data-app-nav data-page-target="knowledge" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400 {% if page == 'knowledge' %}active{% endif %}">
                     <span class="nav-glyph">库</span> 知识库管理
                 </a>
             </nav>
@@ -257,10 +269,12 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="app-main flex-1 overflow-y-auto">
+        <main class="app-main flex-1 overflow-y-auto" aria-live="polite">
             {% block content %}{% endblock %}
         </main>
     </div>
+
+    <div id="pageLoadingBar" class="page-loading-bar" aria-hidden="true"></div>
 
     <script src="/static/js/app.js"></script>
     {% block scripts %}{% endblock %}

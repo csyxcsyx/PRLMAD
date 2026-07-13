@@ -281,6 +281,155 @@ window.PRLMAD = {
     },
 };
 
+window.PRLMAD.createNavigation = () => {
+    const registeredPages = new Set([document.body.dataset.page || 'chat']);
+    const scriptCache = new Map();
+    let activeRequest = null;
+    let renderedPath = window.location.pathname;
+
+    function currentUrl(pathname) {
+        const sid = Alpine.store('app')?.currentSessionId || window.location.hash.slice(1) || '';
+        return sid ? `${pathname}#${sid}` : pathname;
+    }
+
+    function setLoading(value, finished = false) {
+        const main = document.querySelector('.app-main');
+        const bar = document.getElementById('pageLoadingBar');
+        main?.classList.toggle('is-navigating', value);
+        if (!bar) return;
+        bar.classList.toggle('active', value);
+        bar.classList.toggle('done', finished);
+        if (finished) {
+            window.setTimeout(() => bar.classList.remove('done'), 240);
+        }
+    }
+
+    function updateNavigation(page) {
+        document.body.dataset.page = page;
+        document.querySelectorAll('[data-app-nav]').forEach(link => {
+            const active = link.dataset.pageTarget === page;
+            link.classList.toggle('active', active);
+            if (active) link.setAttribute('aria-current', 'page');
+            else link.removeAttribute('aria-current');
+        });
+    }
+
+    function runRegistration(source) {
+        const opening = /document\.addEventListener\(['"]alpine:init['"],\s*\(\)\s*=>\s*\{/;
+        if (!opening.test(source)) return;
+        const body = source.replace(opening, '').replace(/\}\);\s*$/, '');
+        Function(body)();
+    }
+
+    async function registerPageComponent(doc, page) {
+        if (registeredPages.has(page)) return;
+        const scripts = Array.from(doc.querySelectorAll('script'));
+        for (const script of scripts) {
+            const src = script.getAttribute('src') || '';
+            const isPageScript = src === '/static/js/chat.js' || script.textContent.includes('Alpine.data(');
+            if (!isPageScript) continue;
+            let source = script.textContent;
+            if (src) {
+                if (!scriptCache.has(src)) {
+                    scriptCache.set(src, fetch(src).then(response => {
+                        if (!response.ok) throw new Error(`无法加载页面脚本: ${src}`);
+                        return response.text();
+                    }));
+                }
+                source = await scriptCache.get(src);
+            }
+            runRegistration(source);
+        }
+        registeredPages.add(page);
+    }
+
+    async function navigate(pathname, options = {}) {
+        const { push = true, confirmBusy = true } = options;
+        const target = new URL(pathname, window.location.origin);
+        if (target.origin !== window.location.origin) {
+            window.location.assign(target.href);
+            return false;
+        }
+        if (target.pathname === window.location.pathname && push) {
+            document.querySelector('.app-main')?.scrollTo({ top: 0, behavior: 'smooth' });
+            return true;
+        }
+
+        const appStore = Alpine.store('app');
+        if (confirmBusy && !appStore.confirmBusyAction('切换板块')) return false;
+
+        activeRequest?.abort();
+        const request = new AbortController();
+        activeRequest = request;
+        setLoading(true);
+        try {
+            const response = await fetch(target.pathname, {
+                headers: { 'X-PRLMAD-Navigation': 'partial' },
+                signal: request.signal,
+            });
+            if (!response.ok) throw new Error(`页面加载失败 (${response.status})`);
+            const html = await response.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const nextMain = doc.querySelector('.app-main');
+            const nextPage = doc.body.dataset.page;
+            if (!nextMain || !nextPage) throw new Error('页面内容不完整');
+
+            await registerPageComponent(doc, nextPage);
+
+            const main = document.querySelector('.app-main');
+            Alpine.mutateDom(() => {
+                Alpine.destroyTree(main);
+                main.innerHTML = nextMain.innerHTML;
+            });
+            main.scrollTop = 0;
+            updateNavigation(nextPage);
+            document.title = doc.title || document.title;
+            Alpine.initTree(main);
+
+            const nextUrl = currentUrl(target.pathname);
+            if (push) history.pushState({ page: nextPage }, '', nextUrl);
+            else history.replaceState({ page: nextPage }, '', nextUrl);
+            renderedPath = target.pathname;
+            window.dispatchEvent(new CustomEvent('prlmad:page-changed', { detail: { page: nextPage } }));
+            setLoading(false, true);
+            return true;
+        } catch (error) {
+            if (error.name === 'AbortError') return false;
+            console.error('局部页面切换失败，回退到完整导航', error);
+            window.location.assign(currentUrl(target.pathname));
+            return false;
+        } finally {
+            if (activeRequest === request) activeRequest = null;
+            if (activeRequest === null && document.querySelector('.app-main')?.classList.contains('is-navigating')) {
+                setLoading(false);
+            }
+        }
+    }
+
+    document.addEventListener('click', event => {
+        const link = event.target.closest('a[data-app-nav]');
+        if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        navigate(link.href);
+    });
+
+    window.addEventListener('popstate', async () => {
+        const requestedPath = window.location.pathname;
+        const changed = await navigate(requestedPath, { push: false, confirmBusy: true });
+        if (!changed && requestedPath !== renderedPath) {
+            history.pushState({ page: document.body.dataset.page }, '', currentUrl(renderedPath));
+        }
+    });
+
+    updateNavigation(document.body.dataset.page);
+    history.replaceState({ page: document.body.dataset.page }, '', currentUrl(window.location.pathname));
+    return { navigate };
+};
+
+document.addEventListener('alpine:initialized', () => {
+    window.PRLMAD.navigation = window.PRLMAD.createNavigation();
+});
+
 if (window.marked) {
     marked.setOptions({ breaks: true, gfm: true });
 }
