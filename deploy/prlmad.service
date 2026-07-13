@@ -1,0 +1,16 @@
+[Unit]
+Description=PRLMAD FastAPI service
+After=network.target
+
+[Service]
+Type=simple
+User=prlmad
+Group=prlmad
+WorkingDirectory=/opt/prlmad
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/prlmad/.venv/bin/python -B /opt/prlmad/run.py serve --host 127.0.0.1 --port 8000 --no-reload
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

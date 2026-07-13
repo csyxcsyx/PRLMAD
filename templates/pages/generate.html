@@ -25,7 +25,7 @@
                             class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-400 focus:border-transparent outline-none resize-none bg-gray-50 placeholder-gray-400"></textarea>
                     </div>
                     <div>
-                        <label class="text-xs text-gray-500 font-medium mb-2 block">选择资源类型 <span class="text-red-400">*</span> <span class="text-gray-400 font-normal">(最少5种)</span></label>
+                        <label class="text-xs text-gray-500 font-medium mb-2 block">选择资源类型 <span class="text-red-400">*</span> <span class="text-gray-400 font-normal">(最少2种)</span></label>
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                             <template x-for="rt in resourceTypes" :key="rt.key">
                                 <label class="flex items-center gap-2 p-2.5 border rounded-xl cursor-pointer transition-all"
@@ -115,10 +115,10 @@
                         <template x-for="res in generatedResources" :key="'tile-' + res.key">
                             <button @click="res.expanded = !res.expanded"
                                 class="flex items-center gap-2 rounded-xl border px-3 py-2 text-left transition-all"
-                                :class="res.status === 'error' ? 'border-red-200 bg-red-50' : 'border-emerald-100 bg-emerald-50 hover:border-emerald-200'">
+                                :class="res.status === 'error' ? 'border-red-200 bg-red-50' : (res.status === 'running' ? 'border-brand-100 bg-brand-50 hover:border-brand-200' : 'border-emerald-100 bg-emerald-50 hover:border-emerald-200')">
                                 <span class="label-mark" x-text="res.icon || '资'"></span>
-                                <span class="text-xs font-semibold truncate" :class="res.status === 'error' ? 'text-red-600' : 'text-emerald-700'" x-text="res.name"></span>
-                                <span class="ml-auto text-xs" x-text="res.status === 'error' ? '!' : '✓'"></span>
+                                <span class="text-xs font-semibold truncate" :class="res.status === 'error' ? 'text-red-600' : (res.status === 'running' ? 'text-brand-700' : 'text-emerald-700')" x-text="res.name"></span>
+                                <span class="ml-auto text-xs" x-text="res.status === 'error' ? '!' : (res.status === 'running' ? '…' : '✓')"></span>
                             </button>
                         </template>
                     </div>
@@ -130,7 +130,7 @@
                                 <span class="label-mark" x-text="res.icon || 'RES'"></span>
                                 <div>
                                     <span class="text-sm font-medium text-gray-700" x-text="res.name"></span>
-                                    <span class="text-[10px] text-gray-400 ml-2" x-text="res.status === 'error' ? '生成失败' : '已完成'"></span>
+                                    <span class="text-[10px] text-gray-400 ml-2" x-text="res.status === 'error' ? '生成失败' : (res.status === 'running' ? '生成中' : '已完成')"></span>
                                     <p class="text-xs text-gray-400 mt-1 truncate max-w-xl" x-text="res.preview"></p>
                                 </div>
                             </div>
@@ -149,7 +149,7 @@
             <!-- Empty State -->
             <div x-show="!generating && stages.length === 0 && generatedResources.length === 0" class="text-center py-12">
                 <span class="empty-mark">AI</span>
-                <p class="text-sm text-gray-400 mt-3">先输入一个具体知识点，再选择至少 5 种资源类型</p>
+                <p class="text-sm text-gray-400 mt-3">先输入一个具体知识点，再选择至少 2 种资源类型</p>
                 <p class="text-xs text-gray-300 mt-1">建议从当前薄弱点开始，例如信号量、死锁、虚拟内存或页面置换</p>
             </div>
         </div>
@@ -175,9 +175,9 @@ document.addEventListener('alpine:init', () => {
             { key: 'lecture_note', name: '课程讲解', icon: '讲', selected: true },
             { key: 'concept_map', name: '思维导图', icon: '图', selected: true },
             { key: 'exercises', name: '练习题库', icon: '题', selected: true },
-            { key: 'case_project', name: '实操案例', icon: '练', selected: true },
-            { key: 'ppt_outline', name: 'PPT大纲', icon: '纲', selected: true },
-            { key: 'task_checklist', name: '任务清单', icon: '单', selected: true },
+            { key: 'case_project', name: '实操案例', icon: '练', selected: false },
+            { key: 'ppt_outline', name: 'PPT大纲', icon: '纲', selected: false },
+            { key: 'task_checklist', name: '任务清单', icon: '单', selected: false },
             { key: 'extended_reading', name: '拓展阅读', icon: '读', selected: false },
             { key: 'video_script', name: '视频脚本', icon: '脚', selected: false },
             { key: 'review_material', name: '复习资料', icon: '复', selected: false },
@@ -223,7 +223,7 @@ document.addEventListener('alpine:init', () => {
             const sid = Alpine.store('app').currentSessionId;
             if (!sid) { alert('请先创建会话'); return; }
             const selectedTypes = this.resourceTypes.filter(r => r.selected).map(r => r.key);
-            if (selectedTypes.length < 5) { alert('请至少选择5种资源类型'); return; }
+            if (selectedTypes.length < 2) { alert('请至少选择2种资源类型'); return; }
             if (!this.knowledgePoints.trim()) { alert('请输入学习知识点'); return; }
 
             this.generating = true;
@@ -249,7 +249,7 @@ document.addEventListener('alpine:init', () => {
                         session_id: sid,
                         knowledge_points: this.knowledgePoints,
                         resource_types: selectedTypes,
-                        top_k: 6,
+                        top_k: 4,
                     }),
                 });
                 const reader = resp.body.getReader();
@@ -269,6 +269,57 @@ document.addEventListener('alpine:init', () => {
                                     this.stages[idx].detail = data.generated ? `已完成 ${data.generated} 项` : (data.total ? `共 ${data.total} 项` : `检索到 ${data.snippet_count} 段`);
                                 }
                             }
+                        } else if (eventName === 'resource_start') {
+                            this.upsertStreamingResource(data.type, {
+                                type: data.type,
+                                name: data.name,
+                                icon: this.resourceIcons[data.type] || 'RES',
+                                content_md: '<p class="text-gray-400">正在生成...</p>',
+                                expanded: this.generatedResources.length === 0,
+                                status: 'running',
+                                rawContent: '',
+                                preview: '正在生成...',
+                            });
+                        } else if (eventName === 'resource_delta') {
+                            const item = this.upsertStreamingResource(data.type, {
+                                type: data.type,
+                                name: data.name,
+                                icon: this.resourceIcons[data.type] || 'RES',
+                                content_md: '',
+                                expanded: this.generatedResources.length === 0,
+                                status: 'running',
+                                rawContent: '',
+                                preview: '正在生成...',
+                            });
+                            item.rawContent += data.delta || '';
+                            item.content_md = marked.parse(item.rawContent || '');
+                            item.preview = this.makePreview(item.rawContent) || '正在生成...';
+                        } else if (eventName === 'resource_done') {
+                            const item = this.upsertStreamingResource(data.type, {
+                                type: data.type,
+                                name: data.name,
+                                icon: this.resourceIcons[data.type] || 'RES',
+                                content_md: data.content ? marked.parse(data.content) : '<p class="text-gray-400">已完成</p>',
+                                expanded: this.generatedResources.length === 0,
+                                status: 'done',
+                                rawContent: data.content || '',
+                                preview: this.makePreview(data.content || ''),
+                            });
+                            item.status = 'done';
+                            item.rawContent = data.content || item.rawContent;
+                            item.content_md = marked.parse(item.rawContent || '');
+                            item.preview = this.makePreview(item.rawContent);
+                        } else if (eventName === 'resource_error') {
+                            this.upsertStreamingResource(data.type, {
+                                type: data.type,
+                                name: data.name,
+                                icon: this.resourceIcons[data.type] || 'RES',
+                                content_md: `<p class="text-red-500">${data.error || '生成失败'}</p>`,
+                                expanded: true,
+                                status: 'error',
+                                rawContent: '',
+                                preview: data.error || '生成失败',
+                            });
                         } else if (eventName === 'resource') {
                             const existing = this.generatedResources.find(r => r.type === data.type);
                             const item = {
@@ -301,6 +352,21 @@ document.addEventListener('alpine:init', () => {
             Alpine.store('app').setBusy('generate', false);
             if (!failed) this.stages.forEach(s => { if (s.status === 'pending') s.status = 'done'; });
             if (!failed) this.generationDone = true;
+        },
+
+        upsertStreamingResource(type, defaults) {
+            let item = this.generatedResources.find(r => r.type === type);
+            if (!item) {
+                item = { ...defaults };
+                this.generatedResources.push(item);
+            } else {
+                const currentRaw = item.rawContent || '';
+                const currentExpanded = item.expanded;
+                Object.assign(item, defaults);
+                if (!defaults.rawContent && currentRaw) item.rawContent = currentRaw;
+                item.expanded = currentExpanded || defaults.expanded;
+            }
+            return item;
         },
 
         makePreview(content) {

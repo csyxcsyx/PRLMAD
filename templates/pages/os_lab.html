@@ -1,0 +1,544 @@
+{% extends "base.html" %}
+{% block content %}
+<div x-data="virtualOsLab" class="flex flex-col h-full">
+    <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between gap-3 flex-shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center text-white text-sm font-bold">OS</div>
+            <div>
+                <h2 class="text-sm font-semibold text-gray-800">虚拟操作系统实验室</h2>
+                <p class="text-[11px] text-gray-400">观察进程调度、线程状态、动态分区分配与碎片合并</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-xs text-gray-400">时钟 <span class="font-semibold text-gray-600" x-text="clock"></span></span>
+            <button @click="toggleRun()"
+                class="text-xs rounded-lg px-3 py-2 border transition-colors"
+                :class="running ? 'bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100'"
+                x-text="running ? '暂停' : '自动运行'"></button>
+            <button @click="tick()" class="text-xs bg-gray-900 text-white rounded-lg px-3 py-2 hover:bg-gray-800">单步</button>
+            <button @click="reset()" class="text-xs bg-gray-100 text-gray-600 rounded-lg px-3 py-2 hover:bg-gray-200">重置</button>
+        </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6">
+        <div class="max-w-7xl mx-auto space-y-5">
+            <div class="grid grid-cols-1 xl:grid-cols-[330px_1fr] gap-5">
+                <section class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm h-fit">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-4">创建进程</h3>
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="text-xs text-gray-500">
+                                内存 MB
+                                <input x-model.number="form.memory" type="number" min="32" max="512" step="16"
+                                    class="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-brand-400">
+                            </label>
+                            <label class="text-xs text-gray-500">
+                                CPU 时间
+                                <input x-model.number="form.burst" type="number" min="2" max="30" step="1"
+                                    class="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-brand-400">
+                            </label>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="text-xs text-gray-500">
+                                线程数
+                                <input x-model.number="form.threads" type="number" min="1" max="8" step="1"
+                                    class="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-brand-400">
+                            </label>
+                            <label class="text-xs text-gray-500">
+                                优先级
+                                <input x-model.number="form.priority" type="number" min="1" max="9" step="1"
+                                    class="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-brand-400">
+                            </label>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="text-xs text-gray-500">
+                                调度算法
+                                <select x-model="scheduler"
+                                    class="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-brand-400">
+                                    <option value="rr">时间片轮转 RR</option>
+                                    <option value="fcfs">先来先服务 FCFS</option>
+                                    <option value="priority">优先级调度</option>
+                                </select>
+                            </label>
+                            <label class="text-xs text-gray-500">
+                                分区算法
+                                <select x-model="fitStrategy"
+                                    class="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-brand-400">
+                                    <option value="first">首次适应</option>
+                                    <option value="best">最佳适应</option>
+                                    <option value="worst">最坏适应</option>
+                                </select>
+                            </label>
+                        </div>
+                        <button @click="createProcess()"
+                            class="w-full bg-gradient-to-r from-cyan-500 to-emerald-500 text-white rounded-xl px-4 py-3 text-sm font-semibold shadow-sm hover:shadow-md transition-all">
+                            创建并装入内存
+                        </button>
+                        <p x-show="message" class="text-xs rounded-lg px-3 py-2"
+                            :class="messageType === 'error' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'"
+                            x-text="message"></p>
+                    </div>
+
+                    <div class="mt-5 pt-4 border-t border-gray-100 space-y-2">
+                        <button @click="blockRunning()" class="w-full text-xs bg-amber-50 text-amber-700 border border-amber-100 rounded-lg px-3 py-2 hover:bg-amber-100">阻塞当前运行进程 I/O</button>
+                        <button @click="wakeOne()" class="w-full text-xs bg-blue-50 text-blue-700 border border-blue-100 rounded-lg px-3 py-2 hover:bg-blue-100">唤醒一个阻塞进程</button>
+                        <button @click="compactMemory()" class="w-full text-xs bg-violet-50 text-violet-700 border border-violet-100 rounded-lg px-3 py-2 hover:bg-violet-100">内存紧凑</button>
+                    </div>
+
+                    <div class="mt-5 bg-gray-50 rounded-xl p-3 text-xs text-gray-500 leading-relaxed">
+                        <p class="font-semibold text-gray-700 mb-1">观察提示</p>
+                        <p>创建进程会先申请连续内存分区，再进入就绪队列。调度器把就绪进程放到 CPU 上运行；阻塞进程等待 I/O，暂时不能被调度。</p>
+                    </div>
+                </section>
+
+                <section class="space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+                            <p class="text-xs text-gray-400">CPU 当前进程</p>
+                            <p class="text-2xl font-bold text-gray-800 mt-1" x-text="runningProcess ? runningProcess.name : '空闲'"></p>
+                            <p class="text-xs text-gray-400 mt-1" x-text="runningProcess ? '剩余 ' + runningProcess.remaining + ' tick' : '等待就绪队列'"></p>
+                        </div>
+                        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+                            <p class="text-xs text-gray-400">就绪队列</p>
+                            <p class="text-2xl font-bold text-gray-800 mt-1" x-text="readyQueue.length"></p>
+                            <p class="text-xs text-gray-400 mt-1">等待 CPU 时间片</p>
+                        </div>
+                        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+                            <p class="text-xs text-gray-400">阻塞队列</p>
+                            <p class="text-2xl font-bold text-gray-800 mt-1" x-text="blockedQueue.length"></p>
+                            <p class="text-xs text-gray-400 mt-1">等待 I/O 完成</p>
+                        </div>
+                        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+                            <p class="text-xs text-gray-400">内存碎片</p>
+                            <p class="text-2xl font-bold text-gray-800 mt-1" x-text="freePartitions.length"></p>
+                            <p class="text-xs text-gray-400 mt-1" x-text="'最大空闲 ' + largestFree + ' MB'"></p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-700">CPU 调度时间线</h3>
+                                <p class="text-xs text-gray-400 mt-1">展示最近 28 个时钟周期中哪个进程占用 CPU。</p>
+                            </div>
+                            <span class="label-mark" x-text="schedulerLabel"></span>
+                        </div>
+                        <div class="grid gap-1" style="grid-template-columns: repeat(14, minmax(0, 1fr));">
+                            <template x-for="(slot, index) in timeline" :key="index">
+                                <div class="h-10 rounded-lg border text-[10px] flex items-center justify-center"
+                                    :class="slot.pid ? colorClass(slot.pid) : 'bg-gray-50 border-gray-100 text-gray-300'"
+                                    x-text="slot.name || '-'"></div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-700">动态分区内存</h3>
+                                <p class="text-xs text-gray-400 mt-1">连续内存被划分成已分配分区和空闲分区，释放后会尝试合并相邻空闲块。</p>
+                            </div>
+                            <span class="text-xs text-gray-400" x-text="usedMemory + ' / ' + totalMemory + ' MB'"></span>
+                        </div>
+                        <div class="h-20 w-full flex overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
+                            <template x-for="part in memory" :key="part.id">
+                                <div class="h-full flex flex-col items-center justify-center border-r border-white/70 text-[11px] px-1"
+                                    :class="part.pid ? colorClass(part.pid) : 'bg-gray-100 text-gray-400'"
+                                    :style="'width:' + Math.max(part.size / totalMemory * 100, 3) + '%'">
+                                    <span class="font-semibold truncate" x-text="part.pid ? processName(part.pid) : '空闲'"></span>
+                                    <span x-text="part.size + 'M'"></span>
+                                </div>
+                            </template>
+                        </div>
+                        <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+                            <div class="bg-gray-50 rounded-lg p-2">
+                                <span class="text-gray-400">总内存</span>
+                                <span class="float-right font-semibold text-gray-700" x-text="totalMemory + ' MB'"></span>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-2">
+                                <span class="text-gray-400">已使用</span>
+                                <span class="float-right font-semibold text-gray-700" x-text="usedMemory + ' MB'"></span>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-2">
+                                <span class="text-gray-400">空闲分区</span>
+                                <span class="float-right font-semibold text-gray-700" x-text="freePartitions.length + ' 个'"></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-5">
+                <section class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-semibold text-gray-700">进程控制块 PCB</h3>
+                        <span class="text-xs text-gray-400" x-text="processes.length + ' 个进程'"></span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs">
+                            <thead>
+                                <tr class="text-left text-gray-400 border-b border-gray-100">
+                                    <th class="py-2 pr-3 font-medium">PID</th>
+                                    <th class="py-2 pr-3 font-medium">名称</th>
+                                    <th class="py-2 pr-3 font-medium">状态</th>
+                                    <th class="py-2 pr-3 font-medium">优先级</th>
+                                    <th class="py-2 pr-3 font-medium">内存</th>
+                                    <th class="py-2 pr-3 font-medium">剩余</th>
+                                    <th class="py-2 text-right font-medium">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="proc in processes" :key="proc.pid">
+                                    <tr class="border-b border-gray-50 text-gray-700">
+                                        <td class="py-2 pr-3 tabular-nums" x-text="proc.pid"></td>
+                                        <td class="py-2 pr-3 font-medium" x-text="proc.name"></td>
+                                        <td class="py-2 pr-3">
+                                            <span class="rounded-full px-2 py-1" :class="stateClass(proc.state)" x-text="stateLabel(proc.state)"></span>
+                                        </td>
+                                        <td class="py-2 pr-3 tabular-nums" x-text="proc.priority"></td>
+                                        <td class="py-2 pr-3" x-text="proc.memory + ' MB'"></td>
+                                        <td class="py-2 pr-3 tabular-nums" x-text="proc.remaining"></td>
+                                        <td class="py-2 text-right">
+                                            <button @click="terminateProcess(proc.pid)" class="text-rose-600 hover:text-rose-700">终止</button>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div x-show="processes.length === 0" class="text-center py-8 text-sm text-gray-400">暂无进程，先创建一个进程观察生命周期。</div>
+                </section>
+
+                <section class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-4">线程视图</h3>
+                    <div class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+                        <template x-for="proc in processes" :key="'threads-' + proc.pid">
+                            <div class="border border-gray-100 rounded-xl p-3">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="label-mark" x-text="proc.name"></span>
+                                    <span class="text-xs text-gray-400" x-text="stateLabel(proc.state)"></span>
+                                </div>
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                    <template x-for="thread in proc.threads" :key="thread.tid">
+                                        <div class="rounded-lg px-3 py-2 text-xs border" :class="threadClass(thread.state)">
+                                            <div class="font-semibold" x-text="'T' + thread.tid"></div>
+                                            <div class="text-[11px]" x-text="stateLabel(thread.state)"></div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    <div x-show="processes.length === 0" class="text-center py-8 text-sm text-gray-400">线程会随进程一起创建。</div>
+                </section>
+            </div>
+
+            <section class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-semibold text-gray-700">事件日志</h3>
+                    <button @click="logs = []" class="text-xs text-gray-400 hover:text-gray-600">清空</button>
+                </div>
+                <div class="grid gap-1 max-h-52 overflow-y-auto text-xs">
+                    <template x-for="(log, index) in logs" :key="index">
+                        <div class="flex gap-2 text-gray-600">
+                            <span class="text-gray-400 tabular-nums" x-text="'t=' + log.time"></span>
+                            <span x-text="log.text"></span>
+                        </div>
+                    </template>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('virtualOsLab', () => ({
+        totalMemory: 1024,
+        quantum: 3,
+        clock: 0,
+        nextPid: 1,
+        running: false,
+        timer: null,
+        scheduler: 'rr',
+        fitStrategy: 'first',
+        form: { memory: 128, burst: 10, threads: 3, priority: 5 },
+        processes: [],
+        memory: [{ id: 'free-0', start: 0, size: 1024, pid: null }],
+        timeline: [],
+        logs: [],
+        message: '',
+        messageType: 'info',
+
+        get runningProcess() {
+            return this.processes.find(p => p.state === 'running') || null;
+        },
+        get readyQueue() {
+            return this.processes.filter(p => p.state === 'ready');
+        },
+        get blockedQueue() {
+            return this.processes.filter(p => p.state === 'blocked');
+        },
+        get freePartitions() {
+            return this.memory.filter(p => !p.pid);
+        },
+        get usedMemory() {
+            return this.memory.filter(p => p.pid).reduce((sum, p) => sum + p.size, 0);
+        },
+        get largestFree() {
+            return Math.max(0, ...this.freePartitions.map(p => p.size));
+        },
+        get schedulerLabel() {
+            return { rr: 'RR', fcfs: 'FCFS', priority: '优先级' }[this.scheduler] || 'RR';
+        },
+
+        init() {
+            this.seed();
+            this.timer = setInterval(() => {
+                if (this.running) this.tick();
+            }, 850);
+        },
+
+        seed() {
+            this.createProcess({ memory: 96, burst: 9, threads: 2, priority: 3 }, false);
+            this.createProcess({ memory: 160, burst: 14, threads: 4, priority: 6 }, false);
+            this.createProcess({ memory: 72, burst: 7, threads: 2, priority: 2 }, false);
+            this.log('系统装入 3 个初始进程，等待调度。');
+        },
+
+        createProcess(input = null, showMessage = true) {
+            const source = input || this.form;
+            const request = {
+                memory: Math.max(16, Number(source.memory || 64)),
+                burst: Math.max(1, Number(source.burst || 6)),
+                threads: Math.max(1, Math.min(8, Number(source.threads || 1))),
+                priority: Math.max(1, Math.min(9, Number(source.priority || 5))),
+            };
+            const index = this.findPartition(request.memory);
+            if (index < 0) {
+                this.setMessage(`没有足够连续空闲分区装入 ${request.memory} MB。可以终止进程或执行内存紧凑。`, 'error');
+                this.log(`创建失败：缺少 ${request.memory} MB 连续空闲分区。`);
+                return;
+            }
+            const pid = this.nextPid++;
+            const name = `P${pid}`;
+            const partition = this.memory[index];
+            const allocated = { id: `p-${pid}`, start: partition.start, size: request.memory, pid };
+            const remain = partition.size - request.memory;
+            if (remain > 0) {
+                this.memory.splice(index, 1, allocated, { id: `free-${pid}`, start: partition.start + request.memory, size: remain, pid: null });
+            } else {
+                this.memory.splice(index, 1, allocated);
+            }
+            const proc = {
+                pid,
+                name,
+                state: 'ready',
+                memory: request.memory,
+                burst: request.burst,
+                remaining: request.burst,
+                priority: request.priority,
+                quantumLeft: this.quantum,
+                threads: Array.from({ length: request.threads }, (_, i) => ({ tid: i + 1, state: 'ready' })),
+            };
+            this.processes.push(proc);
+            this.log(`${name} 创建：申请 ${request.memory} MB，${request.threads} 个线程，进入就绪队列。`);
+            if (showMessage) this.setMessage(`${name} 已装入内存并进入就绪队列。`, 'info');
+        },
+
+        findPartition(size) {
+            const candidates = this.memory
+                .map((p, index) => ({ ...p, index }))
+                .filter(p => !p.pid && p.size >= size);
+            if (!candidates.length) return -1;
+            if (this.fitStrategy === 'best') candidates.sort((a, b) => a.size - b.size);
+            if (this.fitStrategy === 'worst') candidates.sort((a, b) => b.size - a.size);
+            return candidates[0].index;
+        },
+
+        tick() {
+            this.clock += 1;
+            this.ageBlocked();
+            if (!this.runningProcess) this.dispatch();
+            const current = this.runningProcess;
+            if (current) {
+                current.remaining -= 1;
+                current.quantumLeft -= 1;
+                this.syncThreads(current);
+                this.timeline.push({ pid: current.pid, name: current.name });
+                if (this.timeline.length > 28) this.timeline.shift();
+                if (current.remaining <= 0) {
+                    this.log(`${current.name} 执行完成，释放内存分区。`);
+                    this.terminateProcess(current.pid, false);
+                } else if (this.scheduler === 'rr' && current.quantumLeft <= 0) {
+                    current.state = 'ready';
+                    current.quantumLeft = this.quantum;
+                    this.syncThreads(current);
+                    this.log(`${current.name} 时间片用完，回到就绪队列。`);
+                    this.dispatch();
+                }
+            } else {
+                this.timeline.push({ pid: null, name: '' });
+                if (this.timeline.length > 28) this.timeline.shift();
+            }
+        },
+
+        dispatch() {
+            const candidates = this.readyQueue;
+            if (!candidates.length) return;
+            let next = candidates[0];
+            if (this.scheduler === 'priority') {
+                next = [...candidates].sort((a, b) => b.priority - a.priority || a.pid - b.pid)[0];
+            }
+            next.state = 'running';
+            next.quantumLeft = this.quantum;
+            this.syncThreads(next);
+            this.log(`调度器选择 ${next.name} 占用 CPU。`);
+        },
+
+        blockRunning() {
+            const current = this.runningProcess;
+            if (!current) {
+                this.setMessage('当前没有运行进程可阻塞。', 'error');
+                return;
+            }
+            current.state = 'blocked';
+            current.ioLeft = 3 + (current.pid % 3);
+            this.syncThreads(current);
+            this.log(`${current.name} 发起 I/O 请求，进入阻塞队列。`);
+            this.dispatch();
+        },
+
+        wakeOne() {
+            const target = this.blockedQueue[0];
+            if (!target) {
+                this.setMessage('阻塞队列为空。', 'error');
+                return;
+            }
+            target.state = 'ready';
+            target.ioLeft = 0;
+            this.syncThreads(target);
+            this.log(`${target.name} I/O 完成，被唤醒到就绪队列。`);
+        },
+
+        ageBlocked() {
+            this.blockedQueue.forEach(proc => {
+                proc.ioLeft = Math.max(0, Number(proc.ioLeft || 0) - 1);
+                if (proc.ioLeft === 0) {
+                    proc.state = 'ready';
+                    this.syncThreads(proc);
+                    this.log(`${proc.name} I/O 自动完成，返回就绪队列。`);
+                }
+            });
+        },
+
+        terminateProcess(pid, showLog = true) {
+            const proc = this.processes.find(p => p.pid === pid);
+            if (!proc) return;
+            this.processes = this.processes.filter(p => p.pid !== pid);
+            this.memory.forEach(part => {
+                if (part.pid === pid) part.pid = null;
+            });
+            this.coalesceMemory();
+            if (showLog) this.log(`${proc.name} 被终止，系统回收其 PCB、线程和内存分区。`);
+        },
+
+        compactMemory() {
+            let cursor = 0;
+            const allocated = this.memory.filter(p => p.pid).map(part => {
+                const next = { ...part, start: cursor };
+                cursor += part.size;
+                return next;
+            });
+            const free = this.totalMemory - cursor;
+            this.memory = free > 0 ? [...allocated, { id: `free-c-${this.clock}`, start: cursor, size: free, pid: null }] : allocated;
+            this.log(`执行内存紧凑：移动已分配分区，形成 ${free} MB 连续空闲空间。`);
+        },
+
+        coalesceMemory() {
+            this.memory.sort((a, b) => a.start - b.start);
+            const merged = [];
+            for (const part of this.memory) {
+                const last = merged[merged.length - 1];
+                if (last && !last.pid && !part.pid && last.start + last.size === part.start) {
+                    last.size += part.size;
+                } else {
+                    merged.push({ ...part });
+                }
+            }
+            this.memory = merged;
+        },
+
+        syncThreads(proc) {
+            proc.threads.forEach((thread, index) => {
+                if (proc.state === 'running') thread.state = index === 0 ? 'running' : 'ready';
+                else thread.state = proc.state;
+            });
+        },
+
+        reset() {
+            this.clock = 0;
+            this.nextPid = 1;
+            this.running = false;
+            this.processes = [];
+            this.memory = [{ id: 'free-0', start: 0, size: this.totalMemory, pid: null }];
+            this.timeline = [];
+            this.logs = [];
+            this.message = '';
+            this.seed();
+        },
+
+        toggleRun() {
+            this.running = !this.running;
+        },
+
+        setMessage(text, type = 'info') {
+            this.message = text;
+            this.messageType = type;
+        },
+
+        log(text) {
+            this.logs.unshift({ time: this.clock, text });
+            if (this.logs.length > 80) this.logs.pop();
+        },
+
+        processName(pid) {
+            return this.processes.find(p => p.pid === pid)?.name || `P${pid}`;
+        },
+
+        stateLabel(state) {
+            return { ready: '就绪', running: '运行', blocked: '阻塞' }[state] || state;
+        },
+
+        colorClass(pid) {
+            return [
+                'bg-cyan-100 border-cyan-200 text-cyan-800',
+                'bg-emerald-100 border-emerald-200 text-emerald-800',
+                'bg-amber-100 border-amber-200 text-amber-800',
+                'bg-violet-100 border-violet-200 text-violet-800',
+                'bg-rose-100 border-rose-200 text-rose-800',
+                'bg-blue-100 border-blue-200 text-blue-800',
+            ][pid % 6];
+        },
+
+        stateClass(state) {
+            return {
+                running: 'bg-emerald-50 text-emerald-700',
+                ready: 'bg-blue-50 text-blue-700',
+                blocked: 'bg-amber-50 text-amber-700',
+            }[state] || 'bg-gray-50 text-gray-600';
+        },
+
+        threadClass(state) {
+            return {
+                running: 'bg-emerald-50 border-emerald-100 text-emerald-700',
+                ready: 'bg-blue-50 border-blue-100 text-blue-700',
+                blocked: 'bg-amber-50 border-amber-100 text-amber-700',
+            }[state] || 'bg-gray-50 border-gray-100 text-gray-600';
+        },
+    }));
+});
+</script>
+{% endblock %}

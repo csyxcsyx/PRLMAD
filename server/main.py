@@ -64,3 +64,8 @@ async def page_evaluate(request: Request):
 @app.get("/page/knowledge", response_class=HTMLResponse)
 async def page_knowledge(request: Request):
     return templates.TemplateResponse(request, "pages/knowledge.html", {"page": "knowledge"})
+
+
+@app.get("/page/os-lab", response_class=HTMLResponse)
+async def page_os_lab(request: Request):
+    return templates.TemplateResponse(request, "pages/os_lab.html", {"page": "os_lab"})

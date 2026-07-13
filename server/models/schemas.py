@@ -15,9 +15,8 @@ class GenerateRequest(BaseModel):
     knowledge_points: str = ""
     resource_types: list[str] = Field(default_factory=lambda: [
         "lecture_note", "concept_map", "exercises",
-        "case_project", "video_script", "ppt_outline", "task_checklist",
     ])
-    top_k: int = 6
+    top_k: int = 4
 
 
 class TutorRequest(BaseModel):

@@ -12,6 +12,9 @@ class ChatClient(Protocol):
     def chat(self, messages: list[dict[str, str]], stream: bool = True) -> str:
         ...
 
+    def stream_chat(self, messages: list[dict[str, str]]):
+        ...
+
 
 ProgressCallback = Callable[[str, dict], None]
 
@@ -291,7 +294,7 @@ class AgentOrchestrator:
 {MARKDOWN_OUTPUT_STYLE}"""
         return self.client.chat(_messages("你是学习画像智能体，也是一名课程学习诊断教师。", prompt))
 
-    def _resource_agent(
+    def _resource_agent_messages(
         self,
         role_prompt: str,
         course: str,
@@ -300,7 +303,7 @@ class AgentOrchestrator:
         profile_markdown: str,
         context: str,
         focus_topic: str = "",
-    ) -> str:
+    ) -> list[dict[str, str]]:
         prompt = f"""课程：{course}
 知识点关注：{focus_topic or '未指定'}
 资源类型：{RESOURCE_TYPE_NAMES.get(resource_type, resource_type)}
@@ -322,7 +325,52 @@ class AgentOrchestrator:
 - 如果教材片段不足，明确说明不足位置。
 - 内容要适合大学生自主学习，不生成与课程目标无关的泛泛建议。
 {MARKDOWN_OUTPUT_STYLE}"""
-        return self.client.chat(_messages(role_prompt, prompt))
+        return _messages(role_prompt, prompt)
+
+    def _resource_agent(
+        self,
+        role_prompt: str,
+        course: str,
+        resource_type: str,
+        learner_brief: str,
+        profile_markdown: str,
+        context: str,
+        focus_topic: str = "",
+    ) -> str:
+        return self.client.chat(
+            self._resource_agent_messages(
+                role_prompt=role_prompt,
+                course=course,
+                resource_type=resource_type,
+                learner_brief=learner_brief,
+                profile_markdown=profile_markdown,
+                context=context,
+                focus_topic=focus_topic,
+            )
+        )
+
+    def stream_resource_agent(
+        self,
+        role_prompt: str,
+        course: str,
+        resource_type: str,
+        learner_brief: str,
+        profile_markdown: str,
+        context: str,
+        focus_topic: str = "",
+    ):
+        messages = self._resource_agent_messages(
+            role_prompt=role_prompt,
+            course=course,
+            resource_type=resource_type,
+            learner_brief=learner_brief,
+            profile_markdown=profile_markdown,
+            context=context,
+            focus_topic=focus_topic,
+        )
+        for chunk in self.client.stream_chat(messages):
+            if chunk.content:
+                yield chunk.content
 
     def _path_planner(
         self,
