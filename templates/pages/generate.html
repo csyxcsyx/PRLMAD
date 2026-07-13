@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<div x-data="generatePage" class="flex flex-col h-full">
+<div x-data="generatePage" class="generate-workspace flex flex-col h-full">
     <div class="page-header bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-3 flex-shrink-0">
         <div class="page-emblem w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-semibold">G</div>
         <div>
@@ -11,8 +11,9 @@
 
     <div class="page-content flex-1 overflow-y-auto">
         <div class="content-shell space-y-4">
+            <div class="generation-orchestrator">
             <!-- Step 1: Configuration -->
-            <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+            <div class="generation-config bg-white border border-gray-100 rounded-2xl p-5 shadow-sm" :class="stages.length ? 'generation-config--compact' : ''">
                 <div class="flex items-center gap-2 mb-4">
                     <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold">1</span>
                     <h3 class="text-sm font-semibold text-gray-700">设置生成目标</h3>
@@ -65,7 +66,7 @@
             </div>
 
             <!-- Step 2: Progress -->
-            <div x-show="stages.length > 0" class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm fade-in">
+            <div x-show="stages.length > 0" class="generation-progress bg-white border border-gray-100 rounded-2xl p-5 shadow-sm fade-in">
                 <div class="flex items-center gap-2 mb-4">
                     <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold">2</span>
                     <h3 class="text-sm font-semibold text-gray-700">智能体协作进度</h3>
@@ -85,6 +86,7 @@
                         </div>
                     </template>
                 </div>
+            </div>
             </div>
 
             <div x-show="generationDone" class="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-2xl p-5 shadow-sm fade-in">
@@ -148,7 +150,7 @@
 
             <!-- Empty State -->
             <div x-show="!generating && stages.length === 0 && generatedResources.length === 0" class="text-center py-12">
-                <span class="empty-mark">AI</span>
+                {% include "components/learning_motif.html" %}
                 <p class="text-sm text-gray-400 mt-3">先输入一个具体知识点，再选择至少 5 种资源类型</p>
                 <p class="text-xs text-gray-300 mt-1">建议从当前薄弱点开始，例如信号量、死锁、虚拟内存或页面置换</p>
             </div>
@@ -221,10 +223,10 @@ document.addEventListener('alpine:init', () => {
 
         async startGeneration() {
             const sid = Alpine.store('app').currentSessionId;
-            if (!sid) { alert('请先创建会话'); return; }
+            if (!sid) { window.PRLMAD.notify('请先创建会话', 'error'); return; }
             const selectedTypes = this.resourceTypes.filter(r => r.selected).map(r => r.key);
-            if (selectedTypes.length < 5) { alert('请至少选择5种资源类型'); return; }
-            if (!this.knowledgePoints.trim()) { alert('请输入学习知识点'); return; }
+            if (selectedTypes.length < 5) { window.PRLMAD.notify('请至少选择5种资源类型', 'error'); return; }
+            if (!this.knowledgePoints.trim()) { window.PRLMAD.notify('请输入学习知识点', 'error'); return; }
 
             this.generating = true;
             Alpine.store('app').setBusy('generate', true);
@@ -287,7 +289,7 @@ document.addEventListener('alpine:init', () => {
                         } else if (eventName === 'error') {
                             failed = true;
                             this.stages.forEach(s => { if (s.status === 'running') s.status = 'error'; });
-                            alert(data.message || '生成失败');
+                            window.PRLMAD.notify(data.message || '生成失败', 'error');
                         } else if (eventName === 'done') {
                             this.generationDone = true;
                         }
@@ -295,7 +297,7 @@ document.addEventListener('alpine:init', () => {
                 }
             } catch (e) {
                 failed = true;
-                alert('生成请求失败: ' + e.message);
+                window.PRLMAD.notify('生成请求失败: ' + e.message, 'error');
             }
             this.generating = false;
             Alpine.store('app').setBusy('generate', false);
@@ -314,9 +316,9 @@ document.addEventListener('alpine:init', () => {
         async copyContent(res) {
             try {
                 await navigator.clipboard.writeText(res.rawContent);
-                alert('已复制到剪贴板');
+                window.PRLMAD.notify('内容已复制', 'success');
             } catch (e) {
-                alert('复制失败');
+                window.PRLMAD.notify('复制失败', 'error');
             }
         },
     }));

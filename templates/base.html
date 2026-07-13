@@ -18,7 +18,7 @@
         }
         * { font-family: 'Inter Local', 'Noto Sans SC', 'Microsoft YaHei UI', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
         [x-cloak] { display: none !important; }
-        body { color: var(--body); }
+        body { color: var(--body); background: var(--canvas); }
         .display-title, main h1, main h2 { font-family: 'Cormorant Garamond Local', 'Noto Serif SC', 'Songti SC', SimSun, Georgia, serif; font-weight: 500 !important; letter-spacing: -0.02em; color: var(--ink); }
         .markdown-body { color: var(--body); line-height: 1.72; overflow-wrap: anywhere; }
         .markdown-body > :first-child { margin-top: 0 !important; }
@@ -86,6 +86,16 @@
             font-weight: 800;
             opacity: 0.75;
         }
+        .empty-illustration {
+            width: 9.5rem; height: 7rem; margin-inline: auto;
+            display: grid; place-items: center; color: var(--muted);
+        }
+        .empty-illustration svg { width: 100%; height: 100%; overflow: visible; }
+        .motif-paper { fill: var(--surface-soft); stroke: var(--hairline); stroke-width: 2; }
+        .motif-fold { fill: var(--surface-card); stroke: var(--hairline); stroke-width: 2; stroke-linejoin: round; }
+        .motif-line, .motif-link { fill: none; stroke: #aaa399; stroke-width: 2; stroke-linecap: round; }
+        .motif-node { fill: var(--canvas); stroke: #aaa399; stroke-width: 2; }
+        .motif-node-accent { fill: var(--coral); stroke: var(--coral); }
         .nav-link { transition: all 0.2s ease; border-radius: 0.75rem; }
         .nav-link:hover { background: var(--surface-soft); }
         .nav-link.active { background: var(--surface-card); color: var(--ink); font-weight: 600; box-shadow: inset 3px 0 0 var(--coral); }
@@ -115,7 +125,8 @@
         .rounded-2xl { border-radius: 0.75rem !important; }
         .rounded-xl { border-radius: 0.625rem !important; }
         button, input, textarea, select { letter-spacing: 0; }
-        button { transform: translateZ(0); }
+        button { transform: translateZ(0); transition-duration: .18s !important; }
+        button:not(:disabled):active { transform: translateY(1px); }
         button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
             outline: 2px solid var(--coral);
             outline-offset: 2px;
@@ -178,10 +189,74 @@
         @media (prefers-reduced-motion: reduce) {
             .workspace-enter > *, ::view-transition-old(workspace), ::view-transition-new(workspace) { animation: none !important; }
         }
-        .page-header-title { font-size: 1rem !important; line-height: 1.35; }
-        .page-header { min-height: 64px; }
-        .page-content { padding: 1.25rem; }
-        .content-shell { width: 100%; max-width: 72rem; margin-inline: auto; }
+        .app-sidebar { width: 15rem !important; }
+        .page-header-title { font-size: 1.08rem !important; line-height: 1.3; }
+        .page-header {
+            min-height: 68px; position: relative; z-index: 24;
+            background: rgba(250,249,245,.94) !important;
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+        }
+        .page-header::after {
+            content: ''; position: absolute; left: 1.5rem; right: 1.5rem; bottom: -1px;
+            height: 1px; background: linear-gradient(90deg, transparent, var(--hairline) 10%, var(--hairline) 90%, transparent);
+        }
+        .page-content { padding: clamp(1rem, 2vw, 1.75rem); }
+        .content-shell { width: 100%; max-width: 80rem; margin-inline: auto; }
+        .page-emblem { position: relative; overflow: hidden; }
+        .page-emblem::after {
+            content: ''; position: absolute; width: 14px; height: 1px; background: currentColor;
+            opacity: .35; bottom: 7px; right: 4px; transform: rotate(-35deg);
+        }
+        main .bg-white.border { transition: border-color .18s ease, transform .18s ease; }
+        main .bg-white.border:hover { border-color: rgba(204,120,92,.26) !important; }
+        input, textarea, select { transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease; }
+        input:hover, textarea:hover, select:hover { border-color: #cec4b9 !important; }
+        .profile-content { max-width: 70rem; }
+        .profile-step-nav { position: sticky; top: 0; }
+        .profile-form-card { background: rgba(250,249,245,.92) !important; }
+        .profile-summary-rail { background: var(--surface-soft) !important; }
+        .generation-orchestrator { display: grid; grid-template-columns: minmax(0,1fr); gap: 1rem; }
+        .generation-config--compact { grid-column: auto; }
+        .generation-progress { min-height: 100%; }
+        .tutor-canvas { background: var(--surface-soft); scroll-behavior: smooth; }
+        .tutor-canvas > * { width: min(100%, 60rem); margin-inline: auto; }
+        .tutor-input-dock { background: rgba(250,249,245,.96) !important; backdrop-filter: blur(14px); }
+        .path-workspace .path-progress-card { top: .25rem; }
+        .knowledge-layout { display: grid; grid-template-columns: minmax(0,1fr); gap: 1rem; }
+        .knowledge-overview { grid-column: 1 / -1; }
+        .skeleton-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: 1rem; }
+        .skeleton-card { min-height: 300px; border: 1px solid var(--hairline); border-radius: .75rem; background: var(--canvas); padding: 1.25rem; }
+        .skeleton-line { height: .7rem; border-radius: 999px; background: var(--surface-card); margin-bottom: .75rem; animation: skeletonPulse 1.4s ease-in-out infinite; }
+        @keyframes skeletonPulse { 50% { opacity: .48; } }
+        .toast-region { position: fixed; right: 1.25rem; bottom: 1.25rem; z-index: 80; display: grid; gap: .65rem; width: min(22rem, calc(100vw - 2rem)); pointer-events: none; }
+        .app-toast {
+            display: flex; align-items: flex-start; gap: .7rem; padding: .85rem 1rem;
+            border-radius: .75rem; border: 1px solid var(--hairline); background: rgba(250,249,245,.98);
+            box-shadow: 0 14px 34px rgba(62,49,42,.14); color: var(--body); font-size: .8rem;
+            animation: toastIn .2s cubic-bezier(.22,.8,.25,1) both; pointer-events: auto;
+        }
+        .app-toast::before { content: ''; width: .5rem; height: .5rem; margin-top: .3rem; border-radius: 999px; background: var(--coral); flex: 0 0 auto; }
+        .app-toast[data-tone="success"]::before { background: var(--success); }
+        .app-toast[data-tone="error"]::before { background: #c64545; }
+        .app-toast.is-leaving { animation: toastOut .18s ease both; }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } }
+        @keyframes toastOut { to { opacity: 0; transform: translateY(5px); } }
+        @media (min-width: 1024px) {
+            .generation-orchestrator { grid-template-columns: minmax(0,1.35fr) minmax(280px,.65fr); align-items: stretch; }
+            .generation-config:not(.generation-config--compact) { grid-column: 1 / -1; }
+            .knowledge-layout { grid-template-columns: minmax(0,1.08fr) minmax(340px,.92fr); align-items: start; }
+        }
+        @media (max-width: 1023px) {
+            .profile-builder-grid { display: block !important; }
+            .profile-step-nav {
+                display: flex; gap: .35rem; overflow-x: auto; position: sticky; top: -.1rem; z-index: 15;
+                margin-bottom: 1rem; padding: .5rem; scrollbar-width: none; background: rgba(250,249,245,.94) !important;
+                backdrop-filter: blur(10px);
+            }
+            .profile-step-nav::-webkit-scrollbar { display: none; }
+            .profile-step-nav button { width: auto !important; min-width: max-content; margin-bottom: 0 !important; padding: .65rem .75rem !important; }
+            .profile-form-card { min-height: 0 !important; }
+        }
         @media (max-width: 767px) {
             .app-frame { flex-direction: column; }
             .app-sidebar { display: none !important; }
@@ -191,10 +266,23 @@
             .mobile-nav::-webkit-scrollbar { display: none; }
             .mobile-nav a { white-space: nowrap; border: 1px solid transparent; }
             .mobile-nav a.active { background: var(--surface-card); border-color: var(--hairline); color: var(--ink); }
-            .page-header { min-height: 64px; gap: .75rem; flex-wrap: wrap; }
-            .page-header input[type="text"] { width: 9rem; }
+            .page-header { min-height: 68px; gap: .75rem; flex-wrap: wrap; padding: .75rem 1rem !important; }
+            .page-header::after { left: 1rem; right: 1rem; }
+            .page-header input[type="text"] { width: min(11rem, 52vw); }
             .page-content { padding: 1rem; }
             main > [x-data] > div:first-child { padding-left: 1rem !important; padding-right: 1rem !important; }
+            .profile-workspace { display: block !important; }
+            .profile-step-nav { margin-inline: -1rem; border-radius: 0 !important; border-inline: 0 !important; }
+            .profile-form-card { padding: 1.1rem !important; }
+            .profile-form-card > div > div:first-child { margin-bottom: 1rem !important; }
+            .tutor-canvas { padding: 1rem !important; }
+            .tutor-input-dock { padding: .75rem 1rem !important; }
+            .tutor-input-dock button { padding-inline: 1rem !important; }
+            .skeleton-grid { grid-template-columns: 1fr; }
+            .toast-region { right: 1rem; bottom: 1rem; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
         }
     </style>
 </head>
@@ -352,8 +440,9 @@
     </div>
 
     <div id="pageLoadingBar" class="page-loading-bar" aria-hidden="true"></div>
+    <div id="toastRegion" class="toast-region" aria-live="polite" aria-atomic="true"></div>
 
-    <script src="/static/js/app.js?v=0.5.0"></script>
+    <script src="/static/js/app.js?v=0.6.0"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

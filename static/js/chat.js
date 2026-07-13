@@ -398,7 +398,7 @@ document.addEventListener('alpine:init', () => {
                 }));
                 return true;
             } catch (e) {
-                alert('保存画像失败: ' + e.message);
+                window.PRLMAD.notify('保存画像失败: ' + e.message, 'error');
                 return false;
             } finally {
                 this.saving = false;
@@ -433,7 +433,7 @@ document.addEventListener('alpine:init', () => {
                 }));
                 return true;
             } catch (e) {
-                alert('清除画像失败: ' + e.message);
+                window.PRLMAD.notify('清除画像失败: ' + e.message, 'error');
                 return false;
             } finally {
                 this.clearing = false;

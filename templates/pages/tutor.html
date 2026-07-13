@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<div x-data="tutorPage" class="flex flex-col h-full">
+<div x-data="tutorPage" class="tutor-workspace flex flex-col h-full">
     <div class="page-header bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-3 flex-shrink-0">
         <div class="page-emblem w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-semibold">T</div>
         <div>
@@ -8,9 +8,9 @@
             <p class="text-xs text-gray-400">结合教材证据回答问题，并保留可追溯引用</p>
         </div>
     </div>
-    <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4" id="tutorMsgContainer">
+    <div class="tutor-canvas flex-1 overflow-y-auto px-5 py-4 space-y-4" id="tutorMsgContainer">
         <div x-show="tutorMessages.length === 0 && !loading" class="text-center py-16 fade-in">
-            <span class="empty-mark">辅</span>
+            {% include "components/learning_motif.html" %}
             <p class="text-lg font-medium text-gray-400 mt-4">有什么学习问题？</p>
             <p class="text-sm text-gray-400 mt-1">我会基于教材知识库为你提供个性化解答</p>
             <div x-show="!$store.app.currentSessionId" class="mt-3 text-xs text-amber-500 bg-amber-50 rounded-lg px-4 py-2 inline-block">请先在侧边栏创建学习会话</div>
@@ -61,7 +61,7 @@
         </template>
 
     </div>
-    <div class="border-t border-gray-100 bg-white px-6 py-3 flex-shrink-0">
+    <div class="tutor-input-dock border-t border-gray-100 bg-white px-6 py-3 flex-shrink-0">
         <div class="flex gap-3 max-w-4xl mx-auto">
             <textarea x-model="tutorInput" @keydown.enter.prevent="if(!$event.shiftKey) askQuestion()"
                 placeholder="输入你的学习问题... (Shift+Enter 换行)"
@@ -181,7 +181,7 @@ document.addEventListener('alpine:init', () => {
         },
         async askQuestion() {
             const sid = Alpine.store('app').currentSessionId;
-            if (!sid) { alert('请先创建会话'); return; }
+            if (!sid) { window.PRLMAD.notify('请先创建会话', 'error'); return; }
             const q = this.tutorInput.trim();
             if (!q) return;
             const messageId = `live-${Date.now()}`;
