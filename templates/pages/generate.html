@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 {% block content %}
 <div x-data="generatePage" class="flex flex-col h-full">
-    <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-3 flex-shrink-0">
-        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-sm font-bold">G</div>
+    <div class="page-header bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-3 flex-shrink-0">
+        <div class="page-emblem w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-semibold">G</div>
         <div>
-            <h2 class="text-sm font-semibold text-gray-800">多智能体协同资源生成</h2>
-            <p class="text-[11px] text-gray-400">多类课程智能体协作生成讲义、导图、题库、案例和学习任务</p>
+            <h2 class="page-header-title text-gray-800">学习资源工作台</h2>
+            <p class="text-xs text-gray-400">设定一个主题，并行生成讲义、导图、练习与实践材料</p>
         </div>
     </div>
 
-    <div class="flex-1 overflow-y-auto p-6">
-        <div class="max-w-4xl mx-auto space-y-5">
+    <div class="page-content flex-1 overflow-y-auto">
+        <div class="content-shell space-y-4">
             <!-- Step 1: Configuration -->
-            <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+            <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
                 <div class="flex items-center gap-2 mb-4">
                     <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold">1</span>
                     <h3 class="text-sm font-semibold text-gray-700">设置生成目标</h3>
@@ -54,7 +54,7 @@
                 </div>
 
                 <button @click="startGeneration()"
-                    class="mt-4 w-full bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white rounded-xl px-6 py-3 text-sm font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
+                    class="mt-4 w-full bg-brand-500 hover:bg-brand-700 text-white rounded-lg px-6 py-3 text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     :disabled="generating || !knowledgePoints.trim() || !$store.app.currentSessionId">
                     <span x-show="!generating" class="flex items-center justify-center gap-2">启动多智能体协同生成</span>
                     <span x-show="generating" class="flex items-center justify-center gap-2">
@@ -65,7 +65,7 @@
             </div>
 
             <!-- Step 2: Progress -->
-            <div x-show="stages.length > 0" class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm fade-in">
+            <div x-show="stages.length > 0" class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm fade-in">
                 <div class="flex items-center gap-2 mb-4">
                     <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold">2</span>
                     <h3 class="text-sm font-semibold text-gray-700">智能体协作进度</h3>
@@ -112,7 +112,7 @@
                         <h3 class="text-sm font-semibold text-gray-700">生成结果 (<span x-text="generatedResources.length"></span>项)</h3>
                     </div>
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        <template x-for="res in generatedResources" :key="'tile-' + res.type">
+                        <template x-for="res in generatedResources" :key="'tile-' + res.key">
                             <button @click="res.expanded = !res.expanded"
                                 class="flex items-center gap-2 rounded-xl border px-3 py-2 text-left transition-all"
                                 :class="res.status === 'error' ? 'border-red-200 bg-red-50' : 'border-emerald-100 bg-emerald-50 hover:border-emerald-200'">
@@ -123,7 +123,7 @@
                         </template>
                     </div>
                 </div>
-                <template x-for="res in generatedResources" :key="res.type">
+                <template x-for="res in generatedResources" :key="res.key">
                     <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                         <div class="flex items-center justify-between px-5 py-3.5 cursor-pointer hover:bg-gray-50 transition-colors" @click="res.expanded = !res.expanded">
                             <div class="flex items-center gap-3">
@@ -204,6 +204,7 @@ document.addEventListener('alpine:init', () => {
                 const resp = await fetch(`/api/generate/list/${sid}`);
                 const data = await resp.json();
                 this.generatedResources = (data || []).slice().reverse().map(r => ({
+                    key: `resource-${r.id}`,
                     type: r.resource_type,
                     name: r.resource_name,
                     icon: this.resourceIcons[r.resource_type] || 'RES',
@@ -271,6 +272,7 @@ document.addEventListener('alpine:init', () => {
                         } else if (eventName === 'resource') {
                             const existing = this.generatedResources.find(r => r.type === data.type);
                             const item = {
+                                key: existing?.key || `run-${data.type}`,
                                 type: data.type,
                                 name: data.name,
                                 icon: this.resourceIcons[data.type] || 'RES',

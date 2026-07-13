@@ -70,15 +70,6 @@ document.addEventListener('alpine:init', () => {
             return confirm(`${tasks}正在进行中。${actionText}会中断当前页面的生成过程，确定继续吗？`);
         },
 
-        confirmNavigation(event) {
-            if (!this.confirmBusyAction('切换板块')) {
-                event.preventDefault();
-                event.stopPropagation();
-                return false;
-            }
-            return true;
-        },
-
         async loadSessions() {
             try {
                 const resp = await fetch('/api/sessions');
@@ -280,6 +271,251 @@ window.PRLMAD = {
         return rest;
     },
 };
+
+window.PRLMAD.createNavigation = () => {
+    const registeredPages = new Set([document.body.dataset.page || 'chat']);
+    const scriptCache = new Map();
+    const pageCache = new Map();
+    const livePages = new Map();
+    const navigationPaths = [
+        '/page/chat', '/page/generate', '/page/learning-path',
+        '/page/tutor', '/page/evaluate', '/page/knowledge',
+    ];
+    let renderedPath = window.location.pathname;
+    let navigationVersion = 0;
+
+    livePages.set(renderedPath, {
+        page: document.body.dataset.page || 'chat',
+        title: document.title,
+        fragment: null,
+    });
+
+    function currentUrl(pathname) {
+        const sid = Alpine.store('app')?.currentSessionId || window.location.hash.slice(1) || '';
+        return sid ? `${pathname}#${sid}` : pathname;
+    }
+
+    function setLoading(value, finished = false) {
+        const main = document.querySelector('.app-main');
+        const bar = document.getElementById('pageLoadingBar');
+        main?.classList.toggle('is-navigating', value);
+        main?.setAttribute('aria-busy', value ? 'true' : 'false');
+        if (!bar) return;
+        bar.classList.toggle('active', value);
+        bar.classList.toggle('done', finished);
+        if (finished) {
+            window.setTimeout(() => bar.classList.remove('done'), 240);
+        }
+    }
+
+    function updateNavigation(page) {
+        document.body.dataset.page = page;
+        document.querySelectorAll('[data-app-nav]').forEach(link => {
+            const active = link.dataset.pageTarget === page;
+            link.classList.toggle('active', active);
+            if (active) link.setAttribute('aria-current', 'page');
+            else link.removeAttribute('aria-current');
+        });
+    }
+
+    function runRegistration(source) {
+        const opening = /document\.addEventListener\(['"]alpine:init['"],\s*\(\)\s*=>\s*\{/;
+        if (!opening.test(source)) return;
+        const body = source.replace(opening, '').replace(/\}\);\s*$/, '');
+        Function(body)();
+    }
+
+    async function registerPageComponent(doc, page) {
+        if (registeredPages.has(page)) return;
+        const scripts = Array.from(doc.querySelectorAll('script'));
+        for (const script of scripts) {
+            const src = script.getAttribute('src') || '';
+            const isPageScript = src === '/static/js/chat.js' || script.textContent.includes('Alpine.data(');
+            if (!isPageScript) continue;
+            let source = script.textContent;
+            if (src) {
+                if (!scriptCache.has(src)) {
+                    scriptCache.set(src, fetch(src).then(response => {
+                        if (!response.ok) throw new Error(`无法加载页面脚本: ${src}`);
+                        return response.text();
+                    }));
+                }
+                source = await scriptCache.get(src);
+            }
+            runRegistration(source);
+        }
+        registeredPages.add(page);
+    }
+
+    function loadPage(pathname) {
+        if (pageCache.has(pathname)) return pageCache.get(pathname);
+        const request = fetch(pathname, {
+            headers: { 'X-PRLMAD-Navigation': 'prefetch' },
+        }).then(async response => {
+            if (!response.ok) throw new Error(`页面加载失败 (${response.status})`);
+            const html = await response.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const nextMain = doc.querySelector('.app-main');
+            const page = doc.body.dataset.page;
+            if (!nextMain || !page) throw new Error('页面内容不完整');
+            await registerPageComponent(doc, page);
+            return { html: nextMain.innerHTML, page, title: doc.title || document.title };
+        }).catch(error => {
+            pageCache.delete(pathname);
+            throw error;
+        });
+        pageCache.set(pathname, request);
+        return request;
+    }
+
+    function detachCurrentPage(main) {
+        const current = livePages.get(renderedPath);
+        if (!current) return;
+        const fragment = document.createDocumentFragment();
+        Alpine.mutateDom(() => {
+            while (main.firstChild) fragment.appendChild(main.firstChild);
+        });
+        current.fragment = fragment;
+    }
+
+    function mountPage(main, pathname, payload) {
+        detachCurrentPage(main);
+        const cached = livePages.get(pathname);
+        let needsInitialization = false;
+        Alpine.mutateDom(() => {
+            if (cached?.fragment) {
+                main.appendChild(cached.fragment);
+                cached.fragment = null;
+            } else {
+                main.innerHTML = payload.html;
+                needsInitialization = true;
+            }
+        });
+        if (needsInitialization) {
+            Alpine.initTree(main);
+            livePages.set(pathname, {
+                page: payload.page,
+                title: payload.title,
+                fragment: null,
+            });
+        }
+    }
+
+    function refreshMountedVisuals() {
+        window.requestAnimationFrame(() => {
+            window.dispatchEvent(new Event('resize'));
+            const chart = document.getElementById('radarChart');
+            if (chart && window.echarts) window.echarts.getInstanceByDom(chart)?.resize();
+        });
+    }
+
+    function swapWorkspace(pathname, payload) {
+        const main = document.querySelector('.app-main');
+        const swap = () => {
+            main.dataset.navigationSource = livePages.get(pathname)?.fragment ? 'memory' : 'prepared';
+            mountPage(main, pathname, payload);
+            renderedPath = pathname;
+            updateNavigation(payload.page);
+            document.title = payload.title;
+            main.classList.remove('workspace-enter');
+            if (!document.startViewTransition) {
+                void main.offsetWidth;
+                main.classList.add('workspace-enter');
+            }
+            refreshMountedVisuals();
+        };
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (document.startViewTransition && !reducedMotion) {
+            document.startViewTransition(swap);
+        } else {
+            swap();
+        }
+    }
+
+    async function navigate(pathname, options = {}) {
+        const { push = true } = options;
+        const startedAt = window.performance.now();
+        const target = new URL(pathname, window.location.origin);
+        if (target.origin !== window.location.origin) {
+            window.location.assign(target.href);
+            return false;
+        }
+        if (target.pathname === window.location.pathname && push) {
+            return true;
+        }
+        const version = ++navigationVersion;
+        let loadingShown = false;
+        const loadingTimer = window.setTimeout(() => {
+            loadingShown = true;
+            setLoading(true);
+        }, 120);
+        try {
+            const live = livePages.get(target.pathname);
+            const payload = live || await loadPage(target.pathname);
+            if (version !== navigationVersion) return false;
+            swapWorkspace(target.pathname, payload);
+
+            const nextUrl = currentUrl(target.pathname);
+            if (push) history.pushState({ page: payload.page }, '', nextUrl);
+            else history.replaceState({ page: payload.page }, '', nextUrl);
+            document.documentElement.dataset.lastNavigationMs = String(
+                Math.round(window.performance.now() - startedAt)
+            );
+            window.dispatchEvent(new CustomEvent('prlmad:page-changed', { detail: { page: payload.page } }));
+            return true;
+        } catch (error) {
+            console.error('局部页面切换失败，回退到完整导航', error);
+            window.location.assign(currentUrl(target.pathname));
+            return false;
+        } finally {
+            window.clearTimeout(loadingTimer);
+            if (loadingShown) setLoading(false, true);
+        }
+    }
+
+    function prefetch(pathname) {
+        const target = new URL(pathname, window.location.origin);
+        if (target.origin !== window.location.origin || target.pathname === renderedPath) return;
+        loadPage(target.pathname).catch(() => {});
+    }
+
+    document.addEventListener('click', event => {
+        const link = event.target.closest('a[data-app-nav]');
+        if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        navigate(link.href);
+    });
+
+    document.addEventListener('pointerover', event => {
+        const link = event.target.closest('a[data-app-nav]');
+        if (link) prefetch(link.href);
+    }, { passive: true });
+
+    document.addEventListener('focusin', event => {
+        const link = event.target.closest('a[data-app-nav]');
+        if (link) prefetch(link.href);
+    });
+
+    window.addEventListener('popstate', async () => {
+        const requestedPath = window.location.pathname;
+        await navigate(requestedPath, { push: false });
+    });
+
+    updateNavigation(document.body.dataset.page);
+    history.replaceState({ page: document.body.dataset.page }, '', currentUrl(window.location.pathname));
+    const warmCache = () => navigationPaths.forEach(prefetch);
+    if ('requestIdleCallback' in window) window.requestIdleCallback(warmCache, { timeout: 1500 });
+    else window.setTimeout(warmCache, 250);
+    return { navigate, prefetch };
+};
+
+function initializeWorkspaceNavigation() {
+    if (window.PRLMAD.navigation || !window.Alpine) return;
+    window.PRLMAD.navigation = window.PRLMAD.createNavigation();
+    document.documentElement.classList.add('navigation-ready');
+}
+
+document.addEventListener('DOMContentLoaded', initializeWorkspaceNavigation);
 
 if (window.marked) {
     marked.setOptions({ breaks: true, gfm: true });

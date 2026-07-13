@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
 <div x-data="pathPage" class="flex flex-col h-full">
-    <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between flex-shrink-0">
+    <div class="page-header bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between flex-shrink-0">
         <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white text-sm font-bold">P</div>
+            <div class="page-emblem w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-semibold">P</div>
             <div>
-                <h2 class="text-sm font-semibold text-gray-800">个性化学习路径</h2>
-                <p class="text-[11px] text-gray-400">基于画像的科学学习规划</p>
+                <h2 class="page-header-title text-gray-800">学习路径</h2>
+                <p class="text-xs text-gray-400">把学习目标拆解为清晰、可完成的阶段任务</p>
             </div>
         </div>
         <div class="flex gap-2 items-center">
@@ -14,7 +14,7 @@
                 placeholder="关注的知识点（可选）"
                 class="border border-gray-200 rounded-lg px-3 py-2 text-sm w-48 focus:ring-2 focus:ring-brand-400 outline-none bg-gray-50 placeholder-gray-400" />
             <button @click="generatePath()"
-                class="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg px-4 py-2 text-sm font-medium transition-all shadow-sm disabled:opacity-40"
+                class="bg-brand-500 hover:bg-brand-700 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:opacity-40"
                 :disabled="loading || !$store.app.currentSessionId">
                 <span x-show="!loading">生成路径</span>
                 <span x-show="loading" class="flex items-center gap-1">
@@ -24,8 +24,8 @@
             </button>
         </div>
     </div>
-    <div class="flex-1 overflow-y-auto p-6">
-        <div class="max-w-3xl mx-auto">
+    <div class="page-content flex-1 overflow-y-auto">
+        <div class="content-shell">
             <!-- Empty State -->
             <div x-show="!pathData.title && !loading" class="text-center py-16 fade-in">
                 <span class="empty-mark">路</span>
@@ -35,8 +35,8 @@
                 <div x-show="!$store.app.currentSessionId" class="mt-3 text-xs text-amber-500 bg-amber-50 rounded-lg px-4 py-2 inline-block">请先在侧边栏创建学习会话</div>
             </div>
 
-            <div x-show="pathData.title" class="space-y-6 fade-in">
-                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+            <div x-show="pathData.title" class="space-y-4 fade-in">
+                <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
                     <div class="flex items-start justify-between">
                         <div>
                             <h3 class="text-lg font-bold text-gray-800" x-text="pathData.title"></h3>
@@ -46,20 +46,16 @@
                         <span class="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium" x-text="'共' + (pathData.steps ? pathData.steps.length : 0) + '天'"></span>
                     </div>
                     <div class="mt-4 bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                        <div class="bg-gradient-to-r from-green-400 to-emerald-500 h-full rounded-full transition-all duration-700"
+                        <div class="bg-brand-500 h-full rounded-full transition-all duration-700"
                             :style="'width: ' + progressPercent + '%'"></div>
                     </div>
                     <p class="text-xs text-gray-400 mt-2" x-text="'进度: 第 ' + (currentStep || 1) + ' 天 / 共 ' + (pathData.steps ? pathData.steps.length : 0) + ' 天 (' + progressPercent + '%)'"></p>
                 </div>
 
-                <div class="relative pl-8">
-                    <div class="absolute left-[15px] top-4 bottom-4 w-0.5 bg-gray-200"></div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
                     <template x-for="(step, idx) in (pathData.steps || [])" :key="idx">
-                        <div class="relative pb-5" :class="idx >= currentStep ? '' : 'opacity-60'">
-                            <div class="absolute left-[-23px] w-4 h-4 rounded-full border-2 mt-1.5 z-10 bg-white"
-                                :class="idx < currentStep ? 'border-green-500 bg-green-500' : (idx === currentStep - 0 ? 'border-brand-500 ring-4 ring-brand-100' : 'border-gray-300')">
-                            </div>
-                            <div class="bg-white border rounded-2xl p-5 shadow-sm ml-2 transition-all"
+                        <div class="relative" :class="idx >= currentStep ? '' : 'opacity-60'">
+                            <div class="bg-white border rounded-2xl p-4 shadow-sm h-full transition-all"
                                 :class="idx === currentStep - 0 ? 'border-brand-200 ring-1 ring-brand-100' : 'border-gray-100'">
                                 <div class="flex items-center justify-between mb-3">
                                     <span class="text-xs font-bold text-white gradient-brand px-3 py-1 rounded-full" x-text="'第' + (step.day || (idx+1)) + '天'"></span>
