@@ -239,6 +239,25 @@ document.addEventListener('alpine:init', () => {
 });
 
 window.PRLMAD = {
+    normalizeAiText(value) {
+        let text = String(value || '').replace(/\r\n?/g, '\n').trimStart();
+        const wrappedMarkdown = text.match(/^```(?:markdown|md)\s*\n([\s\S]*?)\n```\s*$/i);
+        if (wrappedMarkdown) text = wrappedMarkdown[1];
+        return text
+            .replace(/^(#{1,6})([^#\s])/gm, '$1 $2')
+            .replace(/\n{3,}/g, '\n\n');
+    },
+
+    renderMarkdown(value) {
+        const text = this.normalizeAiText(value);
+        if (!window.marked) {
+            return text.replace(/[&<>"']/g, char => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;',
+            })[char]).replace(/\n/g, '<br>');
+        }
+        return window.marked.parse(text);
+    },
+
     parseSse(buffer, onEvent) {
         const frames = buffer.split(/\r?\n\r?\n/);
         const rest = frames.pop() || '';
