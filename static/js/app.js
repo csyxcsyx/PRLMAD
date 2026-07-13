@@ -236,6 +236,33 @@ document.addEventListener('alpine:init', () => {
             }
         },
     });
+
+    Alpine.data('sessionSwitcher', () => ({
+        open: false,
+
+        get currentSession() {
+            return Alpine.store('app').currentSession;
+        },
+
+        get sessions() {
+            return Alpine.store('app').sessions;
+        },
+
+        toggle() {
+            if (!this.sessions.length) return;
+            this.open = !this.open;
+        },
+
+        close() {
+            this.open = false;
+        },
+
+        async choose(sessionId) {
+            this.close();
+            if (!sessionId || sessionId === Alpine.store('app').currentSessionId) return;
+            await Alpine.store('app').switchSession(sessionId);
+        },
+    }));
 });
 
 window.PRLMAD = {
