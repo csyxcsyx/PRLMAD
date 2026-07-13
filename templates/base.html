@@ -241,6 +241,50 @@
         .app-toast.is-leaving { animation: toastOut .18s ease both; }
         @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } }
         @keyframes toastOut { to { opacity: 0; transform: translateY(5px); } }
+        .ai-document { color: var(--body); }
+        .ai-document > p:first-of-type { font-size: .98rem; color: #4b4843; }
+        .ai-outline { margin: 1rem 0 1.4rem; padding: .9rem 1rem; border: 1px solid var(--hairline); border-radius: .7rem; background: var(--surface-soft); }
+        .ai-outline-title { margin: 0 0 .55rem !important; font-size: .7rem; font-weight: 700; letter-spacing: .08em; color: var(--coral-active); text-transform: uppercase; }
+        .ai-outline-list { display: flex; flex-wrap: wrap; gap: .4rem .8rem; }
+        .ai-outline button { color: var(--body); font-size: .76rem; text-align: left; text-decoration: underline; text-decoration-color: rgba(204,120,92,.34); text-underline-offset: 3px; }
+        .ai-outline button.is-subheading { color: var(--muted); }
+        .citation-chip { display: inline-flex; align-items: center; margin-inline: .08rem; padding: .05rem .38rem; border-radius: 999px; background: var(--surface-card); border: 1px solid rgba(204,120,92,.2); color: var(--coral-active); font-size: .7rem; font-weight: 600; white-space: nowrap; }
+        .table-scroll { width: 100%; overflow-x: auto; margin: .9rem 0; border: 1px solid var(--hairline); border-radius: .65rem; }
+        .table-scroll table { margin: 0 !important; border: 0 !important; display: table !important; min-width: 34rem; }
+        .code-shell { overflow: hidden; margin: 1rem 0; border: 1px solid var(--hairline); border-radius: .7rem; background: #f4efe7; }
+        .code-shell pre { margin: 0 !important; border: 0 !important; border-radius: 0 !important; }
+        .code-toolbar, .diagram-toolbar { min-height: 2.45rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .45rem .75rem; border-bottom: 1px solid var(--hairline); background: var(--surface-soft); color: var(--muted); font-size: .68rem; font-weight: 700; letter-spacing: .06em; }
+        .code-toolbar button, .diagram-toolbar button { color: var(--coral-active); font-size: .7rem; letter-spacing: 0; border-radius: .35rem; padding: .25rem .45rem; }
+        .code-toolbar button:hover, .diagram-toolbar button:hover { background: var(--surface-card); }
+        .diagram-toolbar > div { display: flex; gap: .3rem; }
+        .mermaid-card { margin: 1rem 0; border: 1px solid var(--hairline); border-radius: .75rem; overflow: hidden; background: var(--canvas); }
+        .mermaid-canvas { padding: 1rem; overflow: auto; display: grid; place-items: center; min-height: 12rem; }
+        .mermaid-canvas svg { max-width: 100%; height: auto; }
+        .mermaid-card.is-expanded { position: fixed; inset: 1rem; z-index: 100; margin: 0; box-shadow: 0 24px 70px rgba(20,20,19,.28); }
+        .mermaid-card.is-expanded .mermaid-canvas { height: calc(100% - 2.5rem); background: var(--canvas); }
+        .diagram-error { margin: .8rem 0 .35rem !important; padding: .6rem .75rem; border-radius: .55rem; background: #fff7df; color: #8a6110; font-size: .76rem; }
+        .ai-figure { margin: 1.15rem 0; border: 1px solid var(--hairline); border-radius: .75rem; overflow: hidden; background: var(--surface-soft); }
+        .ai-figure img { display: block; width: 100%; max-height: 34rem; object-fit: contain; cursor: zoom-in; background: var(--canvas); }
+        .ai-figure figcaption { padding: .65rem .85rem; border-top: 1px solid var(--hairline); color: var(--muted); font-size: .74rem; }
+        .ai-figure.has-error { min-height: 6rem; display: grid; place-items: center; }
+        .ai-figure.has-error::after { content: '图片暂时无法加载'; color: var(--muted); font-size: .8rem; }
+        .media-lightbox { width: min(92vw, 72rem); max-width: none; padding: 0; border: 1px solid var(--hairline); border-radius: 1rem; background: var(--canvas); color: var(--body); }
+        .media-lightbox::backdrop { background: rgba(20,20,19,.72); backdrop-filter: blur(4px); }
+        .media-lightbox-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem 1rem; border-bottom: 1px solid var(--hairline); }
+        .media-lightbox img { display: block; width: 100%; max-height: 78vh; object-fit: contain; background: var(--surface-soft); }
+        .resource-library { display: grid; grid-template-columns: 15rem minmax(0,1fr); gap: 1rem; align-items: start; }
+        .resource-index { position: sticky; top: .25rem; padding: .75rem; border: 1px solid var(--hairline); border-radius: .75rem; background: var(--canvas); }
+        .resource-index button { width: 100%; display: flex; align-items: center; gap: .65rem; padding: .75rem; border-radius: .6rem; color: var(--muted); text-align: left; }
+        .resource-index button:hover { background: var(--surface-soft); }
+        .resource-index button.is-active { background: var(--surface-card); color: var(--ink); box-shadow: inset 3px 0 0 var(--coral); }
+        .resource-reader { min-width: 0; border: 1px solid var(--hairline); border-radius: .75rem; background: var(--canvas); overflow: hidden; }
+        .resource-reader-toolbar { min-height: 4rem; display: flex; align-items: center; gap: .8rem; padding: .8rem 1rem; border-bottom: 1px solid var(--hairline); background: var(--surface-soft); }
+        .resource-reader-toolbar .reader-actions { display: flex; gap: .4rem; margin-left: auto; }
+        .resource-reader-toolbar button { padding: .45rem .7rem; border: 1px solid var(--hairline); border-radius: .5rem; background: var(--canvas); color: var(--body); font-size: .72rem; }
+        .resource-reader-body { padding: clamp(1rem, 2.5vw, 2.2rem); max-width: 60rem; margin-inline: auto; }
+        .resource-library.is-reading { display: block; }
+        .resource-library.is-reading .resource-index { display: none; }
+        .resource-library.is-reading .resource-reader { max-width: 68rem; margin-inline: auto; }
         @media (min-width: 1024px) {
             .generation-orchestrator { grid-template-columns: minmax(0,1.35fr) minmax(280px,.65fr); align-items: stretch; }
             .generation-config:not(.generation-config--compact) { grid-column: 1 / -1; }
@@ -280,6 +324,15 @@
             .tutor-input-dock button { padding-inline: 1rem !important; }
             .skeleton-grid { grid-template-columns: 1fr; }
             .toast-region { right: 1rem; bottom: 1rem; }
+            .resource-library { grid-template-columns: 1fr; }
+            .resource-index { position: static; display: flex; overflow-x: auto; gap: .35rem; padding: .5rem; scrollbar-width: none; }
+            .resource-index::-webkit-scrollbar { display: none; }
+            .resource-index button { min-width: max-content; width: auto; padding: .65rem .75rem; }
+            .resource-index button.is-active { box-shadow: inset 0 -3px 0 var(--coral); }
+            .resource-reader-toolbar { align-items: flex-start; flex-wrap: wrap; }
+            .resource-reader-toolbar .reader-actions { width: 100%; margin-left: 0; }
+            .resource-reader-body { padding: 1rem; }
+            .mermaid-card.is-expanded { inset: .5rem; }
         }
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
@@ -442,7 +495,16 @@
     <div id="pageLoadingBar" class="page-loading-bar" aria-hidden="true"></div>
     <div id="toastRegion" class="toast-region" aria-live="polite" aria-atomic="true"></div>
 
+    <dialog id="mediaLightbox" class="media-lightbox" @click.self="$el.close()">
+        <div class="media-lightbox-toolbar">
+            <span data-lightbox-caption class="text-sm text-gray-600"></span>
+            <button type="button" class="text-sm text-brand-700 px-3 py-1.5 rounded-lg hover:bg-brand-50" @click="$el.closest('dialog').close()">关闭</button>
+        </div>
+        <img alt="" />
+    </dialog>
+
     <script src="/static/js/app.js?v=0.6.0"></script>
+    <script src="/static/js/ai-renderer.js?v=0.7.0"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

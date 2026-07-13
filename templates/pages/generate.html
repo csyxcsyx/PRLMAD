@@ -99,53 +99,48 @@
                             <span class="font-semibold" x-text="generatedResources.length"></span> 项学习资源。
                         </p>
                     </div>
-                    <button @click="generatedResources.forEach(r => r.expanded = true)"
+                    <button @click="readerFocus = true; selectedResourceKey = activeResource ? activeResource.key : ''"
                         class="ml-auto hidden sm:inline-flex text-xs bg-white text-emerald-700 border border-emerald-200 rounded-lg px-3 py-2 hover:bg-emerald-50">
-                        展开全部
+                        进入专注阅读
                     </button>
                 </div>
             </div>
 
             <!-- Step 3: Results -->
             <div x-show="generatedResources.length > 0" class="space-y-4 fade-in">
-                <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-                    <div class="flex items-center gap-2 mb-3">
-                        <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold">3</span>
-                        <h3 class="text-sm font-semibold text-gray-700">生成结果 (<span x-text="generatedResources.length"></span>项)</h3>
-                    </div>
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        <template x-for="res in generatedResources" :key="'tile-' + res.key">
-                            <button @click="res.expanded = !res.expanded"
-                                class="flex items-center gap-2 rounded-xl border px-3 py-2 text-left transition-all"
-                                :class="res.status === 'error' ? 'border-red-200 bg-red-50' : 'border-emerald-100 bg-emerald-50 hover:border-emerald-200'">
+                <div class="flex items-center gap-2 px-1">
+                    <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold">3</span>
+                    <h3 class="text-sm font-semibold text-gray-700">资源阅读室</h3>
+                    <span class="text-xs text-gray-400" x-text="generatedResources.length + ' 项内容'"></span>
+                </div>
+                <div class="resource-library" :class="readerFocus ? 'is-reading' : ''">
+                    <aside class="resource-index" aria-label="学习资源索引">
+                        <template x-for="res in generatedResources" :key="'index-' + res.key">
+                            <button type="button" @click="selectResource(res)" :class="activeResource && activeResource.key === res.key ? 'is-active' : ''">
                                 <span class="label-mark" x-text="res.icon || '资'"></span>
-                                <span class="text-xs font-semibold truncate" :class="res.status === 'error' ? 'text-red-600' : 'text-emerald-700'" x-text="res.name"></span>
-                                <span class="ml-auto text-xs" x-text="res.status === 'error' ? '!' : '✓'"></span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="block text-xs font-semibold truncate" x-text="res.name"></span>
+                                    <span class="block text-[10px] opacity-70 mt-0.5" x-text="res.status === 'error' ? '生成失败' : '已完成'"></span>
+                                </span>
                             </button>
                         </template>
-                    </div>
+                    </aside>
+                    <article class="resource-reader" x-show="activeResource">
+                        <div class="resource-reader-toolbar">
+                            <span class="label-mark" x-text="activeResource ? activeResource.icon : '资'"></span>
+                            <div class="min-w-0">
+                                <h4 class="text-sm font-semibold text-gray-800" x-text="activeResource ? activeResource.name : ''"></h4>
+                                <p class="text-[11px] text-gray-400 truncate" x-text="activeResource ? activeResource.preview : ''"></p>
+                            </div>
+                            <div class="reader-actions">
+                                <button type="button" @click="copyContent(activeResource)">复制全文</button>
+                                <button type="button" @click="readerFocus = !readerFocus" x-text="readerFocus ? '退出专注' : '专注阅读'"></button>
+                            </div>
+                        </div>
+                        <div class="resource-reader-body markdown-body ai-document text-sm"
+                            x-ai-markdown="{ content: activeResource ? activeResource.rawContent : '', final: true }"></div>
+                    </article>
                 </div>
-                <template x-for="res in generatedResources" :key="res.key">
-                    <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                        <div class="flex items-center justify-between px-5 py-3.5 cursor-pointer hover:bg-gray-50 transition-colors" @click="res.expanded = !res.expanded">
-                            <div class="flex items-center gap-3">
-                                <span class="label-mark" x-text="res.icon || 'RES'"></span>
-                                <div>
-                                    <span class="text-sm font-medium text-gray-700" x-text="res.name"></span>
-                                    <span class="text-[10px] text-gray-400 ml-2" x-text="res.status === 'error' ? '生成失败' : '已完成'"></span>
-                                    <p class="text-xs text-gray-400 mt-1 truncate max-w-xl" x-text="res.preview"></p>
-                                </div>
-                            </div>
-                            <span class="text-xs text-gray-400 transition-transform" :class="res.expanded ? 'rotate-180' : ''">▼</span>
-                        </div>
-                        <div x-show="res.expanded" class="px-5 pb-5 border-t border-gray-100 pt-4">
-                            <div class="markdown-body text-sm" x-html="res.content_md || '<p class=text-red-500>生成失败</p>'"></div>
-                            <div class="mt-3 pt-3 border-t border-gray-100 flex gap-2">
-                                <button @click="copyContent(res)" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg px-3 py-1.5 transition-colors">复制内容</button>
-                            </div>
-                        </div>
-                    </div>
-                </template>
             </div>
 
             <!-- Empty State -->
@@ -168,6 +163,13 @@ document.addEventListener('alpine:init', () => {
         lastTopic: '',
         stages: [],
         generatedResources: [],
+        selectedResourceKey: '',
+        readerFocus: false,
+        get activeResource() {
+            return this.generatedResources.find(item => item.key === this.selectedResourceKey)
+                || this.generatedResources[0]
+                || null;
+        },
         resourceIcons: {
             lecture_note: '讲', concept_map: '图', exercises: '题',
             case_project: '练', ppt_outline: '纲', task_checklist: '单',
@@ -197,6 +199,8 @@ document.addEventListener('alpine:init', () => {
             const sid = Alpine.store('app').currentSessionId;
             if (!sid) {
                 this.generatedResources = [];
+                this.selectedResourceKey = '';
+                this.readerFocus = false;
                 this.generationDone = false;
                 this.lastTopic = '';
                 return;
@@ -210,12 +214,12 @@ document.addEventListener('alpine:init', () => {
                     type: r.resource_type,
                     name: r.resource_name,
                     icon: this.resourceIcons[r.resource_type] || 'RES',
-                    content_md: window.PRLMAD.renderMarkdown(r.content || ''),
-                    expanded: false,
                     status: 'done',
                     rawContent: r.content || '',
                     preview: this.makePreview(r.content || ''),
                 }));
+                this.selectedResourceKey = this.generatedResources[0]?.key || '';
+                this.readerFocus = false;
             } catch (e) {
                 this.generatedResources = [];
             }
@@ -232,6 +236,8 @@ document.addEventListener('alpine:init', () => {
             Alpine.store('app').setBusy('generate', true);
             this.stages = [];
             this.generatedResources = [];
+            this.selectedResourceKey = '';
+            this.readerFocus = false;
             this.generationDone = false;
             this.lastTopic = this.knowledgePoints.trim();
 
@@ -278,14 +284,13 @@ document.addEventListener('alpine:init', () => {
                                 type: data.type,
                                 name: data.name,
                                 icon: this.resourceIcons[data.type] || 'RES',
-                                content_md: data.content ? window.PRLMAD.renderMarkdown(data.content) : '<p class="text-red-500">生成失败</p>',
-                                expanded: this.generatedResources.length === 0,
                                 status: data.error ? 'error' : 'done',
-                                rawContent: data.content || '',
+                                rawContent: data.content || `**生成失败。**\n\n${data.error || '请稍后重试。'}`,
                                 preview: this.makePreview(data.content || data.error || ''),
                             };
                             if (existing) Object.assign(existing, item);
                             else this.generatedResources.push(item);
+                            if (!this.selectedResourceKey) this.selectedResourceKey = item.key;
                         } else if (eventName === 'error') {
                             failed = true;
                             this.stages.forEach(s => { if (s.status === 'running') s.status = 'error'; });
@@ -313,9 +318,15 @@ document.addEventListener('alpine:init', () => {
                 .slice(0, 90);
         },
 
+        selectResource(resource) {
+            if (!resource) return;
+            this.selectedResourceKey = resource.key;
+            this.readerFocus = false;
+        },
+
         async copyContent(res) {
             try {
-                await navigator.clipboard.writeText(res.rawContent);
+                await navigator.clipboard.writeText(res?.rawContent || '');
                 window.PRLMAD.notify('内容已复制', 'success');
             } catch (e) {
                 window.PRLMAD.notify('复制失败', 'error');

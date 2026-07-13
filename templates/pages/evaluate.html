@@ -87,7 +87,7 @@
             <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_minmax(360px,0.8fr)] gap-4 items-start">
                 <div x-show="evalData.overall_assessment" class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
                     <h3 class="text-sm font-semibold text-gray-700 mb-3">综合诊断</h3>
-                    <div class="markdown-body text-sm" x-html="window.PRLMAD.renderMarkdown(evalData.overall_assessment || '')"></div>
+                    <div class="markdown-body ai-document text-sm" x-ai-markdown="{ content: evalData.overall_assessment || '', final: true }"></div>
                 </div>
 
                 <div x-show="evalData.suggestions && evalData.suggestions.length" class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
