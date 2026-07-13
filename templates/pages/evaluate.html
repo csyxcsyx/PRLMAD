@@ -156,9 +156,16 @@ document.addEventListener('alpine:init', () => {
             this.loading = false;
             Alpine.store('app').setBusy('evaluate', false);
         },
-        renderRadar() {
+        async renderRadar() {
             const dom = document.getElementById('radarChart');
             if (!dom || !this.evalData.dimensions) return;
+            try {
+                await window.PRLMAD.loadScript('/static/vendor/echarts.min.js?v=5.6.0', 'echarts');
+            } catch (error) {
+                dom.innerHTML = '<p class="text-sm text-amber-700 p-4">能力图暂时无法加载，维度评分仍可正常查看。</p>';
+                return;
+            }
+            if (!dom.isConnected || !window.echarts) return;
             const chart = echarts.getInstanceByDom(dom) || echarts.init(dom);
             const dims = Object.entries(this.evalData.dimensions);
             chart.setOption({
