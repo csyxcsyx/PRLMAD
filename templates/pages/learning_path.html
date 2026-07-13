@@ -3,7 +3,7 @@
 <div x-data="pathPage" class="flex flex-col h-full">
     <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between flex-shrink-0">
         <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white text-sm font-bold">P</div>
+            <div class="page-emblem w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-semibold">P</div>
             <div>
                 <h2 class="text-sm font-semibold text-gray-800">个性化学习路径</h2>
                 <p class="text-[11px] text-gray-400">基于画像的科学学习规划</p>
@@ -14,7 +14,7 @@
                 placeholder="关注的知识点（可选）"
                 class="border border-gray-200 rounded-lg px-3 py-2 text-sm w-48 focus:ring-2 focus:ring-brand-400 outline-none bg-gray-50 placeholder-gray-400" />
             <button @click="generatePath()"
-                class="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg px-4 py-2 text-sm font-medium transition-all shadow-sm disabled:opacity-40"
+                class="bg-brand-500 hover:bg-brand-700 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:opacity-40"
                 :disabled="loading || !$store.app.currentSessionId">
                 <span x-show="!loading">生成路径</span>
                 <span x-show="loading" class="flex items-center gap-1">
@@ -46,7 +46,7 @@
                         <span class="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium" x-text="'共' + (pathData.steps ? pathData.steps.length : 0) + '天'"></span>
                     </div>
                     <div class="mt-4 bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                        <div class="bg-gradient-to-r from-green-400 to-emerald-500 h-full rounded-full transition-all duration-700"
+                        <div class="bg-brand-500 h-full rounded-full transition-all duration-700"
                             :style="'width: ' + progressPercent + '%'"></div>
                     </div>
                     <p class="text-xs text-gray-400 mt-2" x-text="'进度: 第 ' + (currentStep || 1) + ' 天 / 共 ' + (pathData.steps ? pathData.steps.length : 0) + ' 天 (' + progressPercent + '%)'"></p>

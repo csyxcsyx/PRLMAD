@@ -2,7 +2,7 @@
 {% block content %}
 <div x-data="generatePage" class="flex flex-col h-full">
     <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-3 flex-shrink-0">
-        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-sm font-bold">G</div>
+        <div class="page-emblem w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-semibold">G</div>
         <div>
             <h2 class="text-sm font-semibold text-gray-800">多智能体协同资源生成</h2>
             <p class="text-[11px] text-gray-400">多类课程智能体协作生成讲义、导图、题库、案例和学习任务</p>
@@ -54,7 +54,7 @@
                 </div>
 
                 <button @click="startGeneration()"
-                    class="mt-4 w-full bg-gradient-to-r from-brand-500 to-purple-500 hover:from-brand-600 hover:to-purple-600 text-white rounded-xl px-6 py-3 text-sm font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
+                    class="mt-4 w-full bg-brand-500 hover:bg-brand-700 text-white rounded-lg px-6 py-3 text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     :disabled="generating || !knowledgePoints.trim() || !$store.app.currentSessionId">
                     <span x-show="!generating" class="flex items-center justify-center gap-2">启动多智能体协同生成</span>
                     <span x-show="generating" class="flex items-center justify-center gap-2">
