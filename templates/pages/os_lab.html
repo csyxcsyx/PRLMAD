@@ -22,6 +22,218 @@
 
     <div class="flex-1 overflow-y-auto p-6">
         <div class="max-w-7xl mx-auto space-y-5">
+            <section class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-700">算法代码实验区</h3>
+                        <p class="text-xs text-gray-400 mt-1">左侧阅读、讲解和编写伪代码/代码，右侧同步播放操作系统算法的状态变化。</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button @click="resetAlgorithmAnimation()" class="text-xs bg-gray-100 text-gray-600 rounded-lg px-3 py-2 hover:bg-gray-200">回到起点</button>
+                        <button @click="stepAlgorithmAnimation()" class="text-xs bg-gray-900 text-white rounded-lg px-3 py-2 hover:bg-gray-800">单步执行</button>
+                        <button @click="toggleAlgorithmAnimation()"
+                            class="text-xs rounded-lg px-3 py-2 border transition-colors"
+                            :class="algorithmLab.running ? 'bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100'"
+                            x-text="algorithmLab.running ? '暂停动画' : '运行动画'"></button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 xl:grid-cols-[0.95fr_1.05fr] gap-5">
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                            <template x-for="item in algorithmTabs" :key="item.id">
+                                <button @click="selectAlgorithm(item.id)"
+                                    class="text-xs border rounded-lg px-3 py-2 transition-colors"
+                                    :class="algorithmLab.selected === item.id ? 'bg-gray-900 text-white border-gray-900' : 'bg-gray-50 text-gray-600 border-gray-100 hover:bg-gray-100'"
+                                    x-text="item.label"></button>
+                            </template>
+                        </div>
+
+                        <div class="border border-gray-100 rounded-xl overflow-hidden">
+                            <div class="flex items-center justify-between gap-3 px-4 py-3 bg-gray-50 border-b border-gray-100">
+                                <div>
+                                    <p class="text-xs font-semibold text-gray-700" x-text="currentAlgorithm.title"></p>
+                                    <p class="text-[11px] text-gray-400 mt-0.5" x-text="currentAlgorithm.subtitle"></p>
+                                </div>
+                                <div class="flex items-center gap-1 rounded-lg bg-white border border-gray-100 p-1">
+                                    <template x-for="lang in algorithmLanguages" :key="lang.id">
+                                        <button @click="setAlgorithmLanguage(lang.id)"
+                                            class="text-[11px] rounded-md px-2 py-1"
+                                            :class="algorithmLab.language === lang.id ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-50'"
+                                            x-text="lang.label"></button>
+                                    </template>
+                                </div>
+                            </div>
+                            <textarea x-model="algorithmLab.editor" spellcheck="false"
+                                class="w-full min-h-[360px] resize-y bg-[#171717] text-[#e8e3d7] text-xs leading-6 font-mono px-4 py-3 outline-none"
+                                placeholder="在这里编写伪代码或代码"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div class="bg-gray-50 rounded-xl p-4 text-xs leading-relaxed text-gray-500">
+                                <p class="font-semibold text-gray-700 mb-1">算法讲解</p>
+                                <p x-text="currentAlgorithm.explain"></p>
+                            </div>
+                            <div class="bg-gray-50 rounded-xl p-4 text-xs leading-relaxed text-gray-500">
+                                <p class="font-semibold text-gray-700 mb-1">观察重点</p>
+                                <template x-for="point in currentAlgorithm.points" :key="point">
+                                    <p class="mb-1" x-text="'· ' + point"></p>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border border-gray-100 rounded-xl p-5 bg-gray-50 min-h-[560px]">
+                        <div class="flex items-center justify-between gap-3 mb-4">
+                            <div>
+                                <h4 class="text-sm font-semibold text-gray-700" x-text="currentFrame.title"></h4>
+                                <p class="text-xs text-gray-400 mt-1" x-text="currentFrame.note"></p>
+                            </div>
+                            <span class="label-mark" x-text="(algorithmLab.frameIndex + 1) + '/' + currentAlgorithm.frames.length"></span>
+                        </div>
+
+                        <div class="h-1.5 rounded-full bg-white overflow-hidden mb-5">
+                            <div class="h-full bg-gray-900 transition-all duration-500"
+                                :style="'width:' + algorithmProgress + '%'"></div>
+                        </div>
+
+                        <template x-if="algorithmLab.selected === 'scheduling'">
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <div class="bg-white border border-gray-100 rounded-xl p-4">
+                                        <p class="text-xs text-gray-400 mb-2">就绪队列</p>
+                                        <div class="flex flex-wrap gap-2 min-h-10">
+                                            <template x-for="proc in currentFrame.ready" :key="proc">
+                                                <span class="label-mark" x-text="proc"></span>
+                                            </template>
+                                        </div>
+                                    </div>
+                                    <div class="bg-white border border-gray-100 rounded-xl p-4">
+                                        <p class="text-xs text-gray-400 mb-2">CPU</p>
+                                        <div class="h-16 rounded-xl border flex items-center justify-center text-lg font-bold transition-all duration-500"
+                                            :class="currentFrame.cpu ? 'bg-emerald-100 border-emerald-200 text-emerald-800' : 'bg-gray-50 border-gray-100 text-gray-300'"
+                                            x-text="currentFrame.cpu || 'IDLE'"></div>
+                                    </div>
+                                    <div class="bg-white border border-gray-100 rounded-xl p-4">
+                                        <p class="text-xs text-gray-400 mb-2">完成队列</p>
+                                        <div class="flex flex-wrap gap-2 min-h-10">
+                                            <template x-for="proc in currentFrame.done" :key="proc">
+                                                <span class="label-mark" x-text="proc"></span>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-white border border-gray-100 rounded-xl p-4">
+                                    <p class="text-xs text-gray-400 mb-3">甘特图</p>
+                                    <div class="grid grid-cols-8 gap-1">
+                                        <template x-for="(slot, index) in currentFrame.gantt" :key="index">
+                                            <div class="h-12 rounded-lg border text-xs flex items-center justify-center transition-all duration-500"
+                                                :class="slot ? colorClass(index + 1) : 'bg-gray-50 border-gray-100 text-gray-300'"
+                                                x-text="slot || '-'"></div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
+                        <template x-if="algorithmLab.selected === 'memory'">
+                            <div class="space-y-4">
+                                <div class="bg-white border border-gray-100 rounded-xl p-4">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <p class="text-xs text-gray-400">动态分区</p>
+                                        <span class="text-xs text-gray-500" x-text="currentFrame.request"></span>
+                                    </div>
+                                    <div class="h-24 flex rounded-xl overflow-hidden border border-gray-100 bg-gray-50">
+                                        <template x-for="seg in currentFrame.segments" :key="seg.label + seg.size">
+                                            <div class="flex flex-col items-center justify-center border-r border-white text-[11px] transition-all duration-700"
+                                                :class="seg.type === 'free' ? 'bg-gray-100 text-gray-500' : (seg.type === 'chosen' ? 'bg-emerald-100 text-emerald-800' : 'bg-cyan-100 text-cyan-800')"
+                                                :style="'width:' + seg.size + '%'">
+                                                <span class="font-semibold" x-text="seg.label"></span>
+                                                <span x-text="seg.size + '%'"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <template x-for="metric in currentFrame.metrics" :key="metric.label">
+                                        <div class="bg-white border border-gray-100 rounded-xl p-4">
+                                            <p class="text-xs text-gray-400" x-text="metric.label"></p>
+                                            <p class="text-xl font-bold text-gray-800 mt-1" x-text="metric.value"></p>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+
+                        <template x-if="algorithmLab.selected === 'paging'">
+                            <div class="space-y-4">
+                                <div class="bg-white border border-gray-100 rounded-xl p-4">
+                                    <p class="text-xs text-gray-400 mb-3">页面访问串</p>
+                                    <div class="grid grid-cols-10 gap-1">
+                                        <template x-for="(page, index) in currentAlgorithm.reference" :key="index">
+                                            <div class="h-9 rounded-lg border text-xs flex items-center justify-center"
+                                                :class="index === currentFrame.pointer ? 'bg-gray-900 text-white border-gray-900' : 'bg-gray-50 border-gray-100 text-gray-500'"
+                                                x-text="page"></div>
+                                        </template>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-3">
+                                    <template x-for="(frame, index) in currentFrame.frames" :key="index">
+                                        <div class="bg-white border border-gray-100 rounded-xl p-5 text-center">
+                                            <p class="text-xs text-gray-400 mb-2" x-text="'物理块 ' + (index + 1)"></p>
+                                            <div class="h-16 rounded-xl flex items-center justify-center text-2xl font-bold transition-all duration-500"
+                                                :class="currentFrame.changed === index ? 'bg-amber-100 text-amber-800' : 'bg-blue-50 text-blue-700'"
+                                                x-text="frame || '-'"></div>
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="bg-white border border-gray-100 rounded-xl p-4 flex items-center justify-between">
+                                    <span class="text-xs text-gray-400">缺页次数</span>
+                                    <span class="text-2xl font-bold text-gray-800" x-text="currentFrame.faults"></span>
+                                </div>
+                            </div>
+                        </template>
+
+                        <template x-if="algorithmLab.selected === 'sync'">
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div class="bg-white border border-gray-100 rounded-xl p-4">
+                                        <p class="text-xs text-gray-400 mb-2">生产者</p>
+                                        <div class="rounded-xl px-4 py-5 text-center text-sm font-semibold"
+                                            :class="currentFrame.producer === '运行' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-500'"
+                                            x-text="currentFrame.producer"></div>
+                                    </div>
+                                    <div class="bg-white border border-gray-100 rounded-xl p-4">
+                                        <p class="text-xs text-gray-400 mb-2">消费者</p>
+                                        <div class="rounded-xl px-4 py-5 text-center text-sm font-semibold"
+                                            :class="currentFrame.consumer === '运行' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-500'"
+                                            x-text="currentFrame.consumer"></div>
+                                    </div>
+                                </div>
+                                <div class="bg-white border border-gray-100 rounded-xl p-4">
+                                    <p class="text-xs text-gray-400 mb-3">缓冲区</p>
+                                    <div class="grid grid-cols-5 gap-2">
+                                        <template x-for="(cell, index) in currentFrame.buffer" :key="index">
+                                            <div class="h-14 rounded-xl border flex items-center justify-center text-sm font-bold transition-all duration-500"
+                                                :class="cell ? 'bg-cyan-100 border-cyan-200 text-cyan-800' : 'bg-gray-50 border-gray-100 text-gray-300'"
+                                                x-text="cell || '-'"></div>
+                                        </template>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-3">
+                                    <template x-for="sem in currentFrame.semaphores" :key="sem.label">
+                                        <div class="bg-white border border-gray-100 rounded-xl p-4">
+                                            <p class="text-xs text-gray-400" x-text="sem.label"></p>
+                                            <p class="text-xl font-bold text-gray-800 mt-1" x-text="sem.value"></p>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </section>
+
             <div class="grid grid-cols-1 xl:grid-cols-[330px_1fr] gap-5">
                 <section class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm h-fit">
                     <h3 class="text-sm font-semibold text-gray-700 mb-4">创建进程</h3>
@@ -271,6 +483,25 @@ document.addEventListener('alpine:init', () => {
         logs: [],
         message: '',
         messageType: 'info',
+        algorithmTabs: [
+            { id: 'scheduling', label: '进程调度' },
+            { id: 'memory', label: '内存分配' },
+            { id: 'paging', label: '页面置换' },
+            { id: 'sync', label: '线程同步' },
+        ],
+        algorithmLanguages: [
+            { id: 'pseudo', label: '伪代码' },
+            { id: 'python', label: 'Python' },
+            { id: 'c', label: 'C' },
+        ],
+        algorithmLab: {
+            selected: 'scheduling',
+            language: 'pseudo',
+            editor: '',
+            frameIndex: 0,
+            running: false,
+            timer: null,
+        },
 
         get runningProcess() {
             return this.processes.find(p => p.state === 'running') || null;
@@ -293,12 +524,270 @@ document.addEventListener('alpine:init', () => {
         get schedulerLabel() {
             return { rr: 'RR', fcfs: 'FCFS', priority: '优先级' }[this.scheduler] || 'RR';
         },
+        get currentAlgorithm() {
+            return this.algorithmScenarios()[this.algorithmLab.selected] || this.algorithmScenarios().scheduling;
+        },
+        get currentFrame() {
+            return this.currentAlgorithm.frames[this.algorithmLab.frameIndex] || this.currentAlgorithm.frames[0];
+        },
+        get algorithmProgress() {
+            const total = Math.max(1, this.currentAlgorithm.frames.length - 1);
+            return Math.round((this.algorithmLab.frameIndex / total) * 100);
+        },
 
         init() {
+            this.loadAlgorithmCode();
             this.seed();
             this.timer = setInterval(() => {
                 if (this.running) this.tick();
             }, 850);
+        },
+
+        algorithmScenarios() {
+            return {
+                scheduling: {
+                    title: '时间片轮转 RR 调度',
+                    subtitle: '从就绪队列取队首进程，运行一个时间片后未完成则回到队尾。',
+                    explain: 'RR 调度让多个进程轮流占用 CPU，适合分时系统。它牺牲一部分上下文切换开销，换来较好的响应时间和公平性。',
+                    points: ['就绪队列按先后顺序轮转', '时间片用完但未结束时回到队尾', '甘特图能直观看到 CPU 归属变化'],
+                    snippets: {
+                        pseudo: `queue = [P1, P2, P3]
+quantum = 2
+
+while queue is not empty:
+    process = queue.pop_front()
+    run process for at most quantum ticks
+
+    if process.remaining_time > 0:
+        queue.push_back(process)
+    else:
+        release process resources`,
+                        python: `from collections import deque
+
+ready = deque(["P1", "P2", "P3"])
+remaining = {"P1": 4, "P2": 3, "P3": 2}
+quantum = 2
+
+while ready:
+    pid = ready.popleft()
+    used = min(quantum, remaining[pid])
+    remaining[pid] -= used
+
+    if remaining[pid] > 0:
+        ready.append(pid)
+    else:
+        print(pid, "finished")`,
+                        c: `while (!queue_empty(&ready)) {
+    PCB *p = pop_front(&ready);
+    int used = min(QUANTUM, p->remaining);
+    p->remaining -= used;
+
+    if (p->remaining > 0) {
+        push_back(&ready, p);
+    } else {
+        release_process(p);
+    }
+}`,
+                    },
+                    frames: [
+                        { title: '初始就绪队列', note: 'P1、P2、P3 等待 CPU，调度器准备取队首。', ready: ['P1', 'P2', 'P3'], cpu: '', done: [], gantt: [] },
+                        { title: 'P1 获得 CPU', note: 'P1 运行一个时间片，剩余时间还未归零。', ready: ['P2', 'P3'], cpu: 'P1', done: [], gantt: ['P1'] },
+                        { title: 'P1 回到队尾', note: '时间片用完，P1 未完成，重新排到队尾。', ready: ['P2', 'P3', 'P1'], cpu: '', done: [], gantt: ['P1', 'P1'] },
+                        { title: 'P2 获得 CPU', note: '调度器继续取队首，P2 开始运行。', ready: ['P3', 'P1'], cpu: 'P2', done: [], gantt: ['P1', 'P1', 'P2'] },
+                        { title: 'P3 运行并完成', note: 'P3 的剩余时间较短，一个时间片内完成。', ready: ['P1', 'P2'], cpu: 'P3', done: ['P3'], gantt: ['P1', 'P1', 'P2', 'P2', 'P3'] },
+                        { title: '所有进程完成', note: '就绪队列清空，CPU 回到空闲状态。', ready: [], cpu: '', done: ['P3', 'P1', 'P2'], gantt: ['P1', 'P1', 'P2', 'P2', 'P3', 'P1', 'P1', 'P2'] },
+                    ],
+                },
+                memory: {
+                    title: '动态分区内存分配',
+                    subtitle: '按照 First Fit / Best Fit / Worst Fit 在连续空闲分区中选择装入位置。',
+                    explain: '动态分区把内存切成大小不固定的块。进程装入时需要找到足够大的连续空闲区，释放后相邻空闲区可以合并。',
+                    points: ['空闲分区大小影响能否装入进程', '不同适应算法会选择不同空闲块', '释放和紧凑会改变碎片形态'],
+                    snippets: {
+                        pseudo: `request = 180MB
+free_list = [120MB, 260MB, 340MB]
+
+if strategy == FIRST_FIT:
+    choose first block >= request
+if strategy == BEST_FIT:
+    choose smallest block >= request
+if strategy == WORST_FIT:
+    choose largest block >= request
+
+split chosen block
+mark allocated partition`,
+                        python: `def best_fit(free_blocks, request):
+    candidates = [b for b in free_blocks if b.size >= request]
+    if not candidates:
+        return None
+    chosen = min(candidates, key=lambda b: b.size)
+    chosen.size -= request
+    return chosen.start`,
+                        c: `Block *best_fit(Block *free_list, int request) {
+    Block *best = NULL;
+    for (Block *b = free_list; b; b = b->next) {
+        if (b->size >= request &&
+            (best == NULL || b->size < best->size)) {
+            best = b;
+        }
+    }
+    return best;
+}`,
+                    },
+                    frames: [
+                        { title: '空闲链表扫描', note: '请求 180MB，系统扫描连续空闲分区。', request: '请求 180 MB', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: 'Free', size: 12, type: 'free' }, { label: 'P2', size: 22, type: 'used' }, { label: 'Free', size: 26, type: 'free' }, { label: 'Free', size: 22, type: 'free' }], metrics: [{ label: '请求', value: '180MB' }, { label: '可用块', value: '3' }, { label: '策略', value: 'Best' }] },
+                        { title: '选择最佳适应块', note: 'Best Fit 选择满足请求且最小的 260MB 空闲分区。', request: '选择 260 MB', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: 'Free', size: 12, type: 'free' }, { label: 'P2', size: 22, type: 'used' }, { label: 'Chosen', size: 26, type: 'chosen' }, { label: 'Free', size: 22, type: 'free' }], metrics: [{ label: '内部浪费', value: '0MB' }, { label: '剩余切分', value: '80MB' }, { label: '命中块', value: '260MB' }] },
+                        { title: '切分并装入进程', note: '新进程占用 180MB，原分区剩余 80MB 空闲块。', request: '装入 P3', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: 'Free', size: 12, type: 'free' }, { label: 'P2', size: 22, type: 'used' }, { label: 'P3', size: 18, type: 'chosen' }, { label: 'Free', size: 8, type: 'free' }, { label: 'Free', size: 22, type: 'free' }], metrics: [{ label: '进程', value: 'P3' }, { label: '新碎片', value: '80MB' }, { label: '空闲块', value: '3' }] },
+                        { title: '释放并合并', note: '相邻空闲分区被合并，减少外部碎片。', request: '释放 P2', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: 'Free', size: 34, type: 'free' }, { label: 'P3', size: 18, type: 'used' }, { label: 'Free', size: 30, type: 'free' }], metrics: [{ label: '最大空闲', value: '340MB' }, { label: '外部碎片', value: '下降' }, { label: '空闲块', value: '2' }] },
+                    ],
+                },
+                paging: {
+                    title: 'LRU 页面置换',
+                    subtitle: '缺页时淘汰最近最久未使用的页面。',
+                    explain: '页面置换发生在物理块已满且访问页面不在内存时。LRU 根据历史访问时间选择最久未被使用的页面淘汰。',
+                    points: ['访问串决定页面命中和缺页', '物理块数量会影响缺页率', '被替换的页面通常高亮显示'],
+                    reference: [7, 0, 1, 2, 0, 3, 0, 4, 2, 3],
+                    snippets: {
+                        pseudo: `frames = []
+recent = {}
+
+for page in reference_string:
+    if page in frames:
+        update recent[page]
+    else:
+        page_fault += 1
+        if frames are full:
+            victim = least_recently_used(frames)
+            replace victim with page
+        else:
+            load page into free frame`,
+                        python: `frames = []
+last_used = {}
+
+for time, page in enumerate(refs):
+    if page not in frames:
+        if len(frames) == 3:
+            victim = min(frames, key=lambda p: last_used[p])
+            frames[frames.index(victim)] = page
+        else:
+            frames.append(page)
+    last_used[page] = time`,
+                        c: `int victim = 0;
+for (int i = 1; i < frame_count; i++) {
+    if (last_used[frames[i]] < last_used[frames[victim]]) {
+        victim = i;
+    }
+}
+frames[victim] = page;
+last_used[page] = time;`,
+                    },
+                    frames: [
+                        { title: '访问页面 7', note: '物理块为空，产生缺页并装入 7。', pointer: 0, frames: [7, '', ''], changed: 0, faults: 1 },
+                        { title: '访问页面 0', note: '0 不在内存，装入第二个物理块。', pointer: 1, frames: [7, 0, ''], changed: 1, faults: 2 },
+                        { title: '访问页面 1', note: '1 不在内存，三个物理块被填满。', pointer: 2, frames: [7, 0, 1], changed: 2, faults: 3 },
+                        { title: '访问页面 2', note: '发生缺页，LRU 淘汰最久未使用的 7。', pointer: 3, frames: [2, 0, 1], changed: 0, faults: 4 },
+                        { title: '访问页面 0', note: '0 已在物理块中，命中，不增加缺页次数。', pointer: 4, frames: [2, 0, 1], changed: -1, faults: 4 },
+                        { title: '访问页面 3', note: '发生缺页，淘汰最近最久未用的 1。', pointer: 5, frames: [2, 0, 3], changed: 2, faults: 5 },
+                    ],
+                },
+                sync: {
+                    title: '生产者-消费者同步',
+                    subtitle: '用 mutex、empty、full 三个信号量协调线程访问共享缓冲区。',
+                    explain: '线程同步的核心是让多个线程安全地访问共享资源。生产者需要等待空槽，消费者需要等待产品，二者进入临界区前都要获得互斥锁。',
+                    points: ['mutex 保证缓冲区同一时刻只被一个线程修改', 'empty 表示还剩多少空槽', 'full 表示已有多少产品'],
+                    snippets: {
+                        pseudo: `producer:
+    wait(empty)
+    wait(mutex)
+    put item into buffer
+    signal(mutex)
+    signal(full)
+
+consumer:
+    wait(full)
+    wait(mutex)
+    remove item from buffer
+    signal(mutex)
+    signal(empty)`,
+                        python: `empty.acquire()
+mutex.acquire()
+buffer.append(item)
+mutex.release()
+full.release()
+
+full.acquire()
+mutex.acquire()
+item = buffer.pop(0)
+mutex.release()
+empty.release()`,
+                        c: `sem_wait(&empty);
+sem_wait(&mutex);
+buffer[in] = item;
+in = (in + 1) % N;
+sem_post(&mutex);
+sem_post(&full);`,
+                    },
+                    frames: [
+                        { title: '初始状态', note: '缓冲区为空，生产者可以进入，消费者等待 full。', producer: '就绪', consumer: '等待', buffer: ['', '', '', '', ''], semaphores: [{ label: 'mutex', value: 1 }, { label: 'empty', value: 5 }, { label: 'full', value: 0 }] },
+                        { title: '生产者进入临界区', note: '生产者获得 empty 和 mutex，准备写入产品。', producer: '运行', consumer: '等待', buffer: ['', '', '', '', ''], semaphores: [{ label: 'mutex', value: 0 }, { label: 'empty', value: 4 }, { label: 'full', value: 0 }] },
+                        { title: '写入产品 A', note: '产品进入缓冲区，释放 mutex，并 signal(full)。', producer: '运行', consumer: '就绪', buffer: ['A', '', '', '', ''], semaphores: [{ label: 'mutex', value: 1 }, { label: 'empty', value: 4 }, { label: 'full', value: 1 }] },
+                        { title: '消费者取走产品', note: '消费者获得 full 和 mutex，取走 A 后释放一个空槽。', producer: '就绪', consumer: '运行', buffer: ['', '', '', '', ''], semaphores: [{ label: 'mutex', value: 1 }, { label: 'empty', value: 5 }, { label: 'full', value: 0 }] },
+                    ],
+                },
+            };
+        },
+
+        selectAlgorithm(id) {
+            this.algorithmLab.selected = id;
+            this.algorithmLab.frameIndex = 0;
+            this.algorithmLab.running = false;
+            this.loadAlgorithmCode();
+        },
+
+        setAlgorithmLanguage(language) {
+            this.algorithmLab.language = language;
+            this.loadAlgorithmCode();
+        },
+
+        loadAlgorithmCode() {
+            this.algorithmLab.editor = this.currentAlgorithm.snippets[this.algorithmLab.language] || this.currentAlgorithm.snippets.pseudo;
+        },
+
+        resetAlgorithmAnimation() {
+            this.algorithmLab.frameIndex = 0;
+            this.algorithmLab.running = false;
+            if (this.algorithmLab.timer) clearInterval(this.algorithmLab.timer);
+            this.algorithmLab.timer = null;
+        },
+
+        stepAlgorithmAnimation() {
+            const last = this.currentAlgorithm.frames.length - 1;
+            if (this.algorithmLab.frameIndex >= last) {
+                this.algorithmLab.running = false;
+                return;
+            }
+            this.algorithmLab.frameIndex += 1;
+        },
+
+        toggleAlgorithmAnimation() {
+            this.algorithmLab.running = !this.algorithmLab.running;
+            if (!this.algorithmLab.running) {
+                if (this.algorithmLab.timer) clearInterval(this.algorithmLab.timer);
+                this.algorithmLab.timer = null;
+                return;
+            }
+            if (this.algorithmLab.frameIndex >= this.currentAlgorithm.frames.length - 1) {
+                this.algorithmLab.frameIndex = 0;
+            }
+            if (this.algorithmLab.timer) clearInterval(this.algorithmLab.timer);
+            this.algorithmLab.timer = setInterval(() => {
+                this.stepAlgorithmAnimation();
+                if (this.algorithmLab.frameIndex >= this.currentAlgorithm.frames.length - 1) {
+                    this.algorithmLab.running = false;
+                    clearInterval(this.algorithmLab.timer);
+                    this.algorithmLab.timer = null;
+                }
+            }, 950);
         },
 
         seed() {
