@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PRLMAD — 个性化学习资源多智能体系统</title>
+    <title>KnowStack · 知栈 — 个性化学习资源多智能体系统</title>
+    <link rel="icon" type="image/png" href="/static/images/knowstack.png" />
+    <link rel="apple-touch-icon" href="/static/images/knowstack.png" />
     <link rel="preload" href="/static/fonts/inter-latin-variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/static/css/app.css?v=0.5.0" />
     <script src="/static/vendor/marked.umd.js?v=15.0.12"></script>
@@ -121,6 +123,8 @@
         .pulse { animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
         .gradient-brand { background: var(--coral); }
+        .brand-logo { display: block; width: 2rem; height: 2rem; flex: 0 0 auto; border-radius: .65rem; object-fit: cover; box-shadow: 0 3px 10px rgba(169,88,62,.18); }
+        .brand-cn { font-family: 'Noto Serif SC', 'Songti SC', SimSun, Georgia, serif; font-size: .68em; font-weight: 500; letter-spacing: .08em; color: var(--coral-active); }
         .gradient-card { background: var(--surface-soft); }
         .rounded-2xl { border-radius: 0.75rem !important; }
         .rounded-xl { border-radius: 0.625rem !important; }
@@ -342,9 +346,9 @@
 <body class="app-shell min-h-screen text-slate-800" data-page="{{ page }}" x-data x-init="Alpine.store('app').init()">
     <div class="app-frame flex h-screen overflow-hidden">
         <header class="mobile-header flex-wrap items-center gap-x-3 px-4 py-3 flex-shrink-0">
-            <div class="w-8 h-8 rounded-lg gradient-brand flex items-center justify-center text-white font-semibold">P</div>
+            <img src="/static/images/knowstack.png" alt="KnowStack 知栈" class="brand-logo" width="32" height="32" />
             <div class="min-w-0">
-                <p class="display-title text-lg leading-none">PRLMAD</p>
+                <p class="display-title text-lg leading-none">KnowStack <span class="brand-cn">知栈</span></p>
                 <p class="text-[10px] text-gray-500 mt-1 truncate" x-text="$store.app.currentSession ? $store.app.currentSession.name : '个性化学习工作台'"></p>
             </div>
             <div x-data="sessionSwitcher" class="relative ml-auto max-w-[48%]" @click.outside="close()" @keydown.escape.window="close()">
@@ -379,10 +383,10 @@
         <aside class="app-sidebar w-64 glass-panel border-r border-gray-100 flex flex-col flex-shrink-0 z-10">
             <div class="p-5 border-b border-gray-100">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg gradient-brand flex items-center justify-center text-white font-semibold text-sm">P</div>
+                    <img src="/static/images/knowstack.png" alt="KnowStack 知栈" class="brand-logo" width="32" height="32" />
                     <div>
-                        <h1 class="display-title text-xl text-gray-800">PRLMAD</h1>
-                        <p class="text-[10px] text-gray-400 mt-0.5">多智能体学习系统</p>
+                        <h1 class="display-title text-xl text-gray-800 leading-none">KnowStack</h1>
+                        <p class="text-[10px] text-gray-400 mt-1"><span class="text-brand-700">知栈</span> · 多智能体学习系统</p>
                     </div>
                 </div>
             </div>

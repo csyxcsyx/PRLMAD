@@ -1,6 +1,8 @@
-# PRLMAD
+# KnowStack（知栈）
 
-PRLMAD（Personalized Resource Learning Multi-Agent Demo）是一个面向「操作系统」课程的个性化学习资源生成系统。项目使用本地教材知识库、RAG 检索和科大讯飞 Spark 大模型，围绕学习画像、资源生成、学习路径、智能辅导和效果评估构建一套多智能体学习工作流。
+<img src="static/images/knowstack.png" alt="KnowStack 知栈图标" width="128" />
+
+KnowStack（中文名：知栈，原项目技术代号 PRLMAD）是一个面向「操作系统」课程的个性化学习资源生成系统。项目使用本地教材知识库、RAG 检索和科大讯飞 Spark 大模型，围绕学习画像、资源生成、学习路径、智能辅导和效果评估构建一套多智能体学习工作流。
 
 当前版本提供 FastAPI 后端、Jinja2 页面、TailwindCSS + Alpine.js 前端，以及 SQLite 本地持久化。
 
@@ -17,7 +19,7 @@ PRLMAD（Personalized Resource Learning Multi-Agent Demo）是一个面向「操
 ## 系统结构
 
 ```text
-PRLMAD/
+KnowStack/
 ├── run.py                       # 命令行入口：train/status/serve
 ├── requirements.txt             # Python 依赖
 ├── .env.example                 # 环境变量模板
