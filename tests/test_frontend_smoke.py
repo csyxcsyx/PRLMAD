@@ -93,6 +93,14 @@ class FrontendSmokeTests(unittest.TestCase):
         self.assertIn(".profile-step-nav", css)
         self.assertIn(".resource-library", css)
 
+    def test_initial_session_selection_is_explicit(self) -> None:
+        source = (ROOT / "static" / "js" / "app.js").read_text(encoding="utf-8")
+        init_source = source[source.index("async init()") : source.index("setBusy(task")]
+        self.assertNotIn("localStorage", init_source)
+        self.assertNotIn("savedSessionId", init_source)
+        self.assertNotIn("this.sessions[0]", init_source)
+        self.assertIn("window.location.hash.slice(1)", init_source)
+
 
 if __name__ == "__main__":
     unittest.main()
