@@ -4,6 +4,7 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .mypy_cache/
+node_modules/
 # Local runtime data and large course assets are not committed.
 data/
 knowledge/

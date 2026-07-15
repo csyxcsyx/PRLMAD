@@ -3,8 +3,8 @@
 <div x-data="chatPage" class="h-full">
     <div x-show="showWelcome" class="h-full flex items-center justify-center p-8">
         <div class="max-w-lg text-center fade-in">
-            <div class="w-20 h-20 rounded-2xl gradient-brand flex items-center justify-center text-white text-3xl font-bold shadow-xl mx-auto mb-6">P</div>
-            <h2 class="text-3xl text-gray-800 mb-2">欢迎使用 PRLMAD</h2>
+            {% include "components/learning_motif.html" %}
+            <h2 class="text-3xl text-gray-800 mb-2">欢迎使用 KnowStack 知栈</h2>
             <p class="text-gray-500 mb-1">用几分钟建立学习画像，系统会据此调整内容深度与节奏</p>
             <p class="text-sm text-gray-400 mb-8">不需要提前准备材料，按当前真实状态选择即可。</p>
 
@@ -43,7 +43,7 @@
         </div>
     </div>
 
-    <div x-show="!showWelcome" class="flex h-full">
+    <div x-show="!showWelcome" class="profile-workspace flex h-full">
         <div class="flex-1 flex flex-col h-full min-w-0">
             <div class="page-header bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between flex-shrink-0">
                 <div class="flex items-center gap-3">
@@ -64,7 +64,7 @@
             </div>
 
             <div class="page-content flex-1 overflow-y-auto">
-                <div class="max-w-5xl mx-auto space-y-5">
+                <div class="profile-content mx-auto space-y-5">
                     <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                             <div>
@@ -72,17 +72,25 @@
                                 <h3 class="text-lg font-medium text-gray-800">请选择最接近你当前状态的选项</h3>
                                 <p class="text-sm text-gray-500 mt-1">不确定也没关系，选择“刚入门”或“需要补基础”即可，后续可以随时修改。</p>
                             </div>
-                            <button @click="saveProfile()"
-                                class="gradient-brand text-white rounded-xl px-5 py-2.5 text-sm font-semibold shadow-sm hover:shadow-md transition-all disabled:opacity-50"
-                                :disabled="saving || !$store.app.currentSessionId">
-                                <span x-show="!saving">保存画像</span>
-                                <span x-show="saving">保存中...</span>
-                            </button>
+                            <div class="flex flex-wrap items-center gap-2 flex-shrink-0">
+                                <button @click="clearCurrentProfile()"
+                                    class="bg-white text-gray-500 hover:text-rose-600 hover:bg-rose-50 border border-gray-200 hover:border-rose-200 rounded-xl px-4 py-2.5 text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                                    :disabled="saving || clearing || !hasProfileData || !$store.app.currentSessionId">
+                                    <span x-show="!clearing">清除当前画像</span>
+                                    <span x-show="clearing">清除中...</span>
+                                </button>
+                                <button @click="saveProfile()"
+                                    class="gradient-brand text-white rounded-xl px-5 py-2.5 text-sm font-semibold shadow-sm hover:shadow-md transition-all disabled:opacity-50"
+                                    :disabled="saving || clearing || !$store.app.currentSessionId">
+                                    <span x-show="!saving">保存画像</span>
+                                    <span x-show="saving">保存中...</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-5">
-                        <div class="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm h-fit">
+                    <div class="profile-builder-grid grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-5">
+                        <div class="profile-step-nav bg-white border border-gray-100 rounded-2xl p-3 shadow-sm h-fit">
                             <template x-for="(step, idx) in profileSteps" :key="step.key">
                                 <button @click="activeIndex = idx"
                                     class="w-full text-left rounded-xl px-3 py-3 transition-all mb-1"
@@ -97,7 +105,7 @@
                             </template>
                         </div>
 
-                        <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm min-h-[520px]">
+                        <div class="profile-form-card bg-white border border-gray-100 rounded-2xl p-6 shadow-sm min-h-[520px]">
                             <template x-if="activeStep">
                                 <div>
                                     <div class="flex items-start justify-between gap-4 mb-5">
@@ -163,7 +171,7 @@
             </div>
         </div>
 
-        <div class="w-72 bg-white/90 border-l border-gray-100 p-4 overflow-y-auto flex-shrink-0 hidden xl:block" id="profileSidebar">
+        <div class="profile-summary-rail w-72 bg-white/90 border-l border-gray-100 p-4 overflow-y-auto flex-shrink-0 hidden xl:block" id="profileSidebar">
             <div class="flex items-center gap-2 mb-4">
                 <h3 class="text-sm font-semibold text-gray-700">学习画像</h3>
                 <span class="ml-auto text-[10px] bg-brand-100 text-brand-700 px-2 py-0.5 rounded-full" x-text="'版本 ' + profileVersion"></span>
@@ -200,5 +208,5 @@
 </div>
 {% endblock %}
 {% block scripts %}
-<script src="/static/js/chat.js"></script>
+<script src="/static/js/chat.js?v=0.6.0"></script>
 {% endblock %}

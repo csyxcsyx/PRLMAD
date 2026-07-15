@@ -180,7 +180,7 @@ document.addEventListener('alpine:init', () => {
                 await this.setCurrentSession(data.session_id);
                 return data.session_id;
             } catch (e) {
-                alert('创建会话失败: ' + e.message);
+                window.PRLMAD.notify('创建会话失败: ' + e.message, 'error');
                 return null;
             }
         },
@@ -214,7 +214,7 @@ document.addEventListener('alpine:init', () => {
                 if (!resp.ok) throw new Error('服务端拒绝了重命名请求');
                 current.name = nextName;
             } catch (e) {
-                alert('重命名失败: ' + e.message);
+                window.PRLMAD.notify('重命名失败: ' + e.message, 'error');
             }
         },
 
@@ -232,13 +232,88 @@ document.addEventListener('alpine:init', () => {
                 const fallback = this.sessions[Math.max(0, deletedIndex - 1)] || this.sessions[0] || null;
                 await this.setCurrentSession(fallback?.session_id || '');
             } catch (e) {
-                alert('删除失败: ' + e.message);
+                window.PRLMAD.notify('删除失败: ' + e.message, 'error');
             }
         },
     });
+
+    Alpine.data('sessionSwitcher', () => ({
+        open: false,
+
+        get currentSession() {
+            return Alpine.store('app').currentSession;
+        },
+
+        get sessions() {
+            return Alpine.store('app').sessions;
+        },
+
+        toggle() {
+            if (!this.sessions.length) return;
+            this.open = !this.open;
+        },
+
+        close() {
+            this.open = false;
+        },
+
+        async choose(sessionId) {
+            this.close();
+            if (!sessionId || sessionId === Alpine.store('app').currentSessionId) return;
+            await Alpine.store('app').switchSession(sessionId);
+        },
+    }));
 });
 
 window.PRLMAD = {
+    assetPromises: new Map(),
+
+    loadScript(src, globalName = '') {
+        if (globalName && window[globalName]) return Promise.resolve(window[globalName]);
+        if (!this.assetPromises.has(src)) {
+            this.assetPromises.set(src, new Promise((resolve, reject) => {
+                const existing = document.querySelector(`script[src="${src}"]`);
+                if (existing?.dataset.loaded === 'true') {
+                    resolve(globalName ? window[globalName] : true);
+                    return;
+                }
+                const element = existing || document.createElement('script');
+                const onLoad = () => {
+                    element.dataset.loaded = 'true';
+                    resolve(globalName ? window[globalName] : true);
+                };
+                element.addEventListener('load', onLoad, { once: true });
+                element.addEventListener('error', () => {
+                    this.assetPromises.delete(src);
+                    reject(new Error(`无法加载本地资源: ${src}`));
+                }, { once: true });
+                if (!existing) {
+                    element.src = src;
+                    element.defer = true;
+                    document.head.appendChild(element);
+                }
+            }));
+        }
+        return this.assetPromises.get(src);
+    },
+
+    notify(message, tone = 'info', duration = 3200) {
+        const region = document.getElementById('toastRegion');
+        if (!region || !message) return;
+        const toast = document.createElement('div');
+        toast.className = 'app-toast';
+        toast.dataset.tone = tone;
+        toast.setAttribute('role', tone === 'error' ? 'alert' : 'status');
+        const text = document.createElement('span');
+        text.textContent = String(message);
+        toast.appendChild(text);
+        region.appendChild(toast);
+        window.setTimeout(() => {
+            toast.classList.add('is-leaving');
+            window.setTimeout(() => toast.remove(), 200);
+        }, duration);
+    },
+
     normalizeAiText(value) {
         let text = String(value || '').replace(/\r\n?/g, '\n').trimStart();
         const wrappedMarkdown = text.match(/^```(?:markdown|md)\s*\n([\s\S]*?)\n```\s*$/i);

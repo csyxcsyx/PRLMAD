@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<div x-data="pathPage" class="flex flex-col h-full">
+<div x-data="pathPage" class="path-workspace flex flex-col h-full">
     <div class="page-header bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between flex-shrink-0">
         <div class="flex items-center gap-3">
             <div class="page-emblem w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-semibold">P</div>
@@ -29,7 +29,7 @@
         <div class="content-shell">
             <!-- Empty State -->
             <div x-show="!pathData.title && !loading" class="text-center py-16 fade-in">
-                <span class="empty-mark">路</span>
+                {% include "components/learning_motif.html" %}
                 <p class="text-lg font-medium text-gray-400 mt-4">尚未生成学习路径</p>
                 <p class="text-sm text-gray-400 mt-1">输入关注的知识点，点击「生成路径」按钮</p>
                 <p class="text-xs text-gray-300 mt-1">AI将基于你的学习画像，规划7天科学学习方案</p>
@@ -144,7 +144,7 @@ document.addEventListener('alpine:init', () => {
         },
         async generatePath() {
             const sid = Alpine.store('app').currentSessionId;
-            if (!sid) { alert('请先创建会话'); return; }
+            if (!sid) { window.PRLMAD.notify('请先创建会话', 'error'); return; }
             this.loading = true;
             Alpine.store('app').setBusy('path', true);
             try {
@@ -160,7 +160,7 @@ document.addEventListener('alpine:init', () => {
                 this.progressDocked = false;
                 if (this.$refs.pathScroller) this.$refs.pathScroller.scrollTo({ top: 0, behavior: 'smooth' });
             } catch (e) {
-                alert('路径生成失败: ' + e.message);
+                window.PRLMAD.notify('路径生成失败: ' + e.message, 'error');
             }
             this.loading = false;
             Alpine.store('app').setBusy('path', false);

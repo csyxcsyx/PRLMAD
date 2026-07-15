@@ -2,6 +2,7 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('chatPage', () => ({
         activeIndex: 0,
         saving: false,
+        clearing: false,
         savedAt: '',
         profileVersion: 1,
         lastSavedProfileSignature: '',
@@ -195,6 +196,10 @@ document.addEventListener('alpine:init', () => {
             return Math.round((done / this.totalSteps) * 100);
         },
 
+        get hasProfileData() {
+            return Object.keys(this.normalizeProfile(this.buildProfile())).length > 0;
+        },
+
         init() {
             this.$watch('$store.app.initialized', (ready) => {
                 if (ready) this.refreshForSession();
@@ -365,7 +370,7 @@ document.addEventListener('alpine:init', () => {
 
         async saveProfile(options = {}) {
             const sid = Alpine.store('app').currentSessionId;
-            if (!sid || this.saving) return false;
+            if (!sid || this.saving || this.clearing) return false;
             const nextProfile = this.normalizeProfile(this.buildProfile());
             const nextSignature = this.profileSignature(nextProfile);
             if (nextSignature === this.lastSavedProfileSignature) {
@@ -393,10 +398,45 @@ document.addEventListener('alpine:init', () => {
                 }));
                 return true;
             } catch (e) {
-                alert('保存画像失败: ' + e.message);
+                window.PRLMAD.notify('保存画像失败: ' + e.message, 'error');
                 return false;
             } finally {
                 this.saving = false;
+            }
+        },
+
+        async clearCurrentProfile() {
+            const app = Alpine.store('app');
+            const sid = app.currentSessionId;
+            if (!sid || this.saving || this.clearing || !this.hasProfileData) return false;
+            const sessionName = app.currentSession?.name || '当前会话';
+            const confirmed = confirm(`确定清除「${sessionName}」的当前学习画像吗？\n\n已选择和已填写的画像信息会被清空；已生成的资源、学习路径和辅导记录不会删除。`);
+            if (!confirmed) return false;
+
+            this.clearing = true;
+            try {
+                const resp = await fetch(`/api/profile/${sid}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ profile: {} }),
+                });
+                if (!resp.ok) throw new Error('服务端拒绝了画像清除请求');
+                await app.loadProfile();
+                this.resetFormState();
+                this.activeIndex = 0;
+                this.showProfileDetail = false;
+                this.lastSavedProfileSignature = this.profileSignature({});
+                this.profileVersion += 1;
+                this.savedAt = '当前画像已清除';
+                window.dispatchEvent(new CustomEvent('prlmad:profile-updated', {
+                    detail: { sessionId: sid },
+                }));
+                return true;
+            } catch (e) {
+                window.PRLMAD.notify('清除画像失败: ' + e.message, 'error');
+                return false;
+            } finally {
+                this.clearing = false;
             }
         },
 
