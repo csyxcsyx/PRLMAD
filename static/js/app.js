@@ -1,6 +1,4 @@
 document.addEventListener('alpine:init', () => {
-    const CURRENT_SESSION_KEY = 'prlmad.currentSessionId';
-
     Alpine.store('app', {
         currentSessionId: '',
         sessions: [],
@@ -34,14 +32,9 @@ document.addEventListener('alpine:init', () => {
             this.loading = true;
             await this.loadSessions();
             const hash = window.location.hash.slice(1);
-            const savedSessionId = localStorage.getItem(CURRENT_SESSION_KEY) || '';
 
             if (hash && this.sessions.find(s => s.session_id === hash)) {
                 await this.setCurrentSession(hash, { updateHash: false, notify: false });
-            } else if (savedSessionId && this.sessions.find(s => s.session_id === savedSessionId)) {
-                await this.setCurrentSession(savedSessionId, { updateHash: false, notify: false });
-            } else if (this.sessions.length > 0) {
-                await this.setCurrentSession(this.sessions[0].session_id, { updateHash: false, notify: false });
             }
 
             window.addEventListener('hashchange', async () => {
@@ -105,11 +98,6 @@ document.addEventListener('alpine:init', () => {
                 this.profileDimensions = [];
             }
             this.currentSessionId = nextSessionId;
-            if (nextSessionId) {
-                localStorage.setItem(CURRENT_SESSION_KEY, nextSessionId);
-            } else {
-                localStorage.removeItem(CURRENT_SESSION_KEY);
-            }
             if (updateHash) {
                 if (nextSessionId) {
                     history.replaceState(null, '', `${window.location.pathname}#${nextSessionId}`);

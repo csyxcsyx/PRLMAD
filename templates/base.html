@@ -425,10 +425,12 @@
                 <p x-show="$store.app.sessions.length === 0" class="text-xs text-gray-400 italic">暂无学习会话</p>
                 <div x-show="$store.app.sessions.length > 0" class="mt-2 grid grid-cols-2 gap-2">
                     <button @click="$store.app.renameCurrentSession()"
+                        :disabled="!$store.app.currentSessionId"
                         class="text-xs bg-gray-50 text-gray-600 hover:bg-gray-100 rounded-lg px-3 py-2 transition-all font-medium border border-gray-200">
                         重命名
                     </button>
                     <button @click="$store.app.deleteCurrentSession()"
+                        :disabled="!$store.app.currentSessionId"
                         class="text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg px-3 py-2 transition-all font-medium border border-rose-100">
                         删除会话
                     </button>
@@ -484,7 +486,10 @@
                         </template>
                     </div>
                 </div>
-                <div x-show="$store.app.profileDimensions.length === 0 && $store.app.sessions.length > 0" class="text-center py-3">
+                <div x-show="!$store.app.currentSessionId && $store.app.sessions.length > 0" class="text-center py-3">
+                    <p class="text-xs text-gray-400">选择已有会话，或创建新会话</p>
+                </div>
+                <div x-show="$store.app.currentSessionId && $store.app.profileDimensions.length === 0" class="text-center py-3">
                     <p class="text-xs text-gray-400">开始对话以构建画像</p>
                 </div>
             </div>
@@ -507,7 +512,7 @@
         <img alt="" />
     </dialog>
 
-    <script src="/static/js/app.js?v=0.6.0"></script>
+    <script src="/static/js/app.js?v=0.7.0"></script>
     <script src="/static/js/ai-renderer.js?v=0.7.0"></script>
     {% block scripts %}{% endblock %}
 </body>
