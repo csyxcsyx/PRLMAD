@@ -29,6 +29,16 @@ class EvaluateRequest(BaseModel):
     session_id: str
 
 
+class OsLabEventRequest(BaseModel):
+    session_id: str
+    algorithm_id: str
+    algorithm_title: str = ""
+    event_type: str
+    frame_index: int = 0
+    total_frames: int = 0
+    metadata: dict = Field(default_factory=dict)
+
+
 class IngestRequest(BaseModel):
     path: str
     course: str = "操作系统"

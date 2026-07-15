@@ -376,6 +376,7 @@
                 <a href="/page/learning-path" data-app-nav data-page-target="learning_path" class="px-3 py-1.5 rounded-lg {% if page == 'learning_path' %}active{% endif %}">路径</a>
                 <a href="/page/tutor" data-app-nav data-page-target="tutor" class="px-3 py-1.5 rounded-lg {% if page == 'tutor' %}active{% endif %}">辅导</a>
                 <a href="/page/evaluate" data-app-nav data-page-target="evaluate" class="px-3 py-1.5 rounded-lg {% if page == 'evaluate' %}active{% endif %}">评估</a>
+                <a href="/page/os-lab" data-app-nav data-page-target="os_lab" class="px-3 py-1.5 rounded-lg {% if page == 'os_lab' %}active{% endif %}">实验</a>
                 <a href="/page/knowledge" data-app-nav data-page-target="knowledge" class="px-3 py-1.5 rounded-lg {% if page == 'knowledge' %}active{% endif %}">知识库</a>
             </nav>
         </header>
@@ -462,8 +463,7 @@
                 <a href="/page/evaluate" data-app-nav data-page-target="evaluate" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 {% if page == 'evaluate' %}active{% endif %}">
                     <span class="nav-glyph">评</span> 效果评估
                 </a>
-                <a :href="'/page/os-lab' + ($store.app.currentSessionId ? '#' + $store.app.currentSessionId : '')" @click="$store.app.confirmNavigation($event)" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600"
-                    :class="{ 'active': '{{ page }}' === 'os_lab' }">
+                <a href="/page/os-lab" data-app-nav data-page-target="os_lab" class="nav-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 {% if page == 'os_lab' %}active{% endif %}">
                     <span class="nav-glyph">OS</span> 虚拟OS实验室
                 </a>
                 <div class="my-2 border-t border-gray-100"></div>

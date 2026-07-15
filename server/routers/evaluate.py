@@ -23,6 +23,7 @@ async def evaluate(req: EvaluateRequest):
     resources = store.get_resources(req.session_id)
     tutor_logs = store.get_tutor_logs(req.session_id)
     path_data = store.get_learning_path(req.session_id)
+    os_lab_events = store.get_os_lab_events(req.session_id, limit=30)
 
     activities = []
     for r in resources[:10]:
@@ -44,6 +45,16 @@ async def evaluate(req: EvaluateRequest):
             "type": "learning_path",
             "description": f"学习路径执行进度",
             "result": f"{completed}/{total} 步骤完成",
+        })
+    for event in os_lab_events[:10]:
+        title = event.get("algorithm_title") or event.get("algorithm_id") or "操作系统实验"
+        total = event.get("total_frames") or 0
+        frame = event.get("frame_index") or 0
+        progress = f"{frame + 1}/{total} 步" if total else "已记录"
+        activities.append({
+            "type": "os_lab",
+            "description": f"虚拟OS实验室: {title}",
+            "result": f"{event.get('event_type', 'activity')}，{progress}",
         })
 
     orchestrator = AgentOrchestrator(client, kb)

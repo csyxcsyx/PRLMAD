@@ -1,464 +1,740 @@
 {% extends "base.html" %}
 {% block content %}
-<div x-data="virtualOsLab" class="flex flex-col h-full">
-    <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between gap-3 flex-shrink-0">
-        <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center text-white text-sm font-bold">OS</div>
-            <div>
-                <h2 class="text-sm font-semibold text-gray-800">虚拟操作系统实验室</h2>
-                <p class="text-[11px] text-gray-400">观察进程调度、线程状态、动态分区分配与碎片合并</p>
+<style>
+    .os-lab {
+        --ink: #171512;
+        --body: #3f3b35;
+        --muted: #716c63;
+        --line: #e5ded3;
+        --paper: #fbfaf6;
+        --soft: #f4efe7;
+        --blue: #1769d8;
+        --blue-soft: #eaf2ff;
+        --green: #35835a;
+        --amber: #a87524;
+        min-height: 100%;
+        color: var(--body);
+    }
+    .os-lab *, .os-lab *::before, .os-lab *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+    .login-screen {
+        min-height: 100%;
+        display: grid;
+        place-items: center;
+        padding: 2rem;
+        background:
+            linear-gradient(rgba(23,21,18,.035) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(23,21,18,.035) 1px, transparent 1px),
+            #f7f3ea;
+        background-size: 32px 32px;
+    }
+    .login-card {
+        width: min(100%, 31rem);
+        border: 1px solid rgba(23,21,18,.13);
+        border-radius: 1rem;
+        background: rgba(251,250,246,.96);
+        box-shadow: 0 18px 48px rgba(67,56,45,.14);
+        padding: 2rem;
+    }
+    .login-logo {
+        width: 4rem;
+        height: 4rem;
+        margin: 0 auto;
+        display: grid;
+        place-items: center;
+        border-radius: 1.1rem;
+        background: var(--ink);
+        color: #fffaf2;
+        font-weight: 800;
+    }
+    .login-input {
+        width: 100%;
+        height: 2.85rem;
+        margin-top: .4rem;
+        border: 1px solid #ded6cb;
+        border-radius: .7rem;
+        background: #fffdf9;
+        padding: 0 .9rem;
+        color: #1f2937;
+        outline: none;
+    }
+    .login-input:focus {
+        border-color: #b96449;
+        box-shadow: 0 0 0 3px rgba(185,100,73,.12);
+    }
+    .login-submit {
+        width: 100%;
+        height: 2.9rem;
+        border-radius: .7rem;
+        border: 1px solid #171512;
+        background: #171512 !important;
+        color: #fffaf2 !important;
+        font-size: .94rem;
+        font-weight: 800;
+    }
+    .desktop {
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        background:
+            linear-gradient(rgba(23,21,18,.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(23,21,18,.03) 1px, transparent 1px),
+            #faf9f5;
+        background-size: 30px 30px;
+    }
+    .desktop-bar {
+        min-height: 4.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: .85rem 1.5rem;
+        border-bottom: 1px solid var(--line);
+        background: rgba(251,250,246,.96);
+    }
+    .os-mark, .card-mark {
+        display: inline-grid;
+        place-items: center;
+        width: 2.35rem;
+        height: 2.35rem;
+        border-radius: .7rem;
+        background: var(--soft);
+        color: #a9583e;
+        font-weight: 800;
+        border: 1px solid rgba(185,100,73,.16);
+    }
+    .workspace {
+        width: min(100%, 86rem);
+        margin: 0 auto;
+        padding: 1.25rem;
+    }
+    .desktop-strip, .algo-card, .stage {
+        border: 1px solid var(--line);
+        border-radius: .8rem;
+        background: rgba(251,250,246,.9);
+    }
+    .algo-card {
+        min-height: 10rem;
+        text-align: left;
+        padding: 1.15rem;
+    }
+    .algo-card:hover {
+        border-color: rgba(185,100,73,.38);
+        background: #fffdf8;
+    }
+    .toolbar-btn {
+        border-radius: .65rem;
+        padding: .55rem .8rem;
+        font-size: .76rem;
+        border: 1px solid var(--line);
+        background: #fffdf9;
+        color: var(--body);
+        font-weight: 700;
+    }
+    .toolbar-btn.dark {
+        background: #171512;
+        border-color: #171512;
+        color: #fffaf2;
+    }
+    .toolbar-btn.good {
+        background: #eaf7ef;
+        border-color: #cce9d5;
+        color: #246844;
+    }
+    .stage-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem;
+        border-bottom: 1px solid var(--line);
+    }
+    .progress-track {
+        height: .55rem;
+        border-radius: 999px;
+        background: #eee7dc;
+        overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%;
+        background: #171512;
+    }
+    .experiment-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(22rem, .75fr);
+        min-height: 34rem;
+    }
+    .visual-side {
+        min-width: 0;
+        padding: 1rem;
+        border-right: 1px solid var(--line);
+    }
+    .code-side {
+        min-width: 0;
+        background: #fffdf9;
+    }
+    .panel-title {
+        height: 2.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+        padding: 0 .9rem;
+        border-bottom: 1px solid var(--line);
+        background: rgba(244,239,231,.75);
+        font-size: .78rem;
+        font-weight: 800;
+        color: var(--body);
+    }
+    .visual-canvas {
+        min-height: 28rem;
+        padding-top: 1rem;
+    }
+    .code-pre {
+        margin: 0;
+        max-height: 35rem;
+        overflow: auto;
+        padding: 1rem 1.1rem;
+        color: #37332d;
+        font-size: .78rem;
+        line-height: 1.72;
+        white-space: pre-wrap;
+        tab-size: 4;
+    }
+    .flow-grid {
+        display: grid;
+        grid-template-columns: minmax(0,1fr) 4rem minmax(0,1fr) 4rem minmax(0,1fr);
+        gap: .75rem;
+        align-items: center;
+    }
+    .flow-line {
+        height: 3px;
+        background: #74a989;
+        position: relative;
+        border-radius: 999px;
+    }
+    .flow-line::after {
+        content: "";
+        position: absolute;
+        right: -1px;
+        top: 50%;
+        width: .45rem;
+        height: .45rem;
+        border-top: 2px solid #4b8a62;
+        border-right: 2px solid #4b8a62;
+        transform: translateY(-50%) rotate(45deg);
+    }
+    .mini-card {
+        border: 1px solid var(--line);
+        border-radius: .75rem;
+        background: #fffdf9;
+        padding: 1rem;
+    }
+    .state-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 2.2rem;
+        min-height: 2rem;
+        border-radius: .55rem;
+        border: 1px solid #cbdff8;
+        background: var(--blue-soft);
+        color: #1558ad;
+        font-size: .78rem;
+        font-weight: 800;
+        padding: .25rem .55rem;
+    }
+    .gantt-card {
+        border: 1px solid #ddd5c9;
+        border-radius: .75rem;
+        background: #fffdf9;
+        padding: 1rem;
+    }
+    .gantt-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .gantt-kicker {
+        color: var(--muted);
+        font-size: .68rem;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+    .gantt-status {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        color: #5d574f;
+        font-size: .7rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .gantt-status::before {
+        content: "";
+        width: .45rem;
+        height: .45rem;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 0 3px rgba(53,131,90,.12);
+    }
+    .gantt-scroll {
+        overflow-x: auto;
+        padding: .25rem .1rem .35rem;
+        scrollbar-width: thin;
+        scrollbar-color: #c9c0b4 transparent;
+    }
+    .gantt-timeline {
+        position: relative;
+        min-width: calc(var(--gantt-columns) * 3.4rem);
+    }
+    .gantt-grid,
+    .gantt-bars,
+    .gantt-axis {
+        display: grid;
+        grid-template-columns: repeat(var(--gantt-columns), minmax(3.4rem, 1fr));
+    }
+    .gantt-grid {
+        height: 4rem;
+        border: 1px solid #d9d1c5;
+        border-radius: .45rem;
+        overflow: hidden;
+        background: #f7f3ec;
+    }
+    .gantt-cell {
+        border-right: 1px dashed #d6cec2;
+        background: linear-gradient(180deg, rgba(255,255,255,.7), rgba(244,239,231,.55));
+    }
+    .gantt-cell:last-child {
+        border-right: 0;
+    }
+    .gantt-bars {
+        position: absolute;
+        inset: 0;
+        height: 4rem;
+        pointer-events: none;
+    }
+    .gantt-segment {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+        margin: .35rem 0;
+        border-right: 1px solid rgba(255,255,255,.7);
+        color: #fff;
+        font-size: .78rem;
+        font-weight: 800;
+        box-shadow: inset 0 -2px 0 rgba(0,0,0,.1);
+    }
+    .gantt-segment:first-child {
+        border-radius: .28rem 0 0 .28rem;
+    }
+    .gantt-segment:last-child {
+        border-radius: 0 .28rem .28rem 0;
+        border-right: 0;
+    }
+    .gantt-segment.is-active::after {
+        content: "";
+        position: absolute;
+        inset: -.28rem;
+        border: 2px solid #171512;
+        border-radius: .45rem;
+    }
+    .gantt-segment small {
+        margin-left: .35rem;
+        color: rgba(255,255,255,.78);
+        font-size: .62rem;
+        font-weight: 700;
+    }
+    .gantt-tone-0 { background: #216869; }
+    .gantt-tone-1 { background: #b95f42; }
+    .gantt-tone-2 { background: #3867a6; }
+    .gantt-tone-3 { background: #8a6a2f; }
+    .gantt-tone-4 { background: #72558a; }
+    .gantt-axis {
+        position: relative;
+        height: 1.55rem;
+        color: #777066;
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: .65rem;
+    }
+    .gantt-tick {
+        position: relative;
+        padding-top: .38rem;
+    }
+    .gantt-tick::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1px;
+        height: .3rem;
+        background: #a9a095;
+    }
+    .gantt-end-tick {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        transform: translateX(50%);
+    }
+    .gantt-empty {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        color: #8a8379;
+        font-size: .72rem;
+        font-weight: 700;
+    }
+    .memory-row {
+        height: 6rem;
+        display: flex;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: .75rem;
+        background: #fffdf9;
+    }
+    .memory-seg {
+        min-width: 2.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        border-right: 1px solid rgba(255,255,255,.8);
+        font-size: .7rem;
+        font-weight: 800;
+    }
+    @media (max-width: 1100px) {
+        .experiment-grid {
+            grid-template-columns: 1fr;
+        }
+        .visual-side {
+            border-right: 0;
+            border-bottom: 1px solid var(--line);
+        }
+        .code-pre {
+            max-height: 24rem;
+        }
+    }
+    @media (max-width: 760px) {
+        .desktop-bar {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+        .flow-grid {
+            grid-template-columns: 1fr;
+        }
+        .flow-line {
+            width: 3px;
+            height: 2rem;
+            justify-self: center;
+        }
+        .flow-line::after {
+            right: auto;
+            bottom: -1px;
+            top: auto;
+            left: 50%;
+            transform: translateX(-50%) rotate(135deg);
+        }
+    }
+</style>
+
+<div x-data="osAlgorithmLab" class="os-lab">
+    <div class="desktop">
+        <div class="desktop-bar">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="os-mark">OS</div>
+                <div class="min-w-0">
+                    <h2 class="text-base font-semibold text-gray-900">透明操作系统桌面</h2>
+                    <p class="text-xs text-gray-500 truncate"
+                        x-text="$store.app.currentSession ? '当前会话：' + $store.app.currentSession.name + '，实验进度将写入评估' : '未选择学习会话：可演示，但不会记录实验进度'"></p>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <template x-if="selected">
+                    <button @click="backToCards()" class="toolbar-btn">返回卡片</button>
+                </template>
+                <template x-if="selected">
+                    <button @click="toggleRun()" class="toolbar-btn good" x-text="running ? '暂停播放' : '播放步骤'"></button>
+                </template>
+                <template x-if="selected">
+                    <button @click="nextFrame()" class="toolbar-btn dark">单步</button>
+                </template>
+                <button @click="resetLab()" class="toolbar-btn">清空状态</button>
             </div>
         </div>
-        <div class="flex items-center gap-2">
-            <span class="text-xs text-gray-400">时钟 <span class="font-semibold text-gray-600" x-text="clock"></span></span>
-            <button @click="toggleRun()"
-                class="text-xs rounded-lg px-3 py-2 border transition-colors"
-                :class="running ? 'bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100'"
-                x-text="running ? '暂停' : '自动运行'"></button>
-            <button @click="tick()" class="text-xs bg-gray-900 text-white rounded-lg px-3 py-2 hover:bg-gray-800">单步</button>
-            <button @click="reset()" class="text-xs bg-gray-100 text-gray-600 rounded-lg px-3 py-2 hover:bg-gray-200">重置</button>
-        </div>
-    </div>
 
-    <div class="flex-1 overflow-y-auto p-6">
-        <div class="max-w-7xl mx-auto space-y-5">
-            <section class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
+        <div class="workspace">
+            <div x-show="!selected" class="space-y-5">
+                <div class="desktop-strip p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div>
-                        <h3 class="text-sm font-semibold text-gray-700">算法代码实验区</h3>
-                        <p class="text-xs text-gray-400 mt-1">左侧阅读、讲解和编写伪代码/代码，右侧同步播放操作系统算法的状态变化。</p>
+                        <p class="text-sm font-semibold text-gray-900">算法实验桌面</p>
+                        <p class="mt-1 text-xs text-gray-500">覆盖进程调度、内存分配、页面置换、同步与死锁。点击具体算法进入实验窗口。</p>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <button @click="resetAlgorithmAnimation()" class="text-xs bg-gray-100 text-gray-600 rounded-lg px-3 py-2 hover:bg-gray-200">回到起点</button>
-                        <button @click="stepAlgorithmAnimation()" class="text-xs bg-gray-900 text-white rounded-lg px-3 py-2 hover:bg-gray-800">单步执行</button>
-                        <button @click="toggleAlgorithmAnimation()"
-                            class="text-xs rounded-lg px-3 py-2 border transition-colors"
-                            :class="algorithmLab.running ? 'bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100'"
-                            x-text="algorithmLab.running ? '暂停动画' : '运行动画'"></button>
+                    <div class="flex flex-wrap gap-2 text-[11px] text-gray-500">
+                        <span class="rounded-lg bg-white border border-gray-100 px-2 py-1">CPU: 空闲</span>
+                        <span class="rounded-lg bg-white border border-gray-100 px-2 py-1">内存: 824MB 可用</span>
+                        <span class="rounded-lg bg-white border border-gray-100 px-2 py-1">模式: 实验桌面</span>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 xl:grid-cols-[0.95fr_1.05fr] gap-5">
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-                            <template x-for="item in algorithmTabs" :key="item.id">
-                                <button @click="selectAlgorithm(item.id)"
-                                    class="text-xs border rounded-lg px-3 py-2 transition-colors"
-                                    :class="algorithmLab.selected === item.id ? 'bg-gray-900 text-white border-gray-900' : 'bg-gray-50 text-gray-600 border-gray-100 hover:bg-gray-100'"
-                                    x-text="item.label"></button>
-                            </template>
-                        </div>
-
-                        <div class="border border-gray-100 rounded-xl overflow-hidden">
-                            <div class="flex items-center justify-between gap-3 px-4 py-3 bg-gray-50 border-b border-gray-100">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    <template x-for="item in algorithms" :key="item.id">
+                        <button @click="openAlgorithm(item.id)" class="algo-card">
+                            <div class="flex items-start justify-between gap-4">
                                 <div>
-                                    <p class="text-xs font-semibold text-gray-700" x-text="currentAlgorithm.title"></p>
-                                    <p class="text-[11px] text-gray-400 mt-0.5" x-text="currentAlgorithm.subtitle"></p>
+                                    <span class="card-mark" x-text="item.mark"></span>
+                                    <h3 class="mt-4 text-base font-semibold text-gray-900" x-text="item.title"></h3>
+                                    <p class="mt-2 text-xs leading-relaxed text-gray-500" x-text="item.desc"></p>
                                 </div>
-                                <div class="flex items-center gap-1 rounded-lg bg-white border border-gray-100 p-1">
-                                    <template x-for="lang in algorithmLanguages" :key="lang.id">
-                                        <button @click="setAlgorithmLanguage(lang.id)"
-                                            class="text-[11px] rounded-md px-2 py-1"
-                                            :class="algorithmLab.language === lang.id ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-50'"
-                                            x-text="lang.label"></button>
-                                    </template>
-                                </div>
+                                <span class="text-[11px] text-gray-400" x-text="item.tag"></span>
                             </div>
-                            <textarea x-model="algorithmLab.editor" spellcheck="false"
-                                class="w-full min-h-[360px] resize-y bg-[#171717] text-[#e8e3d7] text-xs leading-6 font-mono px-4 py-3 outline-none"
-                                placeholder="在这里编写伪代码或代码"></textarea>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div class="bg-gray-50 rounded-xl p-4 text-xs leading-relaxed text-gray-500">
-                                <p class="font-semibold text-gray-700 mb-1">算法讲解</p>
-                                <p x-text="currentAlgorithm.explain"></p>
-                            </div>
-                            <div class="bg-gray-50 rounded-xl p-4 text-xs leading-relaxed text-gray-500">
-                                <p class="font-semibold text-gray-700 mb-1">观察重点</p>
-                                <template x-for="point in currentAlgorithm.points" :key="point">
-                                    <p class="mb-1" x-text="'· ' + point"></p>
+                            <div class="mt-5 flex flex-wrap gap-2">
+                                <template x-for="point in item.points" :key="point">
+                                    <span class="rounded-lg bg-gray-50 border border-gray-100 px-2 py-1 text-[11px] text-gray-500" x-text="point"></span>
                                 </template>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="border border-gray-100 rounded-xl p-5 bg-gray-50 min-h-[560px]">
-                        <div class="flex items-center justify-between gap-3 mb-4">
-                            <div>
-                                <h4 class="text-sm font-semibold text-gray-700" x-text="currentFrame.title"></h4>
-                                <p class="text-xs text-gray-400 mt-1" x-text="currentFrame.note"></p>
-                            </div>
-                            <span class="label-mark" x-text="(algorithmLab.frameIndex + 1) + '/' + currentAlgorithm.frames.length"></span>
-                        </div>
-
-                        <div class="h-1.5 rounded-full bg-white overflow-hidden mb-5">
-                            <div class="h-full bg-gray-900 transition-all duration-500"
-                                :style="'width:' + algorithmProgress + '%'"></div>
-                        </div>
-
-                        <template x-if="algorithmLab.selected === 'scheduling'">
-                            <div class="space-y-4">
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                    <div class="bg-white border border-gray-100 rounded-xl p-4">
-                                        <p class="text-xs text-gray-400 mb-2">就绪队列</p>
-                                        <div class="flex flex-wrap gap-2 min-h-10">
-                                            <template x-for="proc in currentFrame.ready" :key="proc">
-                                                <span class="label-mark" x-text="proc"></span>
-                                            </template>
-                                        </div>
-                                    </div>
-                                    <div class="bg-white border border-gray-100 rounded-xl p-4">
-                                        <p class="text-xs text-gray-400 mb-2">CPU</p>
-                                        <div class="h-16 rounded-xl border flex items-center justify-center text-lg font-bold transition-all duration-500"
-                                            :class="currentFrame.cpu ? 'bg-emerald-100 border-emerald-200 text-emerald-800' : 'bg-gray-50 border-gray-100 text-gray-300'"
-                                            x-text="currentFrame.cpu || 'IDLE'"></div>
-                                    </div>
-                                    <div class="bg-white border border-gray-100 rounded-xl p-4">
-                                        <p class="text-xs text-gray-400 mb-2">完成队列</p>
-                                        <div class="flex flex-wrap gap-2 min-h-10">
-                                            <template x-for="proc in currentFrame.done" :key="proc">
-                                                <span class="label-mark" x-text="proc"></span>
-                                            </template>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="bg-white border border-gray-100 rounded-xl p-4">
-                                    <p class="text-xs text-gray-400 mb-3">甘特图</p>
-                                    <div class="grid grid-cols-8 gap-1">
-                                        <template x-for="(slot, index) in currentFrame.gantt" :key="index">
-                                            <div class="h-12 rounded-lg border text-xs flex items-center justify-center transition-all duration-500"
-                                                :class="slot ? colorClass(index + 1) : 'bg-gray-50 border-gray-100 text-gray-300'"
-                                                x-text="slot || '-'"></div>
-                                        </template>
-                                    </div>
-                                </div>
-                            </div>
-                        </template>
-
-                        <template x-if="algorithmLab.selected === 'memory'">
-                            <div class="space-y-4">
-                                <div class="bg-white border border-gray-100 rounded-xl p-4">
-                                    <div class="flex items-center justify-between mb-3">
-                                        <p class="text-xs text-gray-400">动态分区</p>
-                                        <span class="text-xs text-gray-500" x-text="currentFrame.request"></span>
-                                    </div>
-                                    <div class="h-24 flex rounded-xl overflow-hidden border border-gray-100 bg-gray-50">
-                                        <template x-for="seg in currentFrame.segments" :key="seg.label + seg.size">
-                                            <div class="flex flex-col items-center justify-center border-r border-white text-[11px] transition-all duration-700"
-                                                :class="seg.type === 'free' ? 'bg-gray-100 text-gray-500' : (seg.type === 'chosen' ? 'bg-emerald-100 text-emerald-800' : 'bg-cyan-100 text-cyan-800')"
-                                                :style="'width:' + seg.size + '%'">
-                                                <span class="font-semibold" x-text="seg.label"></span>
-                                                <span x-text="seg.size + '%'"></span>
-                                            </div>
-                                        </template>
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                    <template x-for="metric in currentFrame.metrics" :key="metric.label">
-                                        <div class="bg-white border border-gray-100 rounded-xl p-4">
-                                            <p class="text-xs text-gray-400" x-text="metric.label"></p>
-                                            <p class="text-xl font-bold text-gray-800 mt-1" x-text="metric.value"></p>
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-                        </template>
-
-                        <template x-if="algorithmLab.selected === 'paging'">
-                            <div class="space-y-4">
-                                <div class="bg-white border border-gray-100 rounded-xl p-4">
-                                    <p class="text-xs text-gray-400 mb-3">页面访问串</p>
-                                    <div class="grid grid-cols-10 gap-1">
-                                        <template x-for="(page, index) in currentAlgorithm.reference" :key="index">
-                                            <div class="h-9 rounded-lg border text-xs flex items-center justify-center"
-                                                :class="index === currentFrame.pointer ? 'bg-gray-900 text-white border-gray-900' : 'bg-gray-50 border-gray-100 text-gray-500'"
-                                                x-text="page"></div>
-                                        </template>
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-3 gap-3">
-                                    <template x-for="(frame, index) in currentFrame.frames" :key="index">
-                                        <div class="bg-white border border-gray-100 rounded-xl p-5 text-center">
-                                            <p class="text-xs text-gray-400 mb-2" x-text="'物理块 ' + (index + 1)"></p>
-                                            <div class="h-16 rounded-xl flex items-center justify-center text-2xl font-bold transition-all duration-500"
-                                                :class="currentFrame.changed === index ? 'bg-amber-100 text-amber-800' : 'bg-blue-50 text-blue-700'"
-                                                x-text="frame || '-'"></div>
-                                        </div>
-                                    </template>
-                                </div>
-                                <div class="bg-white border border-gray-100 rounded-xl p-4 flex items-center justify-between">
-                                    <span class="text-xs text-gray-400">缺页次数</span>
-                                    <span class="text-2xl font-bold text-gray-800" x-text="currentFrame.faults"></span>
-                                </div>
-                            </div>
-                        </template>
-
-                        <template x-if="algorithmLab.selected === 'sync'">
-                            <div class="space-y-4">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <div class="bg-white border border-gray-100 rounded-xl p-4">
-                                        <p class="text-xs text-gray-400 mb-2">生产者</p>
-                                        <div class="rounded-xl px-4 py-5 text-center text-sm font-semibold"
-                                            :class="currentFrame.producer === '运行' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-500'"
-                                            x-text="currentFrame.producer"></div>
-                                    </div>
-                                    <div class="bg-white border border-gray-100 rounded-xl p-4">
-                                        <p class="text-xs text-gray-400 mb-2">消费者</p>
-                                        <div class="rounded-xl px-4 py-5 text-center text-sm font-semibold"
-                                            :class="currentFrame.consumer === '运行' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-500'"
-                                            x-text="currentFrame.consumer"></div>
-                                    </div>
-                                </div>
-                                <div class="bg-white border border-gray-100 rounded-xl p-4">
-                                    <p class="text-xs text-gray-400 mb-3">缓冲区</p>
-                                    <div class="grid grid-cols-5 gap-2">
-                                        <template x-for="(cell, index) in currentFrame.buffer" :key="index">
-                                            <div class="h-14 rounded-xl border flex items-center justify-center text-sm font-bold transition-all duration-500"
-                                                :class="cell ? 'bg-cyan-100 border-cyan-200 text-cyan-800' : 'bg-gray-50 border-gray-100 text-gray-300'"
-                                                x-text="cell || '-'"></div>
-                                        </template>
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-3 gap-3">
-                                    <template x-for="sem in currentFrame.semaphores" :key="sem.label">
-                                        <div class="bg-white border border-gray-100 rounded-xl p-4">
-                                            <p class="text-xs text-gray-400" x-text="sem.label"></p>
-                                            <p class="text-xl font-bold text-gray-800 mt-1" x-text="sem.value"></p>
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-            </section>
-
-            <div class="grid grid-cols-1 xl:grid-cols-[330px_1fr] gap-5">
-                <section class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm h-fit">
-                    <h3 class="text-sm font-semibold text-gray-700 mb-4">创建进程</h3>
-                    <div class="space-y-3">
-                        <div class="grid grid-cols-2 gap-3">
-                            <label class="text-xs text-gray-500">
-                                内存 MB
-                                <input x-model.number="form.memory" type="number" min="32" max="512" step="16"
-                                    class="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-brand-400">
-                            </label>
-                            <label class="text-xs text-gray-500">
-                                CPU 时间
-                                <input x-model.number="form.burst" type="number" min="2" max="30" step="1"
-                                    class="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-brand-400">
-                            </label>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <label class="text-xs text-gray-500">
-                                线程数
-                                <input x-model.number="form.threads" type="number" min="1" max="8" step="1"
-                                    class="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-brand-400">
-                            </label>
-                            <label class="text-xs text-gray-500">
-                                优先级
-                                <input x-model.number="form.priority" type="number" min="1" max="9" step="1"
-                                    class="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-brand-400">
-                            </label>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <label class="text-xs text-gray-500">
-                                调度算法
-                                <select x-model="scheduler"
-                                    class="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-brand-400">
-                                    <option value="rr">时间片轮转 RR</option>
-                                    <option value="fcfs">先来先服务 FCFS</option>
-                                    <option value="priority">优先级调度</option>
-                                </select>
-                            </label>
-                            <label class="text-xs text-gray-500">
-                                分区算法
-                                <select x-model="fitStrategy"
-                                    class="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-brand-400">
-                                    <option value="first">首次适应</option>
-                                    <option value="best">最佳适应</option>
-                                    <option value="worst">最坏适应</option>
-                                </select>
-                            </label>
-                        </div>
-                        <button @click="createProcess()"
-                            class="w-full bg-gradient-to-r from-cyan-500 to-emerald-500 text-white rounded-xl px-4 py-3 text-sm font-semibold shadow-sm hover:shadow-md transition-all">
-                            创建并装入内存
                         </button>
-                        <p x-show="message" class="text-xs rounded-lg px-3 py-2"
-                            :class="messageType === 'error' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'"
-                            x-text="message"></p>
-                    </div>
-
-                    <div class="mt-5 pt-4 border-t border-gray-100 space-y-2">
-                        <button @click="blockRunning()" class="w-full text-xs bg-amber-50 text-amber-700 border border-amber-100 rounded-lg px-3 py-2 hover:bg-amber-100">阻塞当前运行进程 I/O</button>
-                        <button @click="wakeOne()" class="w-full text-xs bg-blue-50 text-blue-700 border border-blue-100 rounded-lg px-3 py-2 hover:bg-blue-100">唤醒一个阻塞进程</button>
-                        <button @click="compactMemory()" class="w-full text-xs bg-violet-50 text-violet-700 border border-violet-100 rounded-lg px-3 py-2 hover:bg-violet-100">内存紧凑</button>
-                    </div>
-
-                    <div class="mt-5 bg-gray-50 rounded-xl p-3 text-xs text-gray-500 leading-relaxed">
-                        <p class="font-semibold text-gray-700 mb-1">观察提示</p>
-                        <p>创建进程会先申请连续内存分区，再进入就绪队列。调度器把就绪进程放到 CPU 上运行；阻塞进程等待 I/O，暂时不能被调度。</p>
-                    </div>
-                </section>
-
-                <section class="space-y-5">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-                            <p class="text-xs text-gray-400">CPU 当前进程</p>
-                            <p class="text-2xl font-bold text-gray-800 mt-1" x-text="runningProcess ? runningProcess.name : '空闲'"></p>
-                            <p class="text-xs text-gray-400 mt-1" x-text="runningProcess ? '剩余 ' + runningProcess.remaining + ' tick' : '等待就绪队列'"></p>
-                        </div>
-                        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-                            <p class="text-xs text-gray-400">就绪队列</p>
-                            <p class="text-2xl font-bold text-gray-800 mt-1" x-text="readyQueue.length"></p>
-                            <p class="text-xs text-gray-400 mt-1">等待 CPU 时间片</p>
-                        </div>
-                        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-                            <p class="text-xs text-gray-400">阻塞队列</p>
-                            <p class="text-2xl font-bold text-gray-800 mt-1" x-text="blockedQueue.length"></p>
-                            <p class="text-xs text-gray-400 mt-1">等待 I/O 完成</p>
-                        </div>
-                        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-                            <p class="text-xs text-gray-400">内存碎片</p>
-                            <p class="text-2xl font-bold text-gray-800 mt-1" x-text="freePartitions.length"></p>
-                            <p class="text-xs text-gray-400 mt-1" x-text="'最大空闲 ' + largestFree + ' MB'"></p>
-                        </div>
-                    </div>
-
-                    <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                        <div class="flex items-center justify-between mb-4">
-                            <div>
-                                <h3 class="text-sm font-semibold text-gray-700">CPU 调度时间线</h3>
-                                <p class="text-xs text-gray-400 mt-1">展示最近 28 个时钟周期中哪个进程占用 CPU。</p>
-                            </div>
-                            <span class="label-mark" x-text="schedulerLabel"></span>
-                        </div>
-                        <div class="grid gap-1" style="grid-template-columns: repeat(14, minmax(0, 1fr));">
-                            <template x-for="(slot, index) in timeline" :key="index">
-                                <div class="h-10 rounded-lg border text-[10px] flex items-center justify-center"
-                                    :class="slot.pid ? colorClass(slot.pid) : 'bg-gray-50 border-gray-100 text-gray-300'"
-                                    x-text="slot.name || '-'"></div>
-                            </template>
-                        </div>
-                    </div>
-
-                    <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                        <div class="flex items-center justify-between mb-4">
-                            <div>
-                                <h3 class="text-sm font-semibold text-gray-700">动态分区内存</h3>
-                                <p class="text-xs text-gray-400 mt-1">连续内存被划分成已分配分区和空闲分区，释放后会尝试合并相邻空闲块。</p>
-                            </div>
-                            <span class="text-xs text-gray-400" x-text="usedMemory + ' / ' + totalMemory + ' MB'"></span>
-                        </div>
-                        <div class="h-20 w-full flex overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
-                            <template x-for="part in memory" :key="part.id">
-                                <div class="h-full flex flex-col items-center justify-center border-r border-white/70 text-[11px] px-1"
-                                    :class="part.pid ? colorClass(part.pid) : 'bg-gray-100 text-gray-400'"
-                                    :style="'width:' + Math.max(part.size / totalMemory * 100, 3) + '%'">
-                                    <span class="font-semibold truncate" x-text="part.pid ? processName(part.pid) : '空闲'"></span>
-                                    <span x-text="part.size + 'M'"></span>
-                                </div>
-                            </template>
-                        </div>
-                        <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
-                            <div class="bg-gray-50 rounded-lg p-2">
-                                <span class="text-gray-400">总内存</span>
-                                <span class="float-right font-semibold text-gray-700" x-text="totalMemory + ' MB'"></span>
-                            </div>
-                            <div class="bg-gray-50 rounded-lg p-2">
-                                <span class="text-gray-400">已使用</span>
-                                <span class="float-right font-semibold text-gray-700" x-text="usedMemory + ' MB'"></span>
-                            </div>
-                            <div class="bg-gray-50 rounded-lg p-2">
-                                <span class="text-gray-400">空闲分区</span>
-                                <span class="float-right font-semibold text-gray-700" x-text="freePartitions.length + ' 个'"></span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            <div class="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-5">
-                <section class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-sm font-semibold text-gray-700">进程控制块 PCB</h3>
-                        <span class="text-xs text-gray-400" x-text="processes.length + ' 个进程'"></span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-xs">
-                            <thead>
-                                <tr class="text-left text-gray-400 border-b border-gray-100">
-                                    <th class="py-2 pr-3 font-medium">PID</th>
-                                    <th class="py-2 pr-3 font-medium">名称</th>
-                                    <th class="py-2 pr-3 font-medium">状态</th>
-                                    <th class="py-2 pr-3 font-medium">优先级</th>
-                                    <th class="py-2 pr-3 font-medium">内存</th>
-                                    <th class="py-2 pr-3 font-medium">剩余</th>
-                                    <th class="py-2 text-right font-medium">操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template x-for="proc in processes" :key="proc.pid">
-                                    <tr class="border-b border-gray-50 text-gray-700">
-                                        <td class="py-2 pr-3 tabular-nums" x-text="proc.pid"></td>
-                                        <td class="py-2 pr-3 font-medium" x-text="proc.name"></td>
-                                        <td class="py-2 pr-3">
-                                            <span class="rounded-full px-2 py-1" :class="stateClass(proc.state)" x-text="stateLabel(proc.state)"></span>
-                                        </td>
-                                        <td class="py-2 pr-3 tabular-nums" x-text="proc.priority"></td>
-                                        <td class="py-2 pr-3" x-text="proc.memory + ' MB'"></td>
-                                        <td class="py-2 pr-3 tabular-nums" x-text="proc.remaining"></td>
-                                        <td class="py-2 text-right">
-                                            <button @click="terminateProcess(proc.pid)" class="text-rose-600 hover:text-rose-700">终止</button>
-                                        </td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div x-show="processes.length === 0" class="text-center py-8 text-sm text-gray-400">暂无进程，先创建一个进程观察生命周期。</div>
-                </section>
-
-                <section class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                    <h3 class="text-sm font-semibold text-gray-700 mb-4">线程视图</h3>
-                    <div class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
-                        <template x-for="proc in processes" :key="'threads-' + proc.pid">
-                            <div class="border border-gray-100 rounded-xl p-3">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="label-mark" x-text="proc.name"></span>
-                                    <span class="text-xs text-gray-400" x-text="stateLabel(proc.state)"></span>
-                                </div>
-                                <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                    <template x-for="thread in proc.threads" :key="thread.tid">
-                                        <div class="rounded-lg px-3 py-2 text-xs border" :class="threadClass(thread.state)">
-                                            <div class="font-semibold" x-text="'T' + thread.tid"></div>
-                                            <div class="text-[11px]" x-text="stateLabel(thread.state)"></div>
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
-                    <div x-show="processes.length === 0" class="text-center py-8 text-sm text-gray-400">线程会随进程一起创建。</div>
-                </section>
-            </div>
-
-            <section class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                <div class="flex items-center justify-between mb-3">
-                    <h3 class="text-sm font-semibold text-gray-700">事件日志</h3>
-                    <button @click="logs = []" class="text-xs text-gray-400 hover:text-gray-600">清空</button>
-                </div>
-                <div class="grid gap-1 max-h-52 overflow-y-auto text-xs">
-                    <template x-for="(log, index) in logs" :key="index">
-                        <div class="flex gap-2 text-gray-600">
-                            <span class="text-gray-400 tabular-nums" x-text="'t=' + log.time"></span>
-                            <span x-text="log.text"></span>
-                        </div>
                     </template>
                 </div>
-            </section>
+            </div>
+
+            <div x-show="selected" x-cloak>
+                <section class="stage">
+                    <div class="stage-head">
+                        <div class="flex items-center gap-3">
+                            <span class="card-mark" x-text="current.mark"></span>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900" x-text="current.title"></h3>
+                                <p class="text-xs text-gray-500 mt-1" x-text="current.desc"></p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="rounded-lg bg-gray-100 px-2 py-1 text-xs font-bold text-gray-700" x-text="(frameIndex + 1) + '/' + current.frames.length"></span>
+                            <button @click="resetAnimation()" class="toolbar-btn">重播</button>
+                        </div>
+                    </div>
+
+                    <div class="px-4 pt-4">
+                        <div class="progress-track">
+                            <div class="progress-fill" :style="'width:' + progress + '%'"></div>
+                        </div>
+                    </div>
+
+                    <div class="experiment-grid">
+                        <div class="visual-side">
+                            <div class="panel-title">
+                                <span>动态展示</span>
+                                <span x-text="frame.note || frame.action || '观察当前步骤'"></span>
+                            </div>
+                            <div class="visual-canvas">
+                                <template x-if="current.kind === 'schedule'">
+                                    <div class="space-y-5">
+                                        <div class="flow-grid">
+                                            <div class="mini-card min-h-32">
+                                                <div class="flex items-center justify-between mb-3">
+                                                    <p class="text-xs font-semibold text-gray-700">就绪队列</p>
+                                                    <span class="text-xs text-gray-400" x-text="frame.ready.length + ' 个'"></span>
+                                                </div>
+                                                <div class="flex flex-wrap gap-2">
+                                                    <template x-for="proc in frame.ready" :key="proc">
+                                                        <span class="state-pill" x-text="proc"></span>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                            <div class="flow-line"></div>
+                                            <div class="mini-card min-h-36 flex flex-col items-center justify-center bg-emerald-50">
+                                                <p class="text-xs text-emerald-700 font-semibold">CPU 核心</p>
+                                                <p class="mt-2 text-3xl font-bold text-gray-900" x-text="frame.cpu || '空闲'"></p>
+                                                <p class="mt-1 text-xs text-gray-500 text-center" x-text="frame.note"></p>
+                                            </div>
+                                            <div class="flow-line"></div>
+                                            <div class="mini-card min-h-32">
+                                                <div class="flex items-center justify-between mb-3">
+                                                    <p class="text-xs font-semibold text-gray-700">完成队列</p>
+                                                    <span class="text-xs text-gray-400" x-text="frame.done.length + ' 个'"></span>
+                                                </div>
+                                                <div class="flex flex-wrap gap-2">
+                                                    <template x-for="proc in frame.done" :key="proc">
+                                                        <span class="state-pill bg-emerald-50 border-emerald-100 text-emerald-700" x-text="proc"></span>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="gantt-card">
+                                            <div class="gantt-head">
+                                                <div>
+                                                    <p class="gantt-kicker">CPU Timeline</p>
+                                                    <p class="mt-1 text-sm font-semibold text-gray-900">进程调度甘特图</p>
+                                                </div>
+                                                <span class="gantt-status" x-text="frame.cpu ? '正在执行 ' + frame.cpu : (ganttSegments.length ? '当前步骤已结束' : '等待调度')"></span>
+                                            </div>
+                                            <div class="gantt-scroll">
+                                                <div class="gantt-timeline" :style="'--gantt-columns:' + ganttCapacity">
+                                                    <div class="gantt-grid" aria-hidden="true">
+                                                        <template x-for="cell in ganttCapacity" :key="cell">
+                                                            <div class="gantt-cell"></div>
+                                                        </template>
+                                                    </div>
+                                                    <div class="gantt-bars">
+                                                        <template x-for="segment in ganttSegments" :key="segment.start + '-' + segment.label">
+                                                            <div class="gantt-segment"
+                                                                :class="['gantt-tone-' + segment.tone, segment.active ? 'is-active' : '']"
+                                                                :style="'grid-column:' + (segment.start + 1) + ' / span ' + segment.duration"
+                                                                :title="segment.label + '：' + segment.start + ' → ' + segment.end">
+                                                                <span x-text="segment.label"></span>
+                                                                <small x-show="segment.duration > 1" x-text="segment.duration + 't'"></small>
+                                                            </div>
+                                                        </template>
+                                                    </div>
+                                                    <div x-show="!ganttSegments.length" class="gantt-empty">尚未分配 CPU 时间</div>
+                                                    <div class="gantt-axis" aria-label="时间刻度">
+                                                        <template x-for="tick in ganttCapacity" :key="tick">
+                                                            <span class="gantt-tick" x-text="tick - 1"></span>
+                                                        </template>
+                                                        <span class="gantt-end-tick" x-text="ganttCapacity"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <template x-if="current.kind === 'memory'">
+                                    <div class="space-y-5">
+                                        <div class="mini-card">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <p class="text-xs font-semibold text-gray-700">动态分区内存</p>
+                                                <span class="text-xs text-gray-500" x-text="frame.action"></span>
+                                            </div>
+                                            <div class="memory-row">
+                                                <template x-for="seg in frame.segments" :key="seg.label + seg.size + seg.type">
+                                                    <div class="memory-seg"
+                                                        :class="seg.type === 'free' ? 'bg-gray-100 text-gray-500' : (seg.type === 'hit' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800')"
+                                                        :style="'width:' + seg.size + '%'">
+                                                        <span x-text="seg.label"></span>
+                                                        <span x-text="seg.size + '%'"></span>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-3 gap-3">
+                                            <template x-for="metric in frame.metrics" :key="metric.label">
+                                                <div class="mini-card">
+                                                    <p class="text-xs text-gray-500" x-text="metric.label"></p>
+                                                    <p class="mt-1 text-xl font-bold text-gray-900" x-text="metric.value"></p>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <template x-if="current.kind === 'page'">
+                                    <div class="space-y-5">
+                                        <div class="mini-card">
+                                            <p class="text-xs font-semibold text-gray-700 mb-3">页面访问串</p>
+                                            <div class="grid grid-cols-10 gap-1">
+                                                <template x-for="(page, index) in current.reference" :key="index">
+                                                    <div class="h-10 rounded-lg border text-xs flex items-center justify-center"
+                                                        :class="index === frame.pointer ? 'bg-gray-900 text-white border-gray-900' : 'bg-white border-gray-100 text-gray-500'"
+                                                        x-text="page"></div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-3 gap-3">
+                                            <template x-for="(block, index) in frame.blocks" :key="index">
+                                                <div class="mini-card text-center">
+                                                    <p class="text-xs text-gray-500 mb-2" x-text="'物理块 ' + (index + 1)"></p>
+                                                    <div class="h-16 rounded-xl flex items-center justify-center text-2xl font-bold"
+                                                        :class="frame.changed === index ? 'bg-amber-100 text-amber-800' : 'bg-blue-50 text-blue-700'"
+                                                        x-text="block || '-'"></div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                        <div class="mini-card flex items-center justify-between">
+                                            <span class="text-xs text-gray-500">缺页次数</span>
+                                            <span class="text-2xl font-bold text-gray-900" x-text="frame.faults"></span>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <template x-if="current.kind === 'thread'">
+                                    <div class="space-y-5">
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div class="mini-card text-center">
+                                                <p class="text-xs text-gray-500 mb-2">生产者线程</p>
+                                                <div class="h-16 rounded-xl flex items-center justify-center text-lg font-bold"
+                                                    :class="frame.producer === '运行' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-500'"
+                                                    x-text="frame.producer"></div>
+                                            </div>
+                                            <div class="mini-card text-center">
+                                                <p class="text-xs text-gray-500 mb-2">消费者线程</p>
+                                                <div class="h-16 rounded-xl flex items-center justify-center text-lg font-bold"
+                                                    :class="frame.consumer === '运行' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-500'"
+                                                    x-text="frame.consumer"></div>
+                                            </div>
+                                        </div>
+                                        <div class="mini-card">
+                                            <p class="text-xs font-semibold text-gray-700 mb-3">共享缓冲区</p>
+                                            <div class="grid grid-cols-5 gap-2">
+                                                <template x-for="(cell, index) in frame.buffer" :key="index">
+                                                    <div class="h-14 rounded-xl border flex items-center justify-center text-sm font-bold"
+                                                        :class="cell ? 'bg-blue-100 border-blue-200 text-blue-800' : 'bg-white border-gray-100 text-gray-300'"
+                                                        x-text="cell || '-'"></div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-3 gap-3">
+                                            <template x-for="sem in frame.semaphores" :key="sem.label">
+                                                <div class="mini-card">
+                                                    <p class="text-xs text-gray-500" x-text="sem.label"></p>
+                                                    <p class="mt-1 text-xl font-bold text-gray-900" x-text="sem.value"></p>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <template x-if="current.kind === 'deadlock'">
+                                    <div class="space-y-5">
+                                        <div class="grid grid-cols-3 gap-4">
+                                            <template x-for="proc in frame.processes" :key="proc.name">
+                                                <div class="mini-card">
+                                                    <p class="text-sm font-semibold text-gray-800" x-text="proc.name"></p>
+                                                    <p class="mt-2 text-xs text-gray-500">已分配</p>
+                                                    <p class="text-lg font-bold text-gray-900" x-text="proc.allocated"></p>
+                                                    <p class="mt-2 text-xs text-gray-500">还需要</p>
+                                                    <p class="text-lg font-bold" :class="proc.safe ? 'text-emerald-700' : 'text-rose-700'" x-text="proc.need"></p>
+                                                </div>
+                                            </template>
+                                        </div>
+                                        <div class="mini-card">
+                                            <p class="text-xs text-gray-500">安全序列</p>
+                                            <p class="mt-2 text-2xl font-bold text-gray-900" x-text="frame.sequence"></p>
+                                            <p class="mt-2 text-xs text-gray-500" x-text="frame.note"></p>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <aside class="code-side">
+                            <div class="panel-title">
+                                <span>对应代码</span>
+                                <span x-text="current.codeLang"></span>
+                            </div>
+                            <pre class="code-pre" x-text="current.code"></pre>
+                        </aside>
+                    </div>
+                </section>
+            </div>
         </div>
     </div>
 </div>
@@ -467,236 +743,379 @@
 {% block scripts %}
 <script>
 document.addEventListener('alpine:init', () => {
-    Alpine.data('virtualOsLab', () => ({
-        totalMemory: 1024,
-        quantum: 3,
-        clock: 0,
-        nextPid: 1,
+    Alpine.data('osAlgorithmLab', () => ({
+        selected: '',
+        frameIndex: 0,
         running: false,
         timer: null,
-        scheduler: 'rr',
-        fitStrategy: 'first',
-        form: { memory: 128, burst: 10, threads: 3, priority: 5 },
-        processes: [],
-        memory: [{ id: 'free-0', start: 0, size: 1024, pid: null }],
-        timeline: [],
-        logs: [],
-        message: '',
-        messageType: 'info',
-        algorithmTabs: [
-            { id: 'scheduling', label: '进程调度' },
-            { id: 'memory', label: '内存分配' },
-            { id: 'paging', label: '页面置换' },
-            { id: 'sync', label: '线程同步' },
+        maxFrameReached: 0,
+        completedAlgorithms: {},
+        algorithms: [
+            { id: 'fcfs', mark: '先', title: 'FCFS 先来先服务', tag: '调度', desc: '按到达顺序依次占用 CPU，非抢占式。', points: ['到达队列', '非抢占', '平均等待'] },
+            { id: 'sjf', mark: '短', title: 'SJF 短作业优先', tag: '调度', desc: '优先执行估计运行时间最短的进程。', points: ['最短运行', '非抢占', '等待时间'] },
+            { id: 'rr', mark: '轮', title: 'RR 时间片轮转', tag: '调度', desc: '每个进程获得固定时间片，用完回到队尾。', points: ['时间片', '抢占', '甘特图'] },
+            { id: 'priority', mark: '优', title: '优先级调度', tag: '调度', desc: '根据优先级选择进程，可观察饥饿风险。', points: ['优先级', '老化', '饥饿'] },
+            { id: 'firstFit', mark: '首', title: '首次适应分配', tag: '内存', desc: '从低地址开始扫描，命中第一个足够大的空闲区。', points: ['低地址扫描', '切分', '外部碎片'] },
+            { id: 'bestFit', mark: '佳', title: '最佳适应分配', tag: '内存', desc: '选择满足请求且剩余空间最小的空闲区。', points: ['最小剩余', '空闲表', '碎片'] },
+            { id: 'worstFit', mark: '大', title: '最坏适应分配', tag: '内存', desc: '选择最大的空闲区，尽量留下较大的剩余块。', points: ['最大空闲块', '切分', '再分配'] },
+            { id: 'fifoPage', mark: 'F', title: 'FIFO 页面置换', tag: '页面', desc: '淘汰最早进入内存的页面。', points: ['先进先出', '队列', '缺页'] },
+            { id: 'lruPage', mark: 'L', title: 'LRU 页面置换', tag: '页面', desc: '淘汰最近最久未访问的页面。', points: ['访问历史', '最近最久', '缺页'] },
+            { id: 'optPage', mark: 'O', title: 'OPT 最佳置换', tag: '页面', desc: '淘汰未来最长时间不会被访问的页面。', points: ['未来访问', '理论最优', '对照'] },
+            { id: 'producerConsumer', mark: '线', title: '生产者消费者', tag: '同步', desc: '用 empty、full、mutex 协调共享缓冲区。', points: ['信号量', '临界区', '缓冲区'] },
+            { id: 'banker', mark: '锁', title: '银行家算法', tag: '死锁', desc: '通过安全性检查判断资源分配是否会进入危险状态。', points: ['Need', 'Work', '安全序列'] },
         ],
-        algorithmLanguages: [
-            { id: 'pseudo', label: '伪代码' },
-            { id: 'python', label: 'Python' },
-            { id: 'c', label: 'C' },
-        ],
-        algorithmLab: {
-            selected: 'scheduling',
-            language: 'pseudo',
-            editor: '',
-            frameIndex: 0,
-            running: false,
-            timer: null,
+
+        get current() {
+            return this.scenarios()[this.selected] || this.scenarios().fcfs;
+        },
+        get frame() {
+            return this.current.frames[this.frameIndex] || this.current.frames[0];
+        },
+        get progress() {
+            const total = Math.max(1, this.current.frames.length - 1);
+            return Math.round((this.frameIndex / total) * 100);
+        },
+        get ganttCapacity() {
+            return Math.max(8, ...this.current.frames.map(item => (item.gantt || []).length));
+        },
+        get ganttSegments() {
+            const slots = this.frame.gantt || [];
+            const segments = [];
+            slots.forEach((label, index) => {
+                const previous = segments[segments.length - 1];
+                if (previous && previous.label === label) {
+                    previous.duration += 1;
+                    previous.end += 1;
+                    return;
+                }
+                const processNumber = Number(String(label).match(/\d+/)?.[0] || segments.length);
+                segments.push({
+                    label,
+                    start: index,
+                    end: index + 1,
+                    duration: 1,
+                    tone: processNumber % 5,
+                    active: false,
+                });
+            });
+            const latest = segments[segments.length - 1];
+            if (latest && this.frame.cpu === latest.label) latest.active = true;
+            return segments;
         },
 
-        get runningProcess() {
-            return this.processes.find(p => p.state === 'running') || null;
+        resetLab() {
+            if (this.selected) this.logLabEvent('reset_lab');
+            this.stopRun();
+            this.selected = '';
+            this.frameIndex = 0;
+            this.maxFrameReached = 0;
         },
-        get readyQueue() {
-            return this.processes.filter(p => p.state === 'ready');
+        openAlgorithm(id) {
+            this.selected = id;
+            this.frameIndex = 0;
+            this.maxFrameReached = 0;
+            this.stopRun();
+            this.logLabEvent('open_algorithm');
         },
-        get blockedQueue() {
-            return this.processes.filter(p => p.state === 'blocked');
+        backToCards() {
+            this.logLabEvent('back_to_cards', { max_frame_reached: this.maxFrameReached });
+            this.stopRun();
+            this.selected = '';
+            this.frameIndex = 0;
+            this.maxFrameReached = 0;
         },
-        get freePartitions() {
-            return this.memory.filter(p => !p.pid);
+        resetAnimation() {
+            this.frameIndex = 0;
+            this.maxFrameReached = 0;
+            this.stopRun();
+            this.logLabEvent('reset_animation');
         },
-        get usedMemory() {
-            return this.memory.filter(p => p.pid).reduce((sum, p) => sum + p.size, 0);
+        nextFrame() {
+            const last = this.current.frames.length - 1;
+            this.frameIndex = this.frameIndex >= last ? 0 : this.frameIndex + 1;
+            this.maxFrameReached = Math.max(this.maxFrameReached, this.frameIndex);
+            this.logLabEvent('step');
+            if (this.frameIndex === last && !this.completedAlgorithms[this.selected]) {
+                this.completedAlgorithms[this.selected] = true;
+                this.logLabEvent('complete_algorithm');
+            }
         },
-        get largestFree() {
-            return Math.max(0, ...this.freePartitions.map(p => p.size));
+        toggleRun() {
+            this.running = !this.running;
+            if (!this.running) {
+                this.logLabEvent('pause_playback');
+                this.stopRun();
+                return;
+            }
+            this.logLabEvent('start_playback');
+            this.timer = setInterval(() => this.nextFrame(), 2200);
         },
-        get schedulerLabel() {
-            return { rr: 'RR', fcfs: 'FCFS', priority: '优先级' }[this.scheduler] || 'RR';
+        stopRun() {
+            if (this.timer) clearInterval(this.timer);
+            this.timer = null;
+            this.running = false;
         },
-        get currentAlgorithm() {
-            return this.algorithmScenarios()[this.algorithmLab.selected] || this.algorithmScenarios().scheduling;
-        },
-        get currentFrame() {
-            return this.currentAlgorithm.frames[this.algorithmLab.frameIndex] || this.currentAlgorithm.frames[0];
-        },
-        get algorithmProgress() {
-            const total = Math.max(1, this.currentAlgorithm.frames.length - 1);
-            return Math.round((this.algorithmLab.frameIndex / total) * 100);
+        async logLabEvent(eventType, metadata = {}) {
+            const sid = Alpine.store('app')?.currentSessionId;
+            if (!sid || !this.selected) return;
+            const current = this.current;
+            try {
+                await fetch('/api/os-lab/events', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sid,
+                        algorithm_id: this.selected,
+                        algorithm_title: current.title,
+                        event_type: eventType,
+                        frame_index: this.frameIndex,
+                        total_frames: current.frames.length,
+                        metadata,
+                    }),
+                });
+            } catch (error) {
+                console.warn('Failed to record OS lab event', error);
+            }
         },
 
-        init() {
-            this.loadAlgorithmCode();
-            this.seed();
-            this.timer = setInterval(() => {
-                if (this.running) this.tick();
-            }, 850);
-        },
-
-        algorithmScenarios() {
+        scenarios() {
             return {
-                scheduling: {
-                    title: '时间片轮转 RR 调度',
-                    subtitle: '从就绪队列取队首进程，运行一个时间片后未完成则回到队尾。',
-                    explain: 'RR 调度让多个进程轮流占用 CPU，适合分时系统。它牺牲一部分上下文切换开销，换来较好的响应时间和公平性。',
-                    points: ['就绪队列按先后顺序轮转', '时间片用完但未结束时回到队尾', '甘特图能直观看到 CPU 归属变化'],
-                    snippets: {
-                        pseudo: `queue = [P1, P2, P3]
-quantum = 2
+                fcfs: {
+                    kind: 'schedule',
+                    mark: '先',
+                    title: 'FCFS 先来先服务',
+                    desc: '按到达顺序依次执行，当前进程完成前不会被抢占。',
+                    codeLang: '伪代码',
+                    code: `ready_queue.sort_by(arrival_time)
 
-while queue is not empty:
-    process = queue.pop_front()
-    run process for at most quantum ticks
+while ready_queue is not empty:
+    proc = ready_queue.pop_front()
+    dispatch(proc)
+    run until proc.finished
 
-    if process.remaining_time > 0:
-        queue.push_back(process)
-    else:
-        release process resources`,
-                        python: `from collections import deque
-
-ready = deque(["P1", "P2", "P3"])
-remaining = {"P1": 4, "P2": 3, "P3": 2}
-quantum = 2
-
-while ready:
-    pid = ready.popleft()
-    used = min(quantum, remaining[pid])
-    remaining[pid] -= used
-
-    if remaining[pid] > 0:
-        ready.append(pid)
-    else:
-        print(pid, "finished")`,
-                        c: `while (!queue_empty(&ready)) {
-    PCB *p = pop_front(&ready);
-    int used = min(QUANTUM, p->remaining);
-    p->remaining -= used;
-
-    if (p->remaining > 0) {
-        push_back(&ready, p);
-    } else {
-        release_process(p);
-    }
-}`,
-                    },
+    proc.finish_time = clock
+    done_queue.push(proc)`,
                     frames: [
-                        { title: '初始就绪队列', note: 'P1、P2、P3 等待 CPU，调度器准备取队首。', ready: ['P1', 'P2', 'P3'], cpu: '', done: [], gantt: [] },
-                        { title: 'P1 获得 CPU', note: 'P1 运行一个时间片，剩余时间还未归零。', ready: ['P2', 'P3'], cpu: 'P1', done: [], gantt: ['P1'] },
-                        { title: 'P1 回到队尾', note: '时间片用完，P1 未完成，重新排到队尾。', ready: ['P2', 'P3', 'P1'], cpu: '', done: [], gantt: ['P1', 'P1'] },
-                        { title: 'P2 获得 CPU', note: '调度器继续取队首，P2 开始运行。', ready: ['P3', 'P1'], cpu: 'P2', done: [], gantt: ['P1', 'P1', 'P2'] },
-                        { title: 'P3 运行并完成', note: 'P3 的剩余时间较短，一个时间片内完成。', ready: ['P1', 'P2'], cpu: 'P3', done: ['P3'], gantt: ['P1', 'P1', 'P2', 'P2', 'P3'] },
-                        { title: '所有进程完成', note: '就绪队列清空，CPU 回到空闲状态。', ready: [], cpu: '', done: ['P3', 'P1', 'P2'], gantt: ['P1', 'P1', 'P2', 'P2', 'P3', 'P1', 'P1', 'P2'] },
+                        { ready: ['P1', 'P2', 'P3', 'P4'], cpu: '', done: [], gantt: [], note: '按到达时间形成就绪队列' },
+                        { ready: ['P2', 'P3', 'P4'], cpu: 'P1', done: [], gantt: ['P1', 'P1'], note: 'P1 最先到达，直接运行到完成' },
+                        { ready: ['P3', 'P4'], cpu: 'P2', done: ['P1'], gantt: ['P1', 'P1', 'P2'], note: 'P2 进入 CPU，后续短进程也必须等待' },
+                        { ready: ['P4'], cpu: 'P3', done: ['P1', 'P2'], gantt: ['P1', 'P1', 'P2', 'P3'], note: 'P3 运行，FCFS 不重新排序' },
+                        { ready: [], cpu: 'P4', done: ['P1', 'P2', 'P3'], gantt: ['P1', 'P1', 'P2', 'P3', 'P4'], note: 'P4 最后运行' },
+                        { ready: [], cpu: '', done: ['P1', 'P2', 'P3', 'P4'], gantt: ['P1', 'P1', 'P2', 'P3', 'P4', 'P4'], note: '所有进程按到达顺序完成' },
                     ],
                 },
-                memory: {
-                    title: '动态分区内存分配',
-                    subtitle: '按照 First Fit / Best Fit / Worst Fit 在连续空闲分区中选择装入位置。',
-                    explain: '动态分区把内存切成大小不固定的块。进程装入时需要找到足够大的连续空闲区，释放后相邻空闲区可以合并。',
-                    points: ['空闲分区大小影响能否装入进程', '不同适应算法会选择不同空闲块', '释放和紧凑会改变碎片形态'],
-                    snippets: {
-                        pseudo: `request = 180MB
-free_list = [120MB, 260MB, 340MB]
+                sjf: {
+                    kind: 'schedule',
+                    mark: '短',
+                    title: 'SJF 短作业优先',
+                    desc: '从就绪队列中选择估计运行时间最短的进程。',
+                    codeLang: '伪代码',
+                    code: `while unfinished processes exist:
+    ready = processes_arrived_before(clock)
+    proc = min(ready, key = estimated_burst)
 
-if strategy == FIRST_FIT:
-    choose first block >= request
-if strategy == BEST_FIT:
-    choose smallest block >= request
-if strategy == WORST_FIT:
-    choose largest block >= request
-
-split chosen block
-mark allocated partition`,
-                        python: `def best_fit(free_blocks, request):
-    candidates = [b for b in free_blocks if b.size >= request]
-    if not candidates:
-        return None
-    chosen = min(candidates, key=lambda b: b.size)
-    chosen.size -= request
-    return chosen.start`,
-                        c: `Block *best_fit(Block *free_list, int request) {
-    Block *best = NULL;
-    for (Block *b = free_list; b; b = b->next) {
-        if (b->size >= request &&
-            (best == NULL || b->size < best->size)) {
-            best = b;
-        }
-    }
-    return best;
-}`,
-                    },
+    dispatch(proc)
+    run until proc.finished
+    done_queue.push(proc)`,
                     frames: [
-                        { title: '空闲链表扫描', note: '请求 180MB，系统扫描连续空闲分区。', request: '请求 180 MB', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: 'Free', size: 12, type: 'free' }, { label: 'P2', size: 22, type: 'used' }, { label: 'Free', size: 26, type: 'free' }, { label: 'Free', size: 22, type: 'free' }], metrics: [{ label: '请求', value: '180MB' }, { label: '可用块', value: '3' }, { label: '策略', value: 'Best' }] },
-                        { title: '选择最佳适应块', note: 'Best Fit 选择满足请求且最小的 260MB 空闲分区。', request: '选择 260 MB', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: 'Free', size: 12, type: 'free' }, { label: 'P2', size: 22, type: 'used' }, { label: 'Chosen', size: 26, type: 'chosen' }, { label: 'Free', size: 22, type: 'free' }], metrics: [{ label: '内部浪费', value: '0MB' }, { label: '剩余切分', value: '80MB' }, { label: '命中块', value: '260MB' }] },
-                        { title: '切分并装入进程', note: '新进程占用 180MB，原分区剩余 80MB 空闲块。', request: '装入 P3', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: 'Free', size: 12, type: 'free' }, { label: 'P2', size: 22, type: 'used' }, { label: 'P3', size: 18, type: 'chosen' }, { label: 'Free', size: 8, type: 'free' }, { label: 'Free', size: 22, type: 'free' }], metrics: [{ label: '进程', value: 'P3' }, { label: '新碎片', value: '80MB' }, { label: '空闲块', value: '3' }] },
-                        { title: '释放并合并', note: '相邻空闲分区被合并，减少外部碎片。', request: '释放 P2', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: 'Free', size: 34, type: 'free' }, { label: 'P3', size: 18, type: 'used' }, { label: 'Free', size: 30, type: 'free' }], metrics: [{ label: '最大空闲', value: '340MB' }, { label: '外部碎片', value: '下降' }, { label: '空闲块', value: '2' }] },
+                        { ready: ['P1(6)', 'P2(2)', 'P3(4)', 'P4(1)'], cpu: '', done: [], gantt: [], note: '括号内为估计运行时间' },
+                        { ready: ['P2(2)', 'P3(4)', 'P1(6)'], cpu: 'P4', done: [], gantt: ['P4'], note: '选择最短作业 P4' },
+                        { ready: ['P3(4)', 'P1(6)'], cpu: 'P2', done: ['P4'], gantt: ['P4', 'P2'], note: '剩余队列中 P2 最短' },
+                        { ready: ['P1(6)'], cpu: 'P3', done: ['P4', 'P2'], gantt: ['P4', 'P2', 'P2', 'P3'], note: 'P3 短于 P1，先执行' },
+                        { ready: [], cpu: 'P1', done: ['P4', 'P2', 'P3'], gantt: ['P4', 'P2', 'P2', 'P3', 'P3', 'P1'], note: '最后执行最长的 P1' },
+                        { ready: [], cpu: '', done: ['P4', 'P2', 'P3', 'P1'], gantt: ['P4', 'P2', 'P2', 'P3', 'P3', 'P1', 'P1'], note: '短作业平均等待时间较低，但长作业可能等待久' },
                     ],
                 },
-                paging: {
-                    title: 'LRU 页面置换',
-                    subtitle: '缺页时淘汰最近最久未使用的页面。',
-                    explain: '页面置换发生在物理块已满且访问页面不在内存时。LRU 根据历史访问时间选择最久未被使用的页面淘汰。',
-                    points: ['访问串决定页面命中和缺页', '物理块数量会影响缺页率', '被替换的页面通常高亮显示'],
+                rr: {
+                    kind: 'schedule',
+                    mark: '轮',
+                    title: 'RR 时间片轮转',
+                    desc: '每个进程获得固定时间片，用完后回到就绪队列尾部。',
+                    codeLang: '伪代码',
+                    code: `time_slice = 2
+
+while ready_queue is not empty:
+    proc = ready_queue.pop_front()
+    run proc for at most time_slice
+
+    if proc.finished:
+        done_queue.push(proc)
+    else:
+        ready_queue.push_back(proc)`,
+                    frames: [
+                        { ready: ['P1', 'P2', 'P3'], cpu: '', done: [], gantt: [], note: '时间片为 2，调度器选择队首进程' },
+                        { ready: ['P2', 'P3'], cpu: 'P1', done: [], gantt: ['P1'], note: 'P1 获得一个时间片' },
+                        { ready: ['P2', 'P3', 'P1'], cpu: '', done: [], gantt: ['P1', 'P1'], note: 'P1 未完成，回到队尾' },
+                        { ready: ['P3', 'P1'], cpu: 'P2', done: [], gantt: ['P1', 'P1', 'P2'], note: 'P2 开始运行' },
+                        { ready: ['P1', 'P2'], cpu: 'P3', done: ['P3'], gantt: ['P1', 'P1', 'P2', 'P2', 'P3'], note: 'P3 在一个时间片内完成' },
+                        { ready: [], cpu: '', done: ['P3', 'P1', 'P2'], gantt: ['P1', 'P1', 'P2', 'P2', 'P3', 'P1', 'P1', 'P2'], note: '所有进程完成' },
+                    ],
+                },
+                priority: {
+                    kind: 'schedule',
+                    mark: '优',
+                    title: '优先级调度',
+                    desc: '优先运行优先级高的进程，适合观察饥饿与老化问题。',
+                    codeLang: '伪代码',
+                    code: `while ready_queue is not empty:
+    proc = max(ready_queue, key = priority)
+    dispatch(proc)
+    run proc
+
+    if waiting_too_long(other_proc):
+        other_proc.priority += aging`,
+                    frames: [
+                        { ready: ['P1(2)', 'P2(5)', 'P3(1)', 'P4(4)'], cpu: '', done: [], gantt: [], note: '数字越大表示优先级越高' },
+                        { ready: ['P4(4)', 'P1(2)', 'P3(1)'], cpu: 'P2', done: [], gantt: ['P2'], note: 'P2 优先级最高，先运行' },
+                        { ready: ['P1(2)', 'P3(1)'], cpu: 'P4', done: ['P2'], gantt: ['P2', 'P4'], note: 'P4 接着获得 CPU' },
+                        { ready: ['P3(2)'], cpu: 'P1', done: ['P2', 'P4'], gantt: ['P2', 'P4', 'P1'], note: 'P3 等待过久，老化后优先级提高' },
+                        { ready: [], cpu: 'P3', done: ['P2', 'P4', 'P1'], gantt: ['P2', 'P4', 'P1', 'P3'], note: 'P3 最后执行，老化可缓解饥饿' },
+                    ],
+                },
+                firstFit: {
+                    kind: 'memory',
+                    mark: '首',
+                    title: '首次适应分配',
+                    desc: '从低地址开始，找到第一个足够大的空闲区就分配。',
+                    codeLang: '伪代码',
+                    code: `request = 180MB
+
+for block in free_list:
+    if block.size >= request:
+        allocate request from block
+        split remaining space
+        break`,
+                    frames: [
+                        { action: '请求 180MB，从低地址开始扫描', segments: [{ label: 'P1', size: 16, type: 'used' }, { label: '空闲120', size: 12, type: 'free' }, { label: 'P2', size: 20, type: 'used' }, { label: '空闲260', size: 26, type: 'free' }, { label: '空闲220', size: 22, type: 'free' }], metrics: [{ label: '请求', value: '180MB' }, { label: '扫描方向', value: '低->高' }, { label: '策略', value: '首次适应' }] },
+                        { action: '跳过 120MB，命中 260MB', segments: [{ label: 'P1', size: 16, type: 'used' }, { label: '太小', size: 12, type: 'free' }, { label: 'P2', size: 20, type: 'used' }, { label: '命中260', size: 26, type: 'hit' }, { label: '空闲220', size: 22, type: 'free' }], metrics: [{ label: '命中块', value: '260MB' }, { label: '剩余', value: '80MB' }, { label: '停止扫描', value: '是' }] },
+                        { action: '切分命中块并装入 P3', segments: [{ label: 'P1', size: 16, type: 'used' }, { label: '空闲120', size: 12, type: 'free' }, { label: 'P2', size: 20, type: 'used' }, { label: 'P3', size: 18, type: 'hit' }, { label: '空闲80', size: 8, type: 'free' }, { label: '空闲220', size: 22, type: 'free' }], metrics: [{ label: '新进程', value: 'P3' }, { label: '剩余块', value: '80MB' }, { label: '优点', value: '速度快' }] },
+                    ],
+                },
+                bestFit: {
+                    kind: 'memory',
+                    mark: '佳',
+                    title: '最佳适应分配',
+                    desc: '选择满足请求且剩余空间最小的空闲区。',
+                    codeLang: '伪代码',
+                    code: `request = 180MB
+best_block = null
+
+for block in free_list:
+    if block.size >= request:
+        if best_block is null or block.size < best_block.size:
+            best_block = block
+
+allocate request from best_block`,
+                    frames: [
+                        { action: '请求 180MB，扫描全部空闲块', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: '空闲120', size: 12, type: 'free' }, { label: 'P2', size: 22, type: 'used' }, { label: '空闲260', size: 26, type: 'free' }, { label: '空闲220', size: 22, type: 'free' }], metrics: [{ label: '候选', value: '260/220' }, { label: '策略', value: '最佳适应' }, { label: '目标', value: '最小剩余' }] },
+                        { action: '比较候选块，选择 220MB', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: '空闲120', size: 12, type: 'free' }, { label: 'P2', size: 22, type: 'used' }, { label: '空闲260', size: 26, type: 'free' }, { label: '命中220', size: 22, type: 'hit' }], metrics: [{ label: '命中块', value: '220MB' }, { label: '剩余', value: '40MB' }, { label: '碎片', value: '较小' }] },
+                        { action: '切分并装入 P3', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: '空闲120', size: 12, type: 'free' }, { label: 'P2', size: 22, type: 'used' }, { label: '空闲260', size: 26, type: 'free' }, { label: 'P3', size: 18, type: 'hit' }, { label: '空闲40', size: 4, type: 'free' }], metrics: [{ label: '新进程', value: 'P3' }, { label: '剩余块', value: '40MB' }, { label: '代价', value: '全表扫描' }] },
+                    ],
+                },
+                worstFit: {
+                    kind: 'memory',
+                    mark: '大',
+                    title: '最坏适应分配',
+                    desc: '选择最大的空闲区，使剩余空间仍尽量可用。',
+                    codeLang: '伪代码',
+                    code: `request = 180MB
+worst_block = null
+
+for block in free_list:
+    if block.size >= request:
+        if worst_block is null or block.size > worst_block.size:
+            worst_block = block
+
+allocate request from worst_block`,
+                    frames: [
+                        { action: '请求 180MB，寻找最大空闲块', segments: [{ label: 'P1', size: 16, type: 'used' }, { label: '空闲120', size: 12, type: 'free' }, { label: 'P2', size: 18, type: 'used' }, { label: '空闲360', size: 36, type: 'free' }, { label: '空闲220', size: 22, type: 'free' }], metrics: [{ label: '请求', value: '180MB' }, { label: '最大块', value: '360MB' }, { label: '策略', value: '最坏适应' }] },
+                        { action: '命中最大块 360MB', segments: [{ label: 'P1', size: 16, type: 'used' }, { label: '空闲120', size: 12, type: 'free' }, { label: 'P2', size: 18, type: 'used' }, { label: '命中360', size: 36, type: 'hit' }, { label: '空闲220', size: 22, type: 'free' }], metrics: [{ label: '命中块', value: '360MB' }, { label: '剩余', value: '180MB' }, { label: '特点', value: '保留大块' }] },
+                        { action: '切分最大块并装入 P3', segments: [{ label: 'P1', size: 16, type: 'used' }, { label: '空闲120', size: 12, type: 'free' }, { label: 'P2', size: 18, type: 'used' }, { label: 'P3', size: 18, type: 'hit' }, { label: '空闲180', size: 18, type: 'free' }, { label: '空闲220', size: 22, type: 'free' }], metrics: [{ label: '新进程', value: 'P3' }, { label: '剩余块', value: '180MB' }, { label: '空闲块', value: '3' }] },
+                    ],
+                },
+                fifoPage: {
+                    kind: 'page',
+                    mark: 'F',
+                    title: 'FIFO 页面置换',
+                    desc: '页面满时淘汰最早进入内存的页面。',
+                    codeLang: '伪代码',
                     reference: [7, 0, 1, 2, 0, 3, 0, 4, 2, 3],
-                    snippets: {
-                        pseudo: `frames = []
-recent = {}
+                    code: `queue = []
+frames = []
 
 for page in reference_string:
-    if page in frames:
-        update recent[page]
-    else:
+    if page not in frames:
         page_fault += 1
         if frames are full:
-            victim = least_recently_used(frames)
+            victim = queue.pop_front()
             replace victim with page
-        else:
-            load page into free frame`,
-                        python: `frames = []
-last_used = {}
-
-for time, page in enumerate(refs):
-    if page not in frames:
-        if len(frames) == 3:
-            victim = min(frames, key=lambda p: last_used[p])
-            frames[frames.index(victim)] = page
-        else:
-            frames.append(page)
-    last_used[page] = time`,
-                        c: `int victim = 0;
-for (int i = 1; i < frame_count; i++) {
-    if (last_used[frames[i]] < last_used[frames[victim]]) {
-        victim = i;
-    }
-}
-frames[victim] = page;
-last_used[page] = time;`,
-                    },
+        queue.push_back(page)`,
                     frames: [
-                        { title: '访问页面 7', note: '物理块为空，产生缺页并装入 7。', pointer: 0, frames: [7, '', ''], changed: 0, faults: 1 },
-                        { title: '访问页面 0', note: '0 不在内存，装入第二个物理块。', pointer: 1, frames: [7, 0, ''], changed: 1, faults: 2 },
-                        { title: '访问页面 1', note: '1 不在内存，三个物理块被填满。', pointer: 2, frames: [7, 0, 1], changed: 2, faults: 3 },
-                        { title: '访问页面 2', note: '发生缺页，LRU 淘汰最久未使用的 7。', pointer: 3, frames: [2, 0, 1], changed: 0, faults: 4 },
-                        { title: '访问页面 0', note: '0 已在物理块中，命中，不增加缺页次数。', pointer: 4, frames: [2, 0, 1], changed: -1, faults: 4 },
-                        { title: '访问页面 3', note: '发生缺页，淘汰最近最久未用的 1。', pointer: 5, frames: [2, 0, 3], changed: 2, faults: 5 },
+                        { pointer: 0, blocks: [7, '', ''], changed: 0, faults: 1, note: '装入页面 7，队列：[7]' },
+                        { pointer: 1, blocks: [7, 0, ''], changed: 1, faults: 2, note: '装入页面 0，队列：[7,0]' },
+                        { pointer: 2, blocks: [7, 0, 1], changed: 2, faults: 3, note: '装入页面 1，物理块已满' },
+                        { pointer: 3, blocks: [2, 0, 1], changed: 0, faults: 4, note: '页面 2 缺页，淘汰最早进入的 7' },
+                        { pointer: 4, blocks: [2, 0, 1], changed: -1, faults: 4, note: '页面 0 命中' },
+                        { pointer: 5, blocks: [2, 3, 1], changed: 1, faults: 5, note: '页面 3 缺页，淘汰 FIFO 队首 0' },
                     ],
                 },
-                sync: {
-                    title: '生产者-消费者同步',
-                    subtitle: '用 mutex、empty、full 三个信号量协调线程访问共享缓冲区。',
-                    explain: '线程同步的核心是让多个线程安全地访问共享资源。生产者需要等待空槽，消费者需要等待产品，二者进入临界区前都要获得互斥锁。',
-                    points: ['mutex 保证缓冲区同一时刻只被一个线程修改', 'empty 表示还剩多少空槽', 'full 表示已有多少产品'],
-                    snippets: {
-                        pseudo: `producer:
+                lruPage: {
+                    kind: 'page',
+                    mark: 'L',
+                    title: 'LRU 页面置换',
+                    desc: '淘汰最近最久未使用的页面。',
+                    codeLang: '伪代码',
+                    reference: [7, 0, 1, 2, 0, 3, 0, 4, 2, 3],
+                    code: `frames = []
+last_used = {}
+
+for time, page in enumerate(reference_string):
+    if page not in frames:
+        page_fault += 1
+        if frames are full:
+            victim = min(frames, key = last_used)
+            replace victim with page
+    last_used[page] = time`,
+                    frames: [
+                        { pointer: 0, blocks: [7, '', ''], changed: 0, faults: 1, note: '页面 7 不在内存，装入物理块 1' },
+                        { pointer: 1, blocks: [7, 0, ''], changed: 1, faults: 2, note: '页面 0 缺页，装入物理块 2' },
+                        { pointer: 2, blocks: [7, 0, 1], changed: 2, faults: 3, note: '页面 1 缺页，装入物理块 3' },
+                        { pointer: 3, blocks: [2, 0, 1], changed: 0, faults: 4, note: '页面 2 缺页，替换最久未用的 7' },
+                        { pointer: 4, blocks: [2, 0, 1], changed: -1, faults: 4, note: '页面 0 命中，刷新最近使用时间' },
+                        { pointer: 5, blocks: [2, 0, 3], changed: 2, faults: 5, note: '页面 3 缺页，替换最久未用的 1' },
+                    ],
+                },
+                optPage: {
+                    kind: 'page',
+                    mark: 'O',
+                    title: 'OPT 最佳页面置换',
+                    desc: '淘汰未来最长时间不会再访问的页面，用作理论最优对照。',
+                    codeLang: '伪代码',
+                    reference: [7, 0, 1, 2, 0, 3, 0, 4, 2, 3],
+                    code: `for page at position i:
+    if page not in frames:
+        page_fault += 1
+        if frames are full:
+            victim = page whose next use is farthest
+            replace victim with page
+
+// OPT 需要未来访问序列，实际系统通常无法直接实现`,
+                    frames: [
+                        { pointer: 0, blocks: [7, '', ''], changed: 0, faults: 1, note: '装入页面 7' },
+                        { pointer: 1, blocks: [7, 0, ''], changed: 1, faults: 2, note: '装入页面 0' },
+                        { pointer: 2, blocks: [7, 0, 1], changed: 2, faults: 3, note: '装入页面 1，物理块已满' },
+                        { pointer: 3, blocks: [2, 0, 1], changed: 0, faults: 4, note: '未来 7 不再使用，淘汰 7' },
+                        { pointer: 4, blocks: [2, 0, 1], changed: -1, faults: 4, note: '页面 0 命中' },
+                        { pointer: 5, blocks: [2, 0, 3], changed: 2, faults: 5, note: '未来 1 不再使用，淘汰 1' },
+                    ],
+                },
+                producerConsumer: {
+                    kind: 'thread',
+                    mark: '线',
+                    title: '生产者消费者',
+                    desc: '生产者消费者同步步骤演示',
+                    codeLang: '伪代码',
+                    code: `producer:
     wait(empty)
     wait(mutex)
     put item into buffer
@@ -709,323 +1128,170 @@ consumer:
     remove item from buffer
     signal(mutex)
     signal(empty)`,
-                        python: `empty.acquire()
-mutex.acquire()
-buffer.append(item)
-mutex.release()
-full.release()
-
-full.acquire()
-mutex.acquire()
-item = buffer.pop(0)
-mutex.release()
-empty.release()`,
-                        c: `sem_wait(&empty);
-sem_wait(&mutex);
-buffer[in] = item;
-in = (in + 1) % N;
-sem_post(&mutex);
-sem_post(&full);`,
-                    },
                     frames: [
-                        { title: '初始状态', note: '缓冲区为空，生产者可以进入，消费者等待 full。', producer: '就绪', consumer: '等待', buffer: ['', '', '', '', ''], semaphores: [{ label: 'mutex', value: 1 }, { label: 'empty', value: 5 }, { label: 'full', value: 0 }] },
-                        { title: '生产者进入临界区', note: '生产者获得 empty 和 mutex，准备写入产品。', producer: '运行', consumer: '等待', buffer: ['', '', '', '', ''], semaphores: [{ label: 'mutex', value: 0 }, { label: 'empty', value: 4 }, { label: 'full', value: 0 }] },
-                        { title: '写入产品 A', note: '产品进入缓冲区，释放 mutex，并 signal(full)。', producer: '运行', consumer: '就绪', buffer: ['A', '', '', '', ''], semaphores: [{ label: 'mutex', value: 1 }, { label: 'empty', value: 4 }, { label: 'full', value: 1 }] },
-                        { title: '消费者取走产品', note: '消费者获得 full 和 mutex，取走 A 后释放一个空槽。', producer: '就绪', consumer: '运行', buffer: ['', '', '', '', ''], semaphores: [{ label: 'mutex', value: 1 }, { label: 'empty', value: 5 }, { label: 'full', value: 0 }] },
+                        { producer: '就绪', consumer: '等待', buffer: ['', '', '', '', ''], semaphores: [{ label: 'mutex', value: 1 }, { label: 'empty', value: 5 }, { label: 'full', value: 0 }], note: '缓冲区为空，消费者等待 full' },
+                        { producer: '运行', consumer: '等待', buffer: ['', '', '', '', ''], semaphores: [{ label: 'mutex', value: 0 }, { label: 'empty', value: 4 }, { label: 'full', value: 0 }], note: '生产者获得 empty 和 mutex' },
+                        { producer: '运行', consumer: '就绪', buffer: ['A', '', '', '', ''], semaphores: [{ label: 'mutex', value: 1 }, { label: 'empty', value: 4 }, { label: 'full', value: 1 }], note: '生产者写入产品 A，并唤醒消费者' },
+                        { producer: '就绪', consumer: '运行', buffer: ['', '', '', '', ''], semaphores: [{ label: 'mutex', value: 1 }, { label: 'empty', value: 5 }, { label: 'full', value: 0 }], note: '消费者取走产品，释放一个空槽' },
+                    ],
+                },
+                banker: {
+                    kind: 'deadlock',
+                    mark: '锁',
+                    title: '银行家算法',
+                    desc: '银行家算法安全性检查步骤演示',
+                    codeLang: '伪代码',
+                    code: `work = available
+finish = [false, false, false]
+safe_sequence = []
+
+while exists unfinished process:
+    find Pi where need[i] <= work
+    if found:
+        work = work + allocation[i]
+        finish[i] = true
+        safe_sequence.append(Pi)
+    else:
+        system_is_unsafe()`,
+                    frames: [
+                        { sequence: '待检查', note: '系统读取各进程最大需求和已分配资源。', processes: [{ name: 'P1', allocated: '1 0 1', need: '2 1 0', safe: true }, { name: 'P2', allocated: '2 1 0', need: '1 0 2', safe: true }, { name: 'P3', allocated: '1 1 1', need: '3 1 1', safe: false }] },
+                        { sequence: 'P2', note: '可用资源满足 P2，P2 可完成并释放资源。', processes: [{ name: 'P1', allocated: '1 0 1', need: '2 1 0', safe: true }, { name: 'P2', allocated: '释放', need: '0 0 0', safe: true }, { name: 'P3', allocated: '1 1 1', need: '3 1 1', safe: false }] },
+                        { sequence: 'P2 -> P1', note: '释放后的资源满足 P1，继续进入安全序列。', processes: [{ name: 'P1', allocated: '释放', need: '0 0 0', safe: true }, { name: 'P2', allocated: '释放', need: '0 0 0', safe: true }, { name: 'P3', allocated: '1 1 1', need: '3 1 1', safe: false }] },
+                        { sequence: 'P2 -> P1 -> P3', note: '所有进程均可完成，系统处于安全状态。', processes: [{ name: 'P1', allocated: '释放', need: '0 0 0', safe: true }, { name: 'P2', allocated: '释放', need: '0 0 0', safe: true }, { name: 'P3', allocated: '释放', need: '0 0 0', safe: true }] },
+                    ],
+                },
+                schedule: {
+                    mark: '调',
+                    title: '进程调度',
+                    desc: '时间片轮转调度步骤演示',
+                    codeLang: '伪代码',
+                    code: `ready_queue = [P1, P2, P3]
+time_slice = 2
+
+while ready_queue is not empty:
+    proc = ready_queue.pop_front()
+    run proc for one time_slice
+
+    if proc.finished:
+        done_queue.push(proc)
+    else:
+        ready_queue.push_back(proc)
+
+    update_gantt_chart(proc)`,
+                    frames: [
+                        { ready: ['P1', 'P2', 'P3'], cpu: '', done: [], gantt: [], note: '调度器准备选择队首进程' },
+                        { ready: ['P2', 'P3'], cpu: 'P1', done: [], gantt: ['P1'], note: 'P1 获得 CPU' },
+                        { ready: ['P2', 'P3', 'P1'], cpu: '', done: [], gantt: ['P1', 'P1'], note: 'P1 时间片结束，回到队尾' },
+                        { ready: ['P3', 'P1'], cpu: 'P2', done: [], gantt: ['P1', 'P1', 'P2'], note: 'P2 开始运行' },
+                        { ready: ['P1', 'P2'], cpu: 'P3', done: ['P3'], gantt: ['P1', 'P1', 'P2', 'P2', 'P3'], note: 'P3 在一个时间片内完成' },
+                        { ready: [], cpu: '', done: ['P3', 'P1', 'P2'], gantt: ['P1', 'P1', 'P2', 'P2', 'P3', 'P1', 'P1', 'P2'], note: '所有进程完成' },
+                    ],
+                },
+                memory: {
+                    mark: '存',
+                    title: '动态分区分配',
+                    desc: '最佳适应分区步骤演示',
+                    codeLang: '伪代码',
+                    code: `request = 180MB
+best_block = null
+
+for block in free_list:
+    if block.size >= request:
+        if best_block is null or block.size < best_block.size:
+            best_block = block
+
+if best_block exists:
+    allocate request from best_block
+    split remaining space
+else:
+    compact_memory_or_wait()`,
+                    frames: [
+                        { action: '请求 180MB', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: '空闲', size: 12, type: 'free' }, { label: 'P2', size: 22, type: 'used' }, { label: '空闲', size: 26, type: 'free' }, { label: '空闲', size: 22, type: 'free' }], metrics: [{ label: '请求', value: '180MB' }, { label: '可用块', value: '3' }, { label: '策略', value: '最佳适应' }] },
+                        { action: '选择 260MB 空闲块', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: '空闲', size: 12, type: 'free' }, { label: 'P2', size: 22, type: 'used' }, { label: '命中', size: 26, type: 'hit' }, { label: '空闲', size: 22, type: 'free' }], metrics: [{ label: '命中块', value: '260MB' }, { label: '剩余', value: '80MB' }, { label: '碎片', value: '较少' }] },
+                        { action: '切分并装入 P3', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: '空闲', size: 12, type: 'free' }, { label: 'P2', size: 22, type: 'used' }, { label: 'P3', size: 18, type: 'hit' }, { label: '空闲', size: 8, type: 'free' }, { label: '空闲', size: 22, type: 'free' }], metrics: [{ label: '新进程', value: 'P3' }, { label: '新空闲块', value: '80MB' }, { label: '空闲块', value: '3' }] },
+                        { action: '释放并合并', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: '空闲', size: 34, type: 'free' }, { label: 'P3', size: 18, type: 'used' }, { label: '空闲', size: 30, type: 'free' }], metrics: [{ label: '最大空闲', value: '340MB' }, { label: '合并', value: '完成' }, { label: '空闲块', value: '2' }] },
+                    ],
+                },
+                page: {
+                    mark: '页',
+                    title: '页面置换',
+                    desc: 'LRU 页面置换步骤演示',
+                    codeLang: '伪代码',
+                    reference: [7, 0, 1, 2, 0, 3, 0, 4, 2, 3],
+                    code: `frames = []
+last_used = {}
+
+for time, page in enumerate(reference_string):
+    if page not in frames:
+        page_fault += 1
+        if frames are full:
+            victim = least_recently_used(frames, last_used)
+            replace victim with page
+        else:
+            frames.append(page)
+
+    last_used[page] = time`,
+                    frames: [
+                        { pointer: 0, blocks: [7, '', ''], changed: 0, faults: 1, note: '页面 7 不在内存，装入物理块 1' },
+                        { pointer: 1, blocks: [7, 0, ''], changed: 1, faults: 2, note: '页面 0 缺页，装入物理块 2' },
+                        { pointer: 2, blocks: [7, 0, 1], changed: 2, faults: 3, note: '页面 1 缺页，装入物理块 3' },
+                        { pointer: 3, blocks: [2, 0, 1], changed: 0, faults: 4, note: '页面 2 缺页，替换最久未用的 7' },
+                        { pointer: 4, blocks: [2, 0, 1], changed: -1, faults: 4, note: '页面 0 命中，不增加缺页' },
+                        { pointer: 5, blocks: [2, 0, 3], changed: 2, faults: 5, note: '页面 3 缺页，替换最久未用的 1' },
+                    ],
+                },
+                thread: {
+                    mark: '线',
+                    title: '线程同步',
+                    desc: '生产者消费者同步步骤演示',
+                    codeLang: '伪代码',
+                    code: `producer:
+    wait(empty)
+    wait(mutex)
+    put item into buffer
+    signal(mutex)
+    signal(full)
+
+consumer:
+    wait(full)
+    wait(mutex)
+    remove item from buffer
+    signal(mutex)
+    signal(empty)`,
+                    frames: [
+                        { producer: '就绪', consumer: '等待', buffer: ['', '', '', '', ''], semaphores: [{ label: 'mutex', value: 1 }, { label: 'empty', value: 5 }, { label: 'full', value: 0 }], note: '缓冲区为空，消费者等待 full' },
+                        { producer: '运行', consumer: '等待', buffer: ['', '', '', '', ''], semaphores: [{ label: 'mutex', value: 0 }, { label: 'empty', value: 4 }, { label: 'full', value: 0 }], note: '生产者获得 empty 和 mutex' },
+                        { producer: '运行', consumer: '就绪', buffer: ['A', '', '', '', ''], semaphores: [{ label: 'mutex', value: 1 }, { label: 'empty', value: 4 }, { label: 'full', value: 1 }], note: '生产者写入产品 A，并唤醒消费者' },
+                        { producer: '就绪', consumer: '运行', buffer: ['', '', '', '', ''], semaphores: [{ label: 'mutex', value: 1 }, { label: 'empty', value: 5 }, { label: 'full', value: 0 }], note: '消费者取走产品，释放一个空槽' },
+                    ],
+                },
+                deadlock: {
+                    mark: '锁',
+                    title: '死锁避免',
+                    desc: '银行家算法安全性检查步骤演示',
+                    codeLang: '伪代码',
+                    code: `work = available
+finish = [false, false, false]
+safe_sequence = []
+
+while exists unfinished process:
+    find Pi where need[i] <= work
+    if found:
+        work = work + allocation[i]
+        finish[i] = true
+        safe_sequence.append(Pi)
+    else:
+        system_is_unsafe()
+
+system_is_safe(safe_sequence)`,
+                    frames: [
+                        { sequence: '待检查', note: '系统读取各进程最大需求和已分配资源。', processes: [{ name: 'P1', allocated: '1 0 1', need: '2 1 0', safe: true }, { name: 'P2', allocated: '2 1 0', need: '1 0 2', safe: true }, { name: 'P3', allocated: '1 1 1', need: '3 1 1', safe: false }] },
+                        { sequence: 'P2', note: '可用资源满足 P2，P2 可完成并释放资源。', processes: [{ name: 'P1', allocated: '1 0 1', need: '2 1 0', safe: true }, { name: 'P2', allocated: '释放', need: '0 0 0', safe: true }, { name: 'P3', allocated: '1 1 1', need: '3 1 1', safe: false }] },
+                        { sequence: 'P2 -> P1', note: '释放后的资源满足 P1，继续进入安全序列。', processes: [{ name: 'P1', allocated: '释放', need: '0 0 0', safe: true }, { name: 'P2', allocated: '释放', need: '0 0 0', safe: true }, { name: 'P3', allocated: '1 1 1', need: '3 1 1', safe: false }] },
+                        { sequence: 'P2 -> P1 -> P3', note: '所有进程均可完成，系统处于安全状态。', processes: [{ name: 'P1', allocated: '释放', need: '0 0 0', safe: true }, { name: 'P2', allocated: '释放', need: '0 0 0', safe: true }, { name: 'P3', allocated: '释放', need: '0 0 0', safe: true }] },
                     ],
                 },
             };
-        },
-
-        selectAlgorithm(id) {
-            this.algorithmLab.selected = id;
-            this.algorithmLab.frameIndex = 0;
-            this.algorithmLab.running = false;
-            this.loadAlgorithmCode();
-        },
-
-        setAlgorithmLanguage(language) {
-            this.algorithmLab.language = language;
-            this.loadAlgorithmCode();
-        },
-
-        loadAlgorithmCode() {
-            this.algorithmLab.editor = this.currentAlgorithm.snippets[this.algorithmLab.language] || this.currentAlgorithm.snippets.pseudo;
-        },
-
-        resetAlgorithmAnimation() {
-            this.algorithmLab.frameIndex = 0;
-            this.algorithmLab.running = false;
-            if (this.algorithmLab.timer) clearInterval(this.algorithmLab.timer);
-            this.algorithmLab.timer = null;
-        },
-
-        stepAlgorithmAnimation() {
-            const last = this.currentAlgorithm.frames.length - 1;
-            if (this.algorithmLab.frameIndex >= last) {
-                this.algorithmLab.running = false;
-                return;
-            }
-            this.algorithmLab.frameIndex += 1;
-        },
-
-        toggleAlgorithmAnimation() {
-            this.algorithmLab.running = !this.algorithmLab.running;
-            if (!this.algorithmLab.running) {
-                if (this.algorithmLab.timer) clearInterval(this.algorithmLab.timer);
-                this.algorithmLab.timer = null;
-                return;
-            }
-            if (this.algorithmLab.frameIndex >= this.currentAlgorithm.frames.length - 1) {
-                this.algorithmLab.frameIndex = 0;
-            }
-            if (this.algorithmLab.timer) clearInterval(this.algorithmLab.timer);
-            this.algorithmLab.timer = setInterval(() => {
-                this.stepAlgorithmAnimation();
-                if (this.algorithmLab.frameIndex >= this.currentAlgorithm.frames.length - 1) {
-                    this.algorithmLab.running = false;
-                    clearInterval(this.algorithmLab.timer);
-                    this.algorithmLab.timer = null;
-                }
-            }, 950);
-        },
-
-        seed() {
-            this.createProcess({ memory: 96, burst: 9, threads: 2, priority: 3 }, false);
-            this.createProcess({ memory: 160, burst: 14, threads: 4, priority: 6 }, false);
-            this.createProcess({ memory: 72, burst: 7, threads: 2, priority: 2 }, false);
-            this.log('系统装入 3 个初始进程，等待调度。');
-        },
-
-        createProcess(input = null, showMessage = true) {
-            const source = input || this.form;
-            const request = {
-                memory: Math.max(16, Number(source.memory || 64)),
-                burst: Math.max(1, Number(source.burst || 6)),
-                threads: Math.max(1, Math.min(8, Number(source.threads || 1))),
-                priority: Math.max(1, Math.min(9, Number(source.priority || 5))),
-            };
-            const index = this.findPartition(request.memory);
-            if (index < 0) {
-                this.setMessage(`没有足够连续空闲分区装入 ${request.memory} MB。可以终止进程或执行内存紧凑。`, 'error');
-                this.log(`创建失败：缺少 ${request.memory} MB 连续空闲分区。`);
-                return;
-            }
-            const pid = this.nextPid++;
-            const name = `P${pid}`;
-            const partition = this.memory[index];
-            const allocated = { id: `p-${pid}`, start: partition.start, size: request.memory, pid };
-            const remain = partition.size - request.memory;
-            if (remain > 0) {
-                this.memory.splice(index, 1, allocated, { id: `free-${pid}`, start: partition.start + request.memory, size: remain, pid: null });
-            } else {
-                this.memory.splice(index, 1, allocated);
-            }
-            const proc = {
-                pid,
-                name,
-                state: 'ready',
-                memory: request.memory,
-                burst: request.burst,
-                remaining: request.burst,
-                priority: request.priority,
-                quantumLeft: this.quantum,
-                threads: Array.from({ length: request.threads }, (_, i) => ({ tid: i + 1, state: 'ready' })),
-            };
-            this.processes.push(proc);
-            this.log(`${name} 创建：申请 ${request.memory} MB，${request.threads} 个线程，进入就绪队列。`);
-            if (showMessage) this.setMessage(`${name} 已装入内存并进入就绪队列。`, 'info');
-        },
-
-        findPartition(size) {
-            const candidates = this.memory
-                .map((p, index) => ({ ...p, index }))
-                .filter(p => !p.pid && p.size >= size);
-            if (!candidates.length) return -1;
-            if (this.fitStrategy === 'best') candidates.sort((a, b) => a.size - b.size);
-            if (this.fitStrategy === 'worst') candidates.sort((a, b) => b.size - a.size);
-            return candidates[0].index;
-        },
-
-        tick() {
-            this.clock += 1;
-            this.ageBlocked();
-            if (!this.runningProcess) this.dispatch();
-            const current = this.runningProcess;
-            if (current) {
-                current.remaining -= 1;
-                current.quantumLeft -= 1;
-                this.syncThreads(current);
-                this.timeline.push({ pid: current.pid, name: current.name });
-                if (this.timeline.length > 28) this.timeline.shift();
-                if (current.remaining <= 0) {
-                    this.log(`${current.name} 执行完成，释放内存分区。`);
-                    this.terminateProcess(current.pid, false);
-                } else if (this.scheduler === 'rr' && current.quantumLeft <= 0) {
-                    current.state = 'ready';
-                    current.quantumLeft = this.quantum;
-                    this.syncThreads(current);
-                    this.log(`${current.name} 时间片用完，回到就绪队列。`);
-                    this.dispatch();
-                }
-            } else {
-                this.timeline.push({ pid: null, name: '' });
-                if (this.timeline.length > 28) this.timeline.shift();
-            }
-        },
-
-        dispatch() {
-            const candidates = this.readyQueue;
-            if (!candidates.length) return;
-            let next = candidates[0];
-            if (this.scheduler === 'priority') {
-                next = [...candidates].sort((a, b) => b.priority - a.priority || a.pid - b.pid)[0];
-            }
-            next.state = 'running';
-            next.quantumLeft = this.quantum;
-            this.syncThreads(next);
-            this.log(`调度器选择 ${next.name} 占用 CPU。`);
-        },
-
-        blockRunning() {
-            const current = this.runningProcess;
-            if (!current) {
-                this.setMessage('当前没有运行进程可阻塞。', 'error');
-                return;
-            }
-            current.state = 'blocked';
-            current.ioLeft = 3 + (current.pid % 3);
-            this.syncThreads(current);
-            this.log(`${current.name} 发起 I/O 请求，进入阻塞队列。`);
-            this.dispatch();
-        },
-
-        wakeOne() {
-            const target = this.blockedQueue[0];
-            if (!target) {
-                this.setMessage('阻塞队列为空。', 'error');
-                return;
-            }
-            target.state = 'ready';
-            target.ioLeft = 0;
-            this.syncThreads(target);
-            this.log(`${target.name} I/O 完成，被唤醒到就绪队列。`);
-        },
-
-        ageBlocked() {
-            this.blockedQueue.forEach(proc => {
-                proc.ioLeft = Math.max(0, Number(proc.ioLeft || 0) - 1);
-                if (proc.ioLeft === 0) {
-                    proc.state = 'ready';
-                    this.syncThreads(proc);
-                    this.log(`${proc.name} I/O 自动完成，返回就绪队列。`);
-                }
-            });
-        },
-
-        terminateProcess(pid, showLog = true) {
-            const proc = this.processes.find(p => p.pid === pid);
-            if (!proc) return;
-            this.processes = this.processes.filter(p => p.pid !== pid);
-            this.memory.forEach(part => {
-                if (part.pid === pid) part.pid = null;
-            });
-            this.coalesceMemory();
-            if (showLog) this.log(`${proc.name} 被终止，系统回收其 PCB、线程和内存分区。`);
-        },
-
-        compactMemory() {
-            let cursor = 0;
-            const allocated = this.memory.filter(p => p.pid).map(part => {
-                const next = { ...part, start: cursor };
-                cursor += part.size;
-                return next;
-            });
-            const free = this.totalMemory - cursor;
-            this.memory = free > 0 ? [...allocated, { id: `free-c-${this.clock}`, start: cursor, size: free, pid: null }] : allocated;
-            this.log(`执行内存紧凑：移动已分配分区，形成 ${free} MB 连续空闲空间。`);
-        },
-
-        coalesceMemory() {
-            this.memory.sort((a, b) => a.start - b.start);
-            const merged = [];
-            for (const part of this.memory) {
-                const last = merged[merged.length - 1];
-                if (last && !last.pid && !part.pid && last.start + last.size === part.start) {
-                    last.size += part.size;
-                } else {
-                    merged.push({ ...part });
-                }
-            }
-            this.memory = merged;
-        },
-
-        syncThreads(proc) {
-            proc.threads.forEach((thread, index) => {
-                if (proc.state === 'running') thread.state = index === 0 ? 'running' : 'ready';
-                else thread.state = proc.state;
-            });
-        },
-
-        reset() {
-            this.clock = 0;
-            this.nextPid = 1;
-            this.running = false;
-            this.processes = [];
-            this.memory = [{ id: 'free-0', start: 0, size: this.totalMemory, pid: null }];
-            this.timeline = [];
-            this.logs = [];
-            this.message = '';
-            this.seed();
-        },
-
-        toggleRun() {
-            this.running = !this.running;
-        },
-
-        setMessage(text, type = 'info') {
-            this.message = text;
-            this.messageType = type;
-        },
-
-        log(text) {
-            this.logs.unshift({ time: this.clock, text });
-            if (this.logs.length > 80) this.logs.pop();
-        },
-
-        processName(pid) {
-            return this.processes.find(p => p.pid === pid)?.name || `P${pid}`;
-        },
-
-        stateLabel(state) {
-            return { ready: '就绪', running: '运行', blocked: '阻塞' }[state] || state;
-        },
-
-        colorClass(pid) {
-            return [
-                'bg-cyan-100 border-cyan-200 text-cyan-800',
-                'bg-emerald-100 border-emerald-200 text-emerald-800',
-                'bg-amber-100 border-amber-200 text-amber-800',
-                'bg-violet-100 border-violet-200 text-violet-800',
-                'bg-rose-100 border-rose-200 text-rose-800',
-                'bg-blue-100 border-blue-200 text-blue-800',
-            ][pid % 6];
-        },
-
-        stateClass(state) {
-            return {
-                running: 'bg-emerald-50 text-emerald-700',
-                ready: 'bg-blue-50 text-blue-700',
-                blocked: 'bg-amber-50 text-amber-700',
-            }[state] || 'bg-gray-50 text-gray-600';
-        },
-
-        threadClass(state) {
-            return {
-                running: 'bg-emerald-50 border-emerald-100 text-emerald-700',
-                ready: 'bg-blue-50 border-blue-100 text-blue-700',
-                blocked: 'bg-amber-50 border-amber-100 text-amber-700',
-            }[state] || 'bg-gray-50 border-gray-100 text-gray-600';
         },
     }));
 });

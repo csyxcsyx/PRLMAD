@@ -17,6 +17,7 @@ PAGES = (
     "/page/learning-path",
     "/page/tutor",
     "/page/evaluate",
+    "/page/os-lab",
     "/page/knowledge",
 )
 REMOTE_RUNTIME_ASSET = re.compile(
@@ -59,6 +60,32 @@ class FrontendSmokeTests(unittest.TestCase):
                 response = self.client.get(path)
                 self.assertEqual(response.status_code, 200)
                 self.assertGreater(len(response.content), 100)
+
+    def test_os_lab_events_are_recorded_for_session(self) -> None:
+        session_resp = self.client.post("/api/session", json={"name": "OS Lab Smoke"})
+        self.assertEqual(session_resp.status_code, 200)
+        session_id = session_resp.json()["session_id"]
+        try:
+            event_resp = self.client.post(
+                "/api/os-lab/events",
+                json={
+                    "session_id": session_id,
+                    "algorithm_id": "rr",
+                    "algorithm_title": "RR 时间片轮转",
+                    "event_type": "open_algorithm",
+                    "frame_index": 0,
+                    "total_frames": 6,
+                },
+            )
+            self.assertEqual(event_resp.status_code, 200)
+
+            events_resp = self.client.get(f"/api/os-lab/events/{session_id}")
+            self.assertEqual(events_resp.status_code, 200)
+            events = events_resp.json()
+            self.assertEqual(events[0]["algorithm_id"], "rr")
+            self.assertEqual(events[0]["event_type"], "open_algorithm")
+        finally:
+            self.client.delete(f"/api/session/{session_id}")
 
     def test_compiled_css_contains_responsive_and_motion_guards(self) -> None:
         css = (ROOT / "templates" / "base.html").read_text(encoding="utf-8")

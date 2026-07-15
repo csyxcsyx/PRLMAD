@@ -373,7 +373,7 @@ window.PRLMAD.createNavigation = () => {
     const livePages = new Map();
     const navigationPaths = [
         '/page/chat', '/page/generate', '/page/learning-path',
-        '/page/tutor', '/page/evaluate', '/page/knowledge',
+        '/page/tutor', '/page/evaluate', '/page/os-lab', '/page/knowledge',
     ];
     let renderedPath = window.location.pathname;
     let navigationVersion = 0;
