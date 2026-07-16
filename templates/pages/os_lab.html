@@ -106,14 +106,25 @@
         border: 1px solid rgba(185,100,73,.16);
     }
     .workspace {
-        width: min(100%, 86rem);
+        width: min(100%, 92rem);
         margin: 0 auto;
-        padding: 1.25rem;
+        padding: 1.5rem clamp(1rem, 3vw, 2rem) 3rem;
     }
-    .desktop-strip, .algo-card, .stage {
+    .algo-card {
         border: 1px solid var(--line);
-        border-radius: .8rem;
+        border-radius: .5rem;
         background: rgba(251,250,246,.9);
+    }
+    .desktop-strip {
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        border-radius: 0;
+        background: transparent;
+    }
+    .stage {
+        border: 0;
+        border-radius: 0;
+        background: transparent;
     }
     .algo-card {
         min-height: 10rem;
@@ -143,47 +154,69 @@
         border-color: #cce9d5;
         color: #246844;
     }
+    .toolbar-step {
+        min-width: 3.2rem;
+        min-height: 2.15rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--line);
+        border-radius: .5rem;
+        background: #f4efe7;
+        color: #4f4942;
+        padding: .45rem .65rem;
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: .72rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+    .experiment-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+        padding: .75rem 0;
+        border-bottom: 1px solid var(--line);
+        background: transparent;
+    }
+    .experiment-control-actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: .5rem;
+    }
     .stage-head {
         display: flex;
         align-items: flex-start;
         justify-content: space-between;
         gap: 1rem;
-        padding: 1rem;
+        padding: 0 0 1rem;
         border-bottom: 1px solid var(--line);
-    }
-    .progress-track {
-        height: .55rem;
-        border-radius: 999px;
-        background: #eee7dc;
-        overflow: hidden;
-    }
-    .progress-fill {
-        height: 100%;
-        background: #171512;
     }
     .experiment-grid {
         display: grid;
-        grid-template-columns: minmax(0, 1.45fr) minmax(22rem, .75fr);
-        min-height: 34rem;
+        grid-template-columns: minmax(0, 1.55fr) minmax(20rem, .7fr);
+        min-height: 32rem;
     }
     .visual-side {
         min-width: 0;
-        padding: 1rem;
+        padding: 1rem 1.5rem 2rem 0;
         border-right: 1px solid var(--line);
     }
     .code-side {
         min-width: 0;
-        background: #fffdf9;
+        padding-left: 1.5rem;
+        background: transparent;
     }
     .panel-title {
-        height: 2.8rem;
+        min-height: 2.6rem;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: .75rem;
-        padding: 0 .9rem;
+        padding: 0 0 .7rem;
         border-bottom: 1px solid var(--line);
-        background: rgba(244,239,231,.75);
+        background: transparent;
         font-size: .78rem;
         font-weight: 800;
         color: var(--body);
@@ -196,7 +229,7 @@
         margin: 0;
         max-height: 35rem;
         overflow: auto;
-        padding: 1rem 1.1rem;
+        padding: 1rem 0;
         color: #37332d;
         font-size: .78rem;
         line-height: 1.72;
@@ -228,7 +261,7 @@
     }
     .mini-card {
         border: 1px solid var(--line);
-        border-radius: .75rem;
+        border-radius: .5rem;
         background: #fffdf9;
         padding: 1rem;
     }
@@ -247,10 +280,11 @@
         padding: .25rem .55rem;
     }
     .gantt-card {
-        border: 1px solid #ddd5c9;
-        border-radius: .75rem;
-        background: #fffdf9;
-        padding: 1rem;
+        border: 0;
+        border-top: 1px solid var(--line);
+        border-radius: 0;
+        background: transparent;
+        padding: 1rem 0 0;
     }
     .gantt-head {
         display: flex;
@@ -393,22 +427,651 @@
         font-size: .72rem;
         font-weight: 700;
     }
-    .memory-row {
-        height: 6rem;
-        display: flex;
-        overflow: hidden;
-        border: 1px solid var(--line);
-        border-radius: .75rem;
-        background: #fffdf9;
+    .ff-board {
+        border: 0;
+        border-radius: 0;
+        overflow: visible;
+        background: transparent;
     }
-    .memory-seg {
-        min-width: 2.8rem;
+    .ff-operation {
         display: flex;
         align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        border-right: 1px solid rgba(255,255,255,.8);
+        justify-content: space-between;
+        gap: 1rem;
+        padding: .85rem 1rem;
+        border-bottom: 1px solid var(--line);
+        background: #f4efe7;
+    }
+    .ff-decision {
+        flex: 0 0 auto;
+        border: 1px solid #d8d0c4;
+        border-radius: .4rem;
+        background: #fffdf9;
+        color: #575149;
+        padding: .38rem .65rem;
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
         font-size: .7rem;
+        font-weight: 800;
+    }
+    .ff-decision.reject {
+        border-color: #e2c5ba;
+        background: #fff4ef;
+        color: #9e5039;
+    }
+    .ff-decision.fit,
+    .ff-decision.allocated {
+        border-color: #c5dfcd;
+        background: #edf8f0;
+        color: #286b47;
+    }
+    .ff-ledger {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0,1fr));
+        border-bottom: 1px solid var(--line);
+        background: #fffdf9;
+    }
+    .ff-ledger-item {
+        min-width: 0;
+        padding: .75rem 1rem;
+        border-right: 1px solid var(--line);
+    }
+    .ff-ledger-item:last-child {
+        border-right: 0;
+    }
+    .ff-map-scroll {
+        overflow-x: auto;
+        padding: 2.6rem 1rem 2.4rem;
+        scrollbar-width: thin;
+        scrollbar-color: #c9c0b4 transparent;
+    }
+    .ff-map {
+        position: relative;
+        min-width: 46rem;
+        height: 7rem;
+        display: flex;
+        border: 1px solid #bfb6aa;
+        background: #faf7f1;
+    }
+    .ff-segment {
+        position: relative;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-right: 1px solid #cfc6ba;
+        color: #645e56;
+        font-size: .68rem;
+        font-weight: 800;
+    }
+    .ff-segment:last-of-type {
+        border-right: 0;
+    }
+    .ff-segment.used {
+        background: #ded8cf;
+        color: #3e3933;
+    }
+    .ff-segment.free {
+        background: repeating-linear-gradient(135deg, #fffdf9 0, #fffdf9 7px, #f3eee6 7px, #f3eee6 14px);
+    }
+    .ff-segment.current {
+        z-index: 1;
+        outline: 3px solid #171512;
+        outline-offset: -3px;
+    }
+    .ff-segment.current::before {
+        content: "SCAN";
+        position: absolute;
+        top: -1.8rem;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #171512;
+        font-size: .55rem;
+        letter-spacing: .08em;
+    }
+    .ff-segment.current::after {
+        content: "";
+        position: absolute;
+        top: -1rem;
+        left: 50%;
+        transform: translateX(-50%);
+        border: .32rem solid transparent;
+        border-top-color: #171512;
+    }
+    .ff-segment.rejected {
+        outline-color: #b95f42;
+        background: #fff0ea;
+        color: #954a36;
+    }
+    .ff-segment.selected {
+        outline-color: #337957;
+        background: #e8f5ec;
+        color: #286b47;
+    }
+    .ff-segment.allocated {
+        background: #376c9d;
+        color: #fff;
+    }
+    .ff-segment strong {
+        margin-top: .3rem;
+        font-size: .8rem;
+    }
+    .ff-address {
+        position: absolute;
+        left: 0;
+        bottom: -1.65rem;
+        transform: translateX(-50%);
+        color: #7e766c;
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: .58rem;
+    }
+    .ff-map-end {
+        position: absolute;
+        right: 0;
+        bottom: -1.65rem;
+        transform: translateX(50%);
+        color: #7e766c;
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: .58rem;
+    }
+    .ff-direction {
+        position: absolute;
+        top: -2rem;
+        left: 0;
+        color: #81796f;
+        font-size: .6rem;
+        font-weight: 800;
+    }
+    .ff-summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0,1fr));
+        border-top: 1px solid var(--line);
+        background: #faf7f1;
+    }
+    .ff-summary-item {
+        padding: .75rem 1rem;
+        border-right: 1px solid var(--line);
+    }
+    .ff-summary-item:last-child {
+        border-right: 0;
+    }
+    .lru-board {
+        border: 0;
+        border-radius: 0;
+        overflow: visible;
+        background: transparent;
+    }
+    .lru-operation {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: .85rem 1rem;
+        border-bottom: 1px solid var(--line);
+        background: #f4efe7;
+    }
+    .lru-result {
+        flex: 0 0 auto;
+        border: 1px solid #e3c7bc;
+        border-radius: .4rem;
+        background: #fff5f1;
+        color: #9c4f39;
+        padding: .35rem .6rem;
+        font-size: .7rem;
+        font-weight: 800;
+    }
+    .lru-result.hit {
+        border-color: #c8e3d0;
+        background: #edf8f0;
+        color: #286b47;
+    }
+    .lru-access-scroll {
+        overflow-x: auto;
+        border-bottom: 1px solid var(--line);
+        scrollbar-width: thin;
+        scrollbar-color: #c9c0b4 transparent;
+    }
+    .lru-access-tape {
+        min-width: 34rem;
+        display: grid;
+        grid-template-columns: repeat(10, minmax(3.4rem,1fr));
+        background: #faf7f1;
+    }
+    .lru-access-cell {
+        position: relative;
+        display: grid;
+        place-items: center;
+        height: 3.5rem;
+        border-right: 1px solid #e7dfd4;
+        color: #a49c92;
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: .76rem;
+        font-weight: 800;
+    }
+    .lru-access-cell:last-child {
+        border-right: 0;
+    }
+    .lru-access-cell.visited {
+        color: #625c54;
+        background: #f2ede5;
+    }
+    .lru-access-cell.current {
+        color: #fff;
+        background: #171512;
+    }
+    .lru-access-cell.current::after {
+        content: "NOW";
+        position: absolute;
+        bottom: .18rem;
+        font-size: .48rem;
+        letter-spacing: .08em;
+    }
+    .lru-main {
+        display: grid;
+        grid-template-columns: minmax(0,1fr) minmax(0,1.15fr);
+        min-height: 14rem;
+    }
+    .lru-section {
+        min-width: 0;
+        padding: 1rem;
+    }
+    .lru-section + .lru-section {
+        border-left: 1px solid var(--line);
+        background: #faf7f1;
+    }
+    .lru-frames {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0,1fr));
+        gap: .55rem;
+        margin-top: .85rem;
+    }
+    .lru-frame {
+        min-width: 0;
+        min-height: 6.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #d9d1c5;
+        border-radius: .5rem;
+        background: #fffdf9;
+        color: #726b62;
+    }
+    .lru-frame.changed {
+        border-color: #b95f42;
+        background: #fff4ef;
+        box-shadow: inset 0 3px 0 #b95f42;
+    }
+    .lru-frame.hit {
+        border-color: #337957;
+        background: #edf8f0;
+        box-shadow: inset 0 3px 0 #337957;
+    }
+    .lru-page-value {
+        margin-top: .45rem;
+        color: var(--ink);
+        font-size: 1.65rem;
+        font-weight: 800;
+    }
+    .lru-recency {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0,1fr));
+        gap: .55rem;
+        margin-top: .85rem;
+    }
+    .lru-recency-item {
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-height: 5rem;
+        border: 1px solid #d9d1c5;
+        border-radius: .5rem;
+        background: #fff;
+        color: #2f2b27;
+        font-size: 1.25rem;
+        font-weight: 800;
+    }
+    .lru-recency-item:first-child {
+        border-color: #337957;
+        background: #edf8f0;
+    }
+    .lru-recency-item:last-child {
+        border-color: #dbbfb4;
+        background: #fff5f1;
+    }
+    .lru-recency-item small {
+        position: absolute;
+        bottom: .35rem;
+        color: #81796f;
+        font-size: .52rem;
+        letter-spacing: .06em;
+    }
+    .lru-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0,1fr));
+        border-top: 1px solid var(--line);
+        background: #fffdf9;
+    }
+    .lru-stat {
+        padding: .75rem 1rem;
+        border-right: 1px solid var(--line);
+    }
+    .lru-stat:last-child {
+        border-right: 0;
+    }
+    .pc-board {
+        border: 0;
+        border-radius: 0;
+        overflow: visible;
+        background: transparent;
+    }
+    .pc-operation {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: .85rem 1rem;
+        border-bottom: 1px solid var(--line);
+        background: #f4efe7;
+    }
+    .pc-operation-code {
+        border: 1px solid #d7cfc3;
+        border-radius: .4rem;
+        background: #171512;
+        color: #fffaf2;
+        padding: .38rem .6rem;
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: .72rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+    .pc-semaphores {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0,1fr));
+        border-bottom: 1px solid var(--line);
+    }
+    .pc-semaphore {
+        min-width: 0;
+        padding: .8rem 1rem;
+        border-right: 1px solid var(--line);
+        background: #fffdf9;
+    }
+    .pc-semaphore:last-child {
+        border-right: 0;
+    }
+    .pc-semaphore.changed {
+        background: #fff8e8;
+        box-shadow: inset 0 -3px 0 #b37a26;
+    }
+    .pc-sem-values {
+        display: flex;
+        align-items: baseline;
+        gap: .4rem;
+        margin-top: .28rem;
+        color: #938b81;
+        font-size: .75rem;
+        font-weight: 800;
+    }
+    .pc-sem-values strong {
+        color: var(--ink);
+        font-size: 1.25rem;
+    }
+    .pc-pipeline {
+        display: grid;
+        grid-template-columns: minmax(8rem,.75fr) 2.5rem minmax(17rem,1.5fr) 2.5rem minmax(8rem,.75fr);
+        align-items: center;
+        gap: .6rem;
+        padding: 1.15rem 1rem;
+    }
+    .pc-actor {
+        min-width: 0;
+        min-height: 8rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        border: 1px solid #ddd5ca;
+        border-radius: .6rem;
+        background: #f7f3ec;
+        padding: .85rem;
+    }
+    .pc-actor.active {
+        border-color: #307a52;
+        background: #edf8f0;
+        box-shadow: inset 0 3px 0 #307a52;
+    }
+    .pc-actor.waiting {
+        border-color: #e4c6bb;
+        background: #fff6f2;
+    }
+    .pc-actor-state {
+        margin-top: .8rem;
+        color: #5f5951;
+        font-size: .72rem;
+        font-weight: 800;
+        overflow-wrap: anywhere;
+    }
+    .pc-flow-arrow {
+        position: relative;
+        height: 2px;
+        background: #aca398;
+    }
+    .pc-flow-arrow::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        top: 50%;
+        width: .45rem;
+        height: .45rem;
+        border-top: 2px solid #81786e;
+        border-right: 2px solid #81786e;
+        transform: translateY(-50%) rotate(45deg);
+    }
+    .pc-flow-arrow.reverse::after {
+        right: auto;
+        left: 0;
+        transform: translateY(-50%) rotate(-135deg);
+    }
+    .pc-buffer {
+        min-width: 0;
+        border-inline: 1px solid #e4ddd2;
+        padding: 0 .85rem;
+    }
+    .pc-buffer-slots {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0,1fr));
+        gap: .35rem;
+        margin-top: .75rem;
+    }
+    .pc-buffer-slot {
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+        border: 1px dashed #cec5b9;
+        border-radius: .4rem;
+        background: #faf7f1;
+        color: #aaa196;
+        font-size: .75rem;
+        font-weight: 800;
+    }
+    .pc-buffer-slot.filled {
+        border-style: solid;
+        border-color: #376c9d;
+        background: #eaf2fb;
+        color: #24577f;
+    }
+    .pc-buffer-slot.changed {
+        outline: 2px solid #b95f42;
+        outline-offset: 2px;
+    }
+    .pc-rule {
+        display: flex;
+        align-items: flex-start;
+        gap: .65rem;
+        padding: .8rem 1rem;
+        border-top: 1px solid var(--line);
+        background: #faf7f1;
+        color: #5f5951;
+        font-size: .72rem;
+        line-height: 1.5;
+    }
+    .pc-rule-mark {
+        flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+        width: 1.4rem;
+        height: 1.4rem;
+        border-radius: 50%;
+        background: #171512;
+        color: white;
+        font-size: .65rem;
+        font-weight: 800;
+    }
+    .banker-board {
+        border: 0;
+        border-radius: 0;
+        overflow: visible;
+        background: transparent;
+    }
+    .banker-ledger {
+        display: grid;
+        grid-template-columns: minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr);
+        align-items: stretch;
+        border-bottom: 1px solid var(--line);
+        background: #f7f3ec;
+    }
+    .banker-ledger-block {
+        min-width: 0;
+        padding: 1rem;
+    }
+    .banker-ledger-block.release {
+        background: #fff9eb;
+    }
+    .banker-ledger-block.result {
+        background: #edf7f0;
+    }
+    .banker-ledger-arrow {
+        align-self: center;
+        color: #91897e;
+        font-size: 1.1rem;
+        font-weight: 800;
+    }
+    .resource-vector {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0,1fr));
+        gap: .35rem;
+        margin-top: .65rem;
+    }
+    .resource-unit {
+        min-width: 0;
+        border: 1px solid #d8d0c4;
+        border-radius: .4rem;
+        background: rgba(255,255,255,.76);
+        padding: .4rem .25rem;
+        text-align: center;
+    }
+    .resource-unit strong {
+        display: block;
+        color: var(--ink);
+        font-size: .92rem;
+        line-height: 1;
+    }
+    .resource-unit small {
+        display: block;
+        margin-top: .25rem;
+        color: #81796f;
+        font-size: .58rem;
+        font-weight: 800;
+    }
+    .banker-matrix-head,
+    .banker-process-row {
+        display: grid;
+        grid-template-columns: 4.5rem minmax(8rem,.8fr) minmax(8rem,.8fr) minmax(12rem,1.4fr);
+        align-items: center;
+        gap: .75rem;
+        padding: .7rem 1rem;
+    }
+    .banker-matrix-head {
+        color: #746d64;
+        background: #f4efe7;
+        font-size: .66rem;
+        font-weight: 800;
+        letter-spacing: .04em;
+    }
+    .banker-process-row {
+        min-height: 4.7rem;
+        border-top: 1px solid #ece5da;
+    }
+    .banker-process-row.is-selected {
+        box-shadow: inset 4px 0 0 #b95f42;
+        background: #fff8f3;
+    }
+    .banker-process-row.is-eligible:not(.is-selected) {
+        box-shadow: inset 4px 0 0 #35835a;
+        background: #f6fbf7;
+    }
+    .banker-process-row.is-done {
+        color: #8a8379;
+        background: #f6f3ed;
+    }
+    .banker-vector-text {
+        color: #292621;
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: .82rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+    .banker-checks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .3rem;
+    }
+    .banker-check {
+        border: 1px solid #ead0c8;
+        border-radius: .35rem;
+        background: #fff5f1;
+        color: #9b4e39;
+        padding: .22rem .38rem;
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: .62rem;
+        font-weight: 800;
+    }
+    .banker-check.fits {
+        border-color: #cae4d2;
+        background: #edf8f0;
+        color: #286b47;
+    }
+    .banker-done-label {
+        color: #4d7660;
+        font-size: .7rem;
+        font-weight: 800;
+    }
+    .safe-sequence {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        padding: 1rem;
+        border-top: 1px solid var(--line);
+        background: #fffdf9;
+    }
+    .safe-sequence-step {
+        display: inline-grid;
+        place-items: center;
+        width: 2.4rem;
+        height: 2.4rem;
+        border: 1px dashed #cfc6ba;
+        border-radius: 50%;
+        color: #a29a90;
+        font-size: .72rem;
+        font-weight: 800;
+    }
+    .safe-sequence-step.complete {
+        border-style: solid;
+        border-color: #2f7650;
+        background: #2f7650;
+        color: #fff;
+    }
+    .safe-sequence-arrow {
+        color: #a0998f;
         font-weight: 800;
     }
     @media (max-width: 1100px) {
@@ -416,8 +1079,12 @@
             grid-template-columns: 1fr;
         }
         .visual-side {
+            padding-right: 0;
             border-right: 0;
             border-bottom: 1px solid var(--line);
+        }
+        .code-side {
+            padding: 1rem 0 0;
         }
         .code-pre {
             max-height: 24rem;
@@ -443,6 +1110,70 @@
             left: 50%;
             transform: translateX(-50%) rotate(135deg);
         }
+        .banker-ledger {
+            grid-template-columns: 1fr;
+        }
+        .banker-ledger-arrow {
+            justify-self: center;
+            transform: rotate(90deg);
+        }
+        .banker-matrix {
+            overflow-x: auto;
+        }
+        .banker-matrix-head,
+        .banker-process-row {
+            min-width: 42rem;
+        }
+        .pc-operation {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+        .pc-pipeline {
+            grid-template-columns: 1fr;
+        }
+        .pc-flow-arrow {
+            width: 2px;
+            height: 1.6rem;
+            justify-self: center;
+        }
+        .pc-flow-arrow::after,
+        .pc-flow-arrow.reverse::after {
+            right: auto;
+            left: 50%;
+            top: auto;
+            bottom: 0;
+            transform: translateX(-50%) rotate(135deg);
+        }
+        .pc-buffer {
+            width: 100%;
+            border-inline: 0;
+            border-block: 1px solid #e4ddd2;
+            padding: .9rem 0;
+        }
+        .lru-operation {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+        .lru-main {
+            grid-template-columns: 1fr;
+        }
+        .lru-section + .lru-section {
+            border-top: 1px solid var(--line);
+            border-left: 0;
+        }
+        .ff-operation {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+        .experiment-controls {
+            flex-wrap: wrap;
+        }
+        .experiment-control-actions {
+            flex: 1 1 18rem;
+        }
+        .experiment-controls .toolbar-step {
+            margin-left: auto;
+        }
     }
 </style>
 
@@ -456,18 +1187,6 @@
                     <p class="text-xs text-gray-500 truncate"
                         x-text="$store.app.currentSession ? '当前会话：' + $store.app.currentSession.name + '，实验进度将写入评估' : '未选择学习会话：可演示，但不会记录实验进度'"></p>
                 </div>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-                <template x-if="selected">
-                    <button @click="backToCards()" class="toolbar-btn">返回卡片</button>
-                </template>
-                <template x-if="selected">
-                    <button @click="toggleRun()" class="toolbar-btn good" x-text="running ? '暂停播放' : '播放步骤'"></button>
-                </template>
-                <template x-if="selected">
-                    <button @click="nextFrame()" class="toolbar-btn dark">单步</button>
-                </template>
-                <button @click="resetLab()" class="toolbar-btn">清空状态</button>
             </div>
         </div>
 
@@ -516,23 +1235,24 @@
                                 <p class="text-xs text-gray-500 mt-1" x-text="current.desc"></p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="rounded-lg bg-gray-100 px-2 py-1 text-xs font-bold text-gray-700" x-text="(frameIndex + 1) + '/' + current.frames.length"></span>
-                            <button @click="resetAnimation()" class="toolbar-btn">重播</button>
-                        </div>
+                        <button @click="resetLab()" class="toolbar-btn">清空状态</button>
                     </div>
 
-                    <div class="px-4 pt-4">
-                        <div class="progress-track">
-                            <div class="progress-fill" :style="'width:' + progress + '%'"></div>
+                    <div class="experiment-controls">
+                        <div class="experiment-control-actions">
+                            <button @click="backToCards()" class="toolbar-btn">返回卡片</button>
+                            <button @click="resetAnimation()" class="toolbar-btn">重播</button>
+                            <button @click="toggleRun()" class="toolbar-btn good" x-text="running ? '暂停播放' : '播放步骤'"></button>
+                            <button @click="nextFrame()" class="toolbar-btn dark">单步</button>
                         </div>
+                        <span class="toolbar-step" x-text="(frameIndex + 1) + '/' + current.frames.length"></span>
                     </div>
 
                     <div class="experiment-grid">
                         <div class="visual-side">
                             <div class="panel-title">
-                                <span>动态展示</span>
-                                <span x-text="frame.note || frame.action || '观察当前步骤'"></span>
+                                <span>状态演算</span>
+                                <span x-text="'步骤 ' + (frameIndex + 1) + ' / ' + current.frames.length"></span>
                             </div>
                             <div class="visual-canvas">
                                 <template x-if="current.kind === 'schedule'">
@@ -608,117 +1328,253 @@
                                 </template>
 
                                 <template x-if="current.kind === 'memory'">
-                                    <div class="space-y-5">
-                                        <div class="mini-card">
-                                            <div class="flex items-center justify-between mb-3">
-                                                <p class="text-xs font-semibold text-gray-700">动态分区内存</p>
-                                                <span class="text-xs text-gray-500" x-text="frame.action"></span>
+                                    <div class="ff-board">
+                                        <div class="ff-operation">
+                                            <div class="min-w-0">
+                                                <p class="gantt-kicker">First Fit Scan</p>
+                                                <p class="mt-1 text-sm font-semibold text-gray-900" x-text="frame.note"></p>
                                             </div>
-                                            <div class="memory-row">
-                                                <template x-for="seg in frame.segments" :key="seg.label + seg.size + seg.type">
-                                                    <div class="memory-seg"
-                                                        :class="seg.type === 'free' ? 'bg-gray-100 text-gray-500' : (seg.type === 'hit' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800')"
-                                                        :style="'width:' + seg.size + '%'">
+                                            <span class="ff-decision" :class="frame.decision" x-text="frame.comparison"></span>
+                                        </div>
+
+                                        <div class="ff-ledger">
+                                            <div class="ff-ledger-item"><p class="gantt-kicker">Request</p><p class="mt-1 text-lg font-bold text-gray-900">P3 · 180MB</p></div>
+                                            <div class="ff-ledger-item"><p class="gantt-kicker">Current Block</p><p class="mt-1 text-lg font-bold text-gray-900" x-text="frame.currentBlock"></p></div>
+                                            <div class="ff-ledger-item"><p class="gantt-kicker">Scan State</p><p class="mt-1 text-lg font-bold text-gray-900" x-text="frame.status"></p></div>
+                                        </div>
+
+                                        <div class="ff-map-scroll">
+                                            <div class="ff-map">
+                                                <span class="ff-direction">LOW ADDRESS → HIGH ADDRESS</span>
+                                                <template x-for="(seg, index) in frame.segments" :key="seg.start + '-' + seg.label">
+                                                    <div class="ff-segment"
+                                                        :class="[
+                                                            seg.type,
+                                                            frame.scanIndex === index ? 'current' : '',
+                                                            frame.scanIndex === index && frame.decision === 'reject' ? 'rejected' : '',
+                                                            frame.scanIndex === index && frame.decision === 'fit' ? 'selected' : ''
+                                                        ]"
+                                                        :style="'flex:' + seg.size + ' 0 0'">
                                                         <span x-text="seg.label"></span>
-                                                        <span x-text="seg.size + '%'"></span>
+                                                        <strong x-text="seg.size + 'MB'"></strong>
+                                                        <small class="ff-address" x-text="seg.start"></small>
                                                     </div>
                                                 </template>
+                                                <small class="ff-map-end">960</small>
                                             </div>
                                         </div>
-                                        <div class="grid grid-cols-3 gap-3">
-                                            <template x-for="metric in frame.metrics" :key="metric.label">
-                                                <div class="mini-card">
-                                                    <p class="text-xs text-gray-500" x-text="metric.label"></p>
-                                                    <p class="mt-1 text-xl font-bold text-gray-900" x-text="metric.value"></p>
-                                                </div>
-                                            </template>
+
+                                        <div class="ff-summary">
+                                            <div class="ff-summary-item"><p class="gantt-kicker">Scanned</p><p class="mt-1 text-lg font-bold text-gray-900" x-text="frame.scanned + ' 块'"></p></div>
+                                            <div class="ff-summary-item"><p class="gantt-kicker">Free Blocks</p><p class="mt-1 text-lg font-bold text-gray-900" x-text="frame.freeBlocks"></p></div>
+                                            <div class="ff-summary-item"><p class="gantt-kicker">Largest Free</p><p class="mt-1 text-lg font-bold text-gray-900" x-text="frame.largestFree + 'MB'"></p></div>
                                         </div>
                                     </div>
                                 </template>
 
                                 <template x-if="current.kind === 'page'">
-                                    <div class="space-y-5">
-                                        <div class="mini-card">
-                                            <p class="text-xs font-semibold text-gray-700 mb-3">页面访问串</p>
-                                            <div class="grid grid-cols-10 gap-1">
+                                    <div class="lru-board">
+                                        <div class="lru-operation">
+                                            <div class="min-w-0">
+                                                <p class="gantt-kicker">Current Access</p>
+                                                <p class="mt-1 text-sm font-semibold text-gray-900" x-text="frame.note"></p>
+                                            </div>
+                                            <span class="lru-result" :class="frame.result === 'hit' ? 'hit' : ''"
+                                                x-text="frame.result === 'hit' ? '命中 PAGE ' + frame.page : '缺页 PAGE ' + frame.page"></span>
+                                        </div>
+
+                                        <div class="lru-access-scroll">
+                                            <div class="lru-access-tape">
                                                 <template x-for="(page, index) in current.reference" :key="index">
-                                                    <div class="h-10 rounded-lg border text-xs flex items-center justify-center"
-                                                        :class="index === frame.pointer ? 'bg-gray-900 text-white border-gray-900' : 'bg-white border-gray-100 text-gray-500'"
-                                                        x-text="page"></div>
+                                                    <span class="lru-access-cell"
+                                                        :class="{ 'visited': index < frame.pointer, 'current': index === frame.pointer }"
+                                                        x-text="page"></span>
                                                 </template>
                                             </div>
                                         </div>
-                                        <div class="grid grid-cols-3 gap-3">
-                                            <template x-for="(block, index) in frame.blocks" :key="index">
-                                                <div class="mini-card text-center">
-                                                    <p class="text-xs text-gray-500 mb-2" x-text="'物理块 ' + (index + 1)"></p>
-                                                    <div class="h-16 rounded-xl flex items-center justify-center text-2xl font-bold"
-                                                        :class="frame.changed === index ? 'bg-amber-100 text-amber-800' : 'bg-blue-50 text-blue-700'"
-                                                        x-text="block || '-'"></div>
+
+                                        <div class="lru-main">
+                                            <section class="lru-section">
+                                                <div class="flex items-center justify-between gap-3">
+                                                    <div>
+                                                        <p class="gantt-kicker">Physical Frames</p>
+                                                        <p class="mt-1 text-xs text-gray-600">物理块位置保持固定</p>
+                                                    </div>
+                                                    <span x-show="frame.victim !== null" class="text-[10px] font-bold text-rose-700" x-text="'淘汰 PAGE ' + frame.victim"></span>
                                                 </div>
-                                            </template>
+                                                <div class="lru-frames">
+                                                    <template x-for="(block, index) in frame.blocks" :key="index">
+                                                        <div class="lru-frame"
+                                                            :class="{ 'changed': frame.changed === index, 'hit': frame.result === 'hit' && frame.accessedFrame === index }">
+                                                            <span class="gantt-kicker" x-text="'FRAME ' + (index + 1)"></span>
+                                                            <strong class="lru-page-value" x-text="block === '' ? '-' : block"></strong>
+                                                            <small class="mt-1 text-[9px] font-bold" x-show="frame.changed === index" x-text="frame.victim === null ? '装入' : frame.victim + ' → ' + frame.page"></small>
+                                                            <small class="mt-1 text-[9px] font-bold text-emerald-700" x-show="frame.result === 'hit' && frame.accessedFrame === index">命中</small>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </section>
+
+                                            <section class="lru-section">
+                                                <div class="flex items-center justify-between gap-3">
+                                                    <div>
+                                                        <p class="gantt-kicker">Recency Order</p>
+                                                        <p class="mt-1 text-xs text-gray-600">每次访问后更新最近使用顺序</p>
+                                                    </div>
+                                                    <span class="text-[10px] font-bold text-gray-500">MRU → LRU</span>
+                                                </div>
+                                                <div class="lru-recency">
+                                                    <template x-for="(page, index) in frame.recency" :key="page">
+                                                        <div class="lru-recency-item">
+                                                            <span x-text="page"></span>
+                                                            <small x-text="index === 0 ? 'MOST RECENT' : (index === frame.recency.length - 1 ? 'EVICT NEXT' : 'RECENT')"></small>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </section>
                                         </div>
-                                        <div class="mini-card flex items-center justify-between">
-                                            <span class="text-xs text-gray-500">缺页次数</span>
-                                            <span class="text-2xl font-bold text-gray-900" x-text="frame.faults"></span>
+
+                                        <div class="lru-stats">
+                                            <div class="lru-stat"><p class="gantt-kicker">Faults</p><p class="mt-1 text-lg font-bold text-gray-900" x-text="frame.faults"></p></div>
+                                            <div class="lru-stat"><p class="gantt-kicker">Hits</p><p class="mt-1 text-lg font-bold text-gray-900" x-text="frame.hits"></p></div>
+                                            <div class="lru-stat"><p class="gantt-kicker">Hit Rate</p><p class="mt-1 text-lg font-bold text-gray-900" x-text="Math.round((frame.hits / (frame.pointer + 1)) * 100) + '%'"></p></div>
                                         </div>
                                     </div>
                                 </template>
 
                                 <template x-if="current.kind === 'thread'">
-                                    <div class="space-y-5">
-                                        <div class="grid grid-cols-2 gap-4">
-                                            <div class="mini-card text-center">
-                                                <p class="text-xs text-gray-500 mb-2">生产者线程</p>
-                                                <div class="h-16 rounded-xl flex items-center justify-center text-lg font-bold"
-                                                    :class="frame.producer === '运行' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-500'"
-                                                    x-text="frame.producer"></div>
+                                    <div class="pc-board">
+                                        <div class="pc-operation">
+                                            <div class="min-w-0">
+                                                <p class="gantt-kicker">Current Operation</p>
+                                                <p class="mt-1 text-sm font-semibold text-gray-900" x-text="frame.explanation"></p>
                                             </div>
-                                            <div class="mini-card text-center">
-                                                <p class="text-xs text-gray-500 mb-2">消费者线程</p>
-                                                <div class="h-16 rounded-xl flex items-center justify-center text-lg font-bold"
-                                                    :class="frame.consumer === '运行' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-500'"
-                                                    x-text="frame.consumer"></div>
-                                            </div>
+                                            <code class="pc-operation-code" x-text="frame.operation"></code>
                                         </div>
-                                        <div class="mini-card">
-                                            <p class="text-xs font-semibold text-gray-700 mb-3">共享缓冲区</p>
-                                            <div class="grid grid-cols-5 gap-2">
-                                                <template x-for="(cell, index) in frame.buffer" :key="index">
-                                                    <div class="h-14 rounded-xl border flex items-center justify-center text-sm font-bold"
-                                                        :class="cell ? 'bg-blue-100 border-blue-200 text-blue-800' : 'bg-white border-gray-100 text-gray-300'"
-                                                        x-text="cell || '-'"></div>
-                                                </template>
-                                            </div>
-                                        </div>
-                                        <div class="grid grid-cols-3 gap-3">
+
+                                        <div class="pc-semaphores">
                                             <template x-for="sem in frame.semaphores" :key="sem.label">
-                                                <div class="mini-card">
-                                                    <p class="text-xs text-gray-500" x-text="sem.label"></p>
-                                                    <p class="mt-1 text-xl font-bold text-gray-900" x-text="sem.value"></p>
+                                                <div class="pc-semaphore" :class="sem.before !== sem.after ? 'changed' : ''">
+                                                    <p class="gantt-kicker" x-text="sem.label"></p>
+                                                    <div class="pc-sem-values">
+                                                        <span x-text="sem.before"></span>
+                                                        <span>→</span>
+                                                        <strong x-text="sem.after"></strong>
+                                                    </div>
                                                 </div>
                                             </template>
+                                        </div>
+
+                                        <div class="pc-pipeline">
+                                            <div class="pc-actor" :class="{ 'active': frame.actor === 'producer', 'waiting': frame.producerState.includes('等待') }">
+                                                <div>
+                                                    <p class="gantt-kicker">Producer</p>
+                                                    <p class="mt-2 text-base font-bold text-gray-900">生产者</p>
+                                                </div>
+                                                <p class="pc-actor-state" x-text="frame.producerState"></p>
+                                            </div>
+                                            <span class="pc-flow-arrow"></span>
+                                            <div class="pc-buffer">
+                                                <div class="flex items-center justify-between gap-3">
+                                                    <p class="gantt-kicker">Bounded Buffer</p>
+                                                    <span class="text-[10px] font-bold text-gray-500" x-text="frame.buffer.filter(Boolean).length + ' / ' + frame.buffer.length"></span>
+                                                </div>
+                                                <div class="pc-buffer-slots">
+                                                    <template x-for="(cell, index) in frame.buffer" :key="index">
+                                                        <span class="pc-buffer-slot"
+                                                            :class="{ 'filled': Boolean(cell), 'changed': frame.changedSlot === index }"
+                                                            x-text="cell || (index + 1)"></span>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                            <span class="pc-flow-arrow reverse"></span>
+                                            <div class="pc-actor" :class="{ 'active': frame.actor === 'consumer', 'waiting': frame.consumerState.includes('等待') }">
+                                                <div>
+                                                    <p class="gantt-kicker">Consumer</p>
+                                                    <p class="mt-2 text-base font-bold text-gray-900">消费者</p>
+                                                </div>
+                                                <p class="pc-actor-state" x-text="frame.consumerState"></p>
+                                            </div>
+                                        </div>
+
+                                        <div class="pc-rule">
+                                            <span class="pc-rule-mark">i</span>
+                                            <p x-text="frame.note"></p>
                                         </div>
                                     </div>
                                 </template>
 
                                 <template x-if="current.kind === 'deadlock'">
-                                    <div class="space-y-5">
-                                        <div class="grid grid-cols-3 gap-4">
+                                    <div class="banker-board">
+                                        <div class="banker-ledger">
+                                            <div class="banker-ledger-block">
+                                                <p class="gantt-kicker">Work Before</p>
+                                                <p class="mt-1 text-xs text-gray-600">执行前可用资源</p>
+                                                <div class="resource-vector">
+                                                    <template x-for="(value, index) in frame.workBefore" :key="'before-' + index">
+                                                        <span class="resource-unit"><strong x-text="value"></strong><small x-text="resourceLabels[index]"></small></span>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                            <span class="banker-ledger-arrow">+</span>
+                                            <div class="banker-ledger-block release">
+                                                <p class="gantt-kicker">Released</p>
+                                                <p class="mt-1 text-xs text-gray-600" x-text="frame.selected ? frame.selected + ' 释放资源' : '等待进程完成'"></p>
+                                                <div class="resource-vector">
+                                                    <template x-for="(value, index) in frame.released" :key="'released-' + index">
+                                                        <span class="resource-unit"><strong x-text="value"></strong><small x-text="resourceLabels[index]"></small></span>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                            <span class="banker-ledger-arrow">=</span>
+                                            <div class="banker-ledger-block result">
+                                                <p class="gantt-kicker">Work After</p>
+                                                <p class="mt-1 text-xs text-gray-600">执行后可用资源</p>
+                                                <div class="resource-vector">
+                                                    <template x-for="(value, index) in frame.workAfter" :key="'after-' + index">
+                                                        <span class="resource-unit"><strong x-text="value"></strong><small x-text="resourceLabels[index]"></small></span>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="banker-matrix">
+                                            <div class="banker-matrix-head">
+                                                <span>进程</span><span>已分配 Allocation</span><span>还需要 Need</span><span>逐项判断 Need ≤ Work</span>
+                                            </div>
                                             <template x-for="proc in frame.processes" :key="proc.name">
-                                                <div class="mini-card">
-                                                    <p class="text-sm font-semibold text-gray-800" x-text="proc.name"></p>
-                                                    <p class="mt-2 text-xs text-gray-500">已分配</p>
-                                                    <p class="text-lg font-bold text-gray-900" x-text="proc.allocated"></p>
-                                                    <p class="mt-2 text-xs text-gray-500">还需要</p>
-                                                    <p class="text-lg font-bold" :class="proc.safe ? 'text-emerald-700' : 'text-rose-700'" x-text="proc.need"></p>
+                                                <div class="banker-process-row"
+                                                    :class="{ 'is-selected': frame.selected === proc.name, 'is-eligible': frame.eligible.includes(proc.name), 'is-done': proc.done }">
+                                                    <div>
+                                                        <p class="text-sm font-bold text-gray-900" x-text="proc.name"></p>
+                                                        <p class="mt-1 text-[10px] font-bold" x-text="proc.done ? '已完成' : (frame.eligible.includes(proc.name) ? '可执行' : '等待')"></p>
+                                                    </div>
+                                                    <p class="banker-vector-text" x-text="vectorText(proc.allocated)"></p>
+                                                    <p class="banker-vector-text" x-text="vectorText(proc.need)"></p>
+                                                    <div>
+                                                        <span x-show="proc.done" class="banker-done-label">资源已回收，Finish = true</span>
+                                                        <div x-show="!proc.done" class="banker-checks">
+                                                            <template x-for="(need, index) in proc.need" :key="proc.name + '-' + index">
+                                                                <span class="banker-check" :class="need <= frame.workAfter[index] ? 'fits' : ''"
+                                                                    x-text="resourceLabels[index] + ': ' + need + (need <= frame.workAfter[index] ? ' ≤ ' : ' > ') + frame.workAfter[index]"></span>
+                                                            </template>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </template>
                                         </div>
-                                        <div class="mini-card">
-                                            <p class="text-xs text-gray-500">安全序列</p>
-                                            <p class="mt-2 text-2xl font-bold text-gray-900" x-text="frame.sequence"></p>
-                                            <p class="mt-2 text-xs text-gray-500" x-text="frame.note"></p>
+
+                                        <div class="safe-sequence">
+                                            <div class="mr-auto min-w-0">
+                                                <p class="gantt-kicker">Safe Sequence</p>
+                                                <p class="mt-1 text-xs text-gray-600" x-text="frame.note"></p>
+                                            </div>
+                                            <template x-for="(slot, index) in 3" :key="slot">
+                                                <div class="contents">
+                                                    <span class="safe-sequence-step" :class="frame.sequence[index] ? 'complete' : ''" x-text="frame.sequence[index] || (index + 1)"></span>
+                                                    <span x-show="index < 2" class="safe-sequence-arrow">→</span>
+                                                </div>
+                                            </template>
                                         </div>
                                     </div>
                                 </template>
@@ -727,7 +1583,7 @@
 
                         <aside class="code-side">
                             <div class="panel-title">
-                                <span>对应代码</span>
+                                <span>算法逻辑</span>
                                 <span x-text="current.codeLang"></span>
                             </div>
                             <pre class="code-pre" x-text="current.code"></pre>
@@ -750,17 +1606,11 @@ document.addEventListener('alpine:init', () => {
         timer: null,
         maxFrameReached: 0,
         completedAlgorithms: {},
+        resourceLabels: ['A', 'B', 'C'],
         algorithms: [
-            { id: 'fcfs', mark: '先', title: 'FCFS 先来先服务', tag: '调度', desc: '按到达顺序依次占用 CPU，非抢占式。', points: ['到达队列', '非抢占', '平均等待'] },
-            { id: 'sjf', mark: '短', title: 'SJF 短作业优先', tag: '调度', desc: '优先执行估计运行时间最短的进程。', points: ['最短运行', '非抢占', '等待时间'] },
             { id: 'rr', mark: '轮', title: 'RR 时间片轮转', tag: '调度', desc: '每个进程获得固定时间片，用完回到队尾。', points: ['时间片', '抢占', '甘特图'] },
-            { id: 'priority', mark: '优', title: '优先级调度', tag: '调度', desc: '根据优先级选择进程，可观察饥饿风险。', points: ['优先级', '老化', '饥饿'] },
             { id: 'firstFit', mark: '首', title: '首次适应分配', tag: '内存', desc: '从低地址开始扫描，命中第一个足够大的空闲区。', points: ['低地址扫描', '切分', '外部碎片'] },
-            { id: 'bestFit', mark: '佳', title: '最佳适应分配', tag: '内存', desc: '选择满足请求且剩余空间最小的空闲区。', points: ['最小剩余', '空闲表', '碎片'] },
-            { id: 'worstFit', mark: '大', title: '最坏适应分配', tag: '内存', desc: '选择最大的空闲区，尽量留下较大的剩余块。', points: ['最大空闲块', '切分', '再分配'] },
-            { id: 'fifoPage', mark: 'F', title: 'FIFO 页面置换', tag: '页面', desc: '淘汰最早进入内存的页面。', points: ['先进先出', '队列', '缺页'] },
             { id: 'lruPage', mark: 'L', title: 'LRU 页面置换', tag: '页面', desc: '淘汰最近最久未访问的页面。', points: ['访问历史', '最近最久', '缺页'] },
-            { id: 'optPage', mark: 'O', title: 'OPT 最佳置换', tag: '页面', desc: '淘汰未来最长时间不会被访问的页面。', points: ['未来访问', '理论最优', '对照'] },
             { id: 'producerConsumer', mark: '线', title: '生产者消费者', tag: '同步', desc: '用 empty、full、mutex 协调共享缓冲区。', points: ['信号量', '临界区', '缓冲区'] },
             { id: 'banker', mark: '锁', title: '银行家算法', tag: '死锁', desc: '通过安全性检查判断资源分配是否会进入危险状态。', points: ['Need', 'Work', '安全序列'] },
         ],
@@ -770,10 +1620,6 @@ document.addEventListener('alpine:init', () => {
         },
         get frame() {
             return this.current.frames[this.frameIndex] || this.current.frames[0];
-        },
-        get progress() {
-            const total = Math.max(1, this.current.frames.length - 1);
-            return Math.round((this.frameIndex / total) * 100);
         },
         get ganttCapacity() {
             return Math.max(8, ...this.current.frames.map(item => (item.gantt || []).length));
@@ -802,6 +1648,9 @@ document.addEventListener('alpine:init', () => {
             if (latest && this.frame.cpu === latest.label) latest.active = true;
             return segments;
         },
+        vectorText(vector) {
+            return `[ ${vector.join('  ')} ]`;
+        },
 
         resetLab() {
             if (this.selected) this.logLabEvent('reset_lab');
@@ -829,18 +1678,30 @@ document.addEventListener('alpine:init', () => {
             this.maxFrameReached = 0;
             this.stopRun();
             this.logLabEvent('reset_animation');
+            this.syncVisualFocus();
         },
         nextFrame() {
             const last = this.current.frames.length - 1;
-            this.frameIndex = this.frameIndex >= last ? 0 : this.frameIndex + 1;
+            if (this.frameIndex >= last) {
+                this.stopRun();
+                return;
+            }
+            this.frameIndex += 1;
             this.maxFrameReached = Math.max(this.maxFrameReached, this.frameIndex);
+            this.syncVisualFocus();
             this.logLabEvent('step');
             if (this.frameIndex === last && !this.completedAlgorithms[this.selected]) {
                 this.completedAlgorithms[this.selected] = true;
                 this.logLabEvent('complete_algorithm');
+                this.stopRun();
             }
         },
         toggleRun() {
+            const last = this.current.frames.length - 1;
+            if (!this.running && this.frameIndex >= last) {
+                this.frameIndex = 0;
+                this.maxFrameReached = 0;
+            }
             this.running = !this.running;
             if (!this.running) {
                 this.logLabEvent('pause_playback');
@@ -849,6 +1710,28 @@ document.addEventListener('alpine:init', () => {
             }
             this.logLabEvent('start_playback');
             this.timer = setInterval(() => this.nextFrame(), 2200);
+        },
+        syncVisualFocus() {
+            this.$nextTick(() => {
+                let strip = null;
+                let current = null;
+                if (this.current.kind === 'page') {
+                    strip = this.$root.querySelector('.lru-access-scroll');
+                    current = strip?.querySelector('.lru-access-cell.current');
+                } else if (this.current.kind === 'memory') {
+                    strip = this.$root.querySelector('.ff-map-scroll');
+                    current = strip?.querySelector('.ff-segment.current, .ff-segment.allocated');
+                }
+                if (!strip) return;
+                if (!current) {
+                    strip.scrollTo({ left: 0, behavior: 'smooth' });
+                    return;
+                }
+                strip.scrollTo({
+                    left: current.offsetLeft - ((strip.clientWidth - current.clientWidth) / 2),
+                    behavior: 'smooth',
+                });
+            });
         },
         stopRun() {
             if (this.timer) clearInterval(this.timer);
@@ -880,52 +1763,6 @@ document.addEventListener('alpine:init', () => {
 
         scenarios() {
             return {
-                fcfs: {
-                    kind: 'schedule',
-                    mark: '先',
-                    title: 'FCFS 先来先服务',
-                    desc: '按到达顺序依次执行，当前进程完成前不会被抢占。',
-                    codeLang: '伪代码',
-                    code: `ready_queue.sort_by(arrival_time)
-
-while ready_queue is not empty:
-    proc = ready_queue.pop_front()
-    dispatch(proc)
-    run until proc.finished
-
-    proc.finish_time = clock
-    done_queue.push(proc)`,
-                    frames: [
-                        { ready: ['P1', 'P2', 'P3', 'P4'], cpu: '', done: [], gantt: [], note: '按到达时间形成就绪队列' },
-                        { ready: ['P2', 'P3', 'P4'], cpu: 'P1', done: [], gantt: ['P1', 'P1'], note: 'P1 最先到达，直接运行到完成' },
-                        { ready: ['P3', 'P4'], cpu: 'P2', done: ['P1'], gantt: ['P1', 'P1', 'P2'], note: 'P2 进入 CPU，后续短进程也必须等待' },
-                        { ready: ['P4'], cpu: 'P3', done: ['P1', 'P2'], gantt: ['P1', 'P1', 'P2', 'P3'], note: 'P3 运行，FCFS 不重新排序' },
-                        { ready: [], cpu: 'P4', done: ['P1', 'P2', 'P3'], gantt: ['P1', 'P1', 'P2', 'P3', 'P4'], note: 'P4 最后运行' },
-                        { ready: [], cpu: '', done: ['P1', 'P2', 'P3', 'P4'], gantt: ['P1', 'P1', 'P2', 'P3', 'P4', 'P4'], note: '所有进程按到达顺序完成' },
-                    ],
-                },
-                sjf: {
-                    kind: 'schedule',
-                    mark: '短',
-                    title: 'SJF 短作业优先',
-                    desc: '从就绪队列中选择估计运行时间最短的进程。',
-                    codeLang: '伪代码',
-                    code: `while unfinished processes exist:
-    ready = processes_arrived_before(clock)
-    proc = min(ready, key = estimated_burst)
-
-    dispatch(proc)
-    run until proc.finished
-    done_queue.push(proc)`,
-                    frames: [
-                        { ready: ['P1(6)', 'P2(2)', 'P3(4)', 'P4(1)'], cpu: '', done: [], gantt: [], note: '括号内为估计运行时间' },
-                        { ready: ['P2(2)', 'P3(4)', 'P1(6)'], cpu: 'P4', done: [], gantt: ['P4'], note: '选择最短作业 P4' },
-                        { ready: ['P3(4)', 'P1(6)'], cpu: 'P2', done: ['P4'], gantt: ['P4', 'P2'], note: '剩余队列中 P2 最短' },
-                        { ready: ['P1(6)'], cpu: 'P3', done: ['P4', 'P2'], gantt: ['P4', 'P2', 'P2', 'P3'], note: 'P3 短于 P1，先执行' },
-                        { ready: [], cpu: 'P1', done: ['P4', 'P2', 'P3'], gantt: ['P4', 'P2', 'P2', 'P3', 'P3', 'P1'], note: '最后执行最长的 P1' },
-                        { ready: [], cpu: '', done: ['P4', 'P2', 'P3', 'P1'], gantt: ['P4', 'P2', 'P2', 'P3', 'P3', 'P1', 'P1'], note: '短作业平均等待时间较低，但长作业可能等待久' },
-                    ],
-                },
                 rr: {
                     kind: 'schedule',
                     mark: '轮',
@@ -951,27 +1788,6 @@ while ready_queue is not empty:
                         { ready: [], cpu: '', done: ['P3', 'P1', 'P2'], gantt: ['P1', 'P1', 'P2', 'P2', 'P3', 'P1', 'P1', 'P2'], note: '所有进程完成' },
                     ],
                 },
-                priority: {
-                    kind: 'schedule',
-                    mark: '优',
-                    title: '优先级调度',
-                    desc: '优先运行优先级高的进程，适合观察饥饿与老化问题。',
-                    codeLang: '伪代码',
-                    code: `while ready_queue is not empty:
-    proc = max(ready_queue, key = priority)
-    dispatch(proc)
-    run proc
-
-    if waiting_too_long(other_proc):
-        other_proc.priority += aging`,
-                    frames: [
-                        { ready: ['P1(2)', 'P2(5)', 'P3(1)', 'P4(4)'], cpu: '', done: [], gantt: [], note: '数字越大表示优先级越高' },
-                        { ready: ['P4(4)', 'P1(2)', 'P3(1)'], cpu: 'P2', done: [], gantt: ['P2'], note: 'P2 优先级最高，先运行' },
-                        { ready: ['P1(2)', 'P3(1)'], cpu: 'P4', done: ['P2'], gantt: ['P2', 'P4'], note: 'P4 接着获得 CPU' },
-                        { ready: ['P3(2)'], cpu: 'P1', done: ['P2', 'P4'], gantt: ['P2', 'P4', 'P1'], note: 'P3 等待过久，老化后优先级提高' },
-                        { ready: [], cpu: 'P3', done: ['P2', 'P4', 'P1'], gantt: ['P2', 'P4', 'P1', 'P3'], note: 'P3 最后执行，老化可缓解饥饿' },
-                    ],
-                },
                 firstFit: {
                     kind: 'memory',
                     mark: '首',
@@ -986,77 +1802,12 @@ for block in free_list:
         split remaining space
         break`,
                     frames: [
-                        { action: '请求 180MB，从低地址开始扫描', segments: [{ label: 'P1', size: 16, type: 'used' }, { label: '空闲120', size: 12, type: 'free' }, { label: 'P2', size: 20, type: 'used' }, { label: '空闲260', size: 26, type: 'free' }, { label: '空闲220', size: 22, type: 'free' }], metrics: [{ label: '请求', value: '180MB' }, { label: '扫描方向', value: '低->高' }, { label: '策略', value: '首次适应' }] },
-                        { action: '跳过 120MB，命中 260MB', segments: [{ label: 'P1', size: 16, type: 'used' }, { label: '太小', size: 12, type: 'free' }, { label: 'P2', size: 20, type: 'used' }, { label: '命中260', size: 26, type: 'hit' }, { label: '空闲220', size: 22, type: 'free' }], metrics: [{ label: '命中块', value: '260MB' }, { label: '剩余', value: '80MB' }, { label: '停止扫描', value: '是' }] },
-                        { action: '切分命中块并装入 P3', segments: [{ label: 'P1', size: 16, type: 'used' }, { label: '空闲120', size: 12, type: 'free' }, { label: 'P2', size: 20, type: 'used' }, { label: 'P3', size: 18, type: 'hit' }, { label: '空闲80', size: 8, type: 'free' }, { label: '空闲220', size: 22, type: 'free' }], metrics: [{ label: '新进程', value: 'P3' }, { label: '剩余块', value: '80MB' }, { label: '优点', value: '速度快' }] },
-                    ],
-                },
-                bestFit: {
-                    kind: 'memory',
-                    mark: '佳',
-                    title: '最佳适应分配',
-                    desc: '选择满足请求且剩余空间最小的空闲区。',
-                    codeLang: '伪代码',
-                    code: `request = 180MB
-best_block = null
-
-for block in free_list:
-    if block.size >= request:
-        if best_block is null or block.size < best_block.size:
-            best_block = block
-
-allocate request from best_block`,
-                    frames: [
-                        { action: '请求 180MB，扫描全部空闲块', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: '空闲120', size: 12, type: 'free' }, { label: 'P2', size: 22, type: 'used' }, { label: '空闲260', size: 26, type: 'free' }, { label: '空闲220', size: 22, type: 'free' }], metrics: [{ label: '候选', value: '260/220' }, { label: '策略', value: '最佳适应' }, { label: '目标', value: '最小剩余' }] },
-                        { action: '比较候选块，选择 220MB', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: '空闲120', size: 12, type: 'free' }, { label: 'P2', size: 22, type: 'used' }, { label: '空闲260', size: 26, type: 'free' }, { label: '命中220', size: 22, type: 'hit' }], metrics: [{ label: '命中块', value: '220MB' }, { label: '剩余', value: '40MB' }, { label: '碎片', value: '较小' }] },
-                        { action: '切分并装入 P3', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: '空闲120', size: 12, type: 'free' }, { label: 'P2', size: 22, type: 'used' }, { label: '空闲260', size: 26, type: 'free' }, { label: 'P3', size: 18, type: 'hit' }, { label: '空闲40', size: 4, type: 'free' }], metrics: [{ label: '新进程', value: 'P3' }, { label: '剩余块', value: '40MB' }, { label: '代价', value: '全表扫描' }] },
-                    ],
-                },
-                worstFit: {
-                    kind: 'memory',
-                    mark: '大',
-                    title: '最坏适应分配',
-                    desc: '选择最大的空闲区，使剩余空间仍尽量可用。',
-                    codeLang: '伪代码',
-                    code: `request = 180MB
-worst_block = null
-
-for block in free_list:
-    if block.size >= request:
-        if worst_block is null or block.size > worst_block.size:
-            worst_block = block
-
-allocate request from worst_block`,
-                    frames: [
-                        { action: '请求 180MB，寻找最大空闲块', segments: [{ label: 'P1', size: 16, type: 'used' }, { label: '空闲120', size: 12, type: 'free' }, { label: 'P2', size: 18, type: 'used' }, { label: '空闲360', size: 36, type: 'free' }, { label: '空闲220', size: 22, type: 'free' }], metrics: [{ label: '请求', value: '180MB' }, { label: '最大块', value: '360MB' }, { label: '策略', value: '最坏适应' }] },
-                        { action: '命中最大块 360MB', segments: [{ label: 'P1', size: 16, type: 'used' }, { label: '空闲120', size: 12, type: 'free' }, { label: 'P2', size: 18, type: 'used' }, { label: '命中360', size: 36, type: 'hit' }, { label: '空闲220', size: 22, type: 'free' }], metrics: [{ label: '命中块', value: '360MB' }, { label: '剩余', value: '180MB' }, { label: '特点', value: '保留大块' }] },
-                        { action: '切分最大块并装入 P3', segments: [{ label: 'P1', size: 16, type: 'used' }, { label: '空闲120', size: 12, type: 'free' }, { label: 'P2', size: 18, type: 'used' }, { label: 'P3', size: 18, type: 'hit' }, { label: '空闲180', size: 18, type: 'free' }, { label: '空闲220', size: 22, type: 'free' }], metrics: [{ label: '新进程', value: 'P3' }, { label: '剩余块', value: '180MB' }, { label: '空闲块', value: '3' }] },
-                    ],
-                },
-                fifoPage: {
-                    kind: 'page',
-                    mark: 'F',
-                    title: 'FIFO 页面置换',
-                    desc: '页面满时淘汰最早进入内存的页面。',
-                    codeLang: '伪代码',
-                    reference: [7, 0, 1, 2, 0, 3, 0, 4, 2, 3],
-                    code: `queue = []
-frames = []
-
-for page in reference_string:
-    if page not in frames:
-        page_fault += 1
-        if frames are full:
-            victim = queue.pop_front()
-            replace victim with page
-        queue.push_back(page)`,
-                    frames: [
-                        { pointer: 0, blocks: [7, '', ''], changed: 0, faults: 1, note: '装入页面 7，队列：[7]' },
-                        { pointer: 1, blocks: [7, 0, ''], changed: 1, faults: 2, note: '装入页面 0，队列：[7,0]' },
-                        { pointer: 2, blocks: [7, 0, 1], changed: 2, faults: 3, note: '装入页面 1，物理块已满' },
-                        { pointer: 3, blocks: [2, 0, 1], changed: 0, faults: 4, note: '页面 2 缺页，淘汰最早进入的 7' },
-                        { pointer: 4, blocks: [2, 0, 1], changed: -1, faults: 4, note: '页面 0 命中' },
-                        { pointer: 5, blocks: [2, 3, 1], changed: 1, faults: 5, note: '页面 3 缺页，淘汰 FIFO 队首 0' },
+                        { scanIndex: -1, decision: 'pending', comparison: '等待扫描', currentBlock: '起始地址 0MB', status: '准备', scanned: 0, freeBlocks: 3, largestFree: 260, note: 'P3 请求 180MB，首次适应算法从最低地址开始。', segments: [{ label: 'P1', start: 0, size: 160, type: 'used' }, { label: '空闲', start: 160, size: 120, type: 'free' }, { label: 'P2', start: 280, size: 200, type: 'used' }, { label: '空闲', start: 480, size: 260, type: 'free' }, { label: '空闲', start: 740, size: 220, type: 'free' }] },
+                        { scanIndex: 0, decision: 'occupied', comparison: 'P1 已占用', currentBlock: '0–160MB', status: '跳过', scanned: 1, freeBlocks: 3, largestFree: 260, note: '扫描 P1 所在分区；该分区已占用，继续向高地址查找。', segments: [{ label: 'P1', start: 0, size: 160, type: 'used' }, { label: '空闲', start: 160, size: 120, type: 'free' }, { label: 'P2', start: 280, size: 200, type: 'used' }, { label: '空闲', start: 480, size: 260, type: 'free' }, { label: '空闲', start: 740, size: 220, type: 'free' }] },
+                        { scanIndex: 1, decision: 'reject', comparison: '120 < 180', currentBlock: '160–280MB', status: '空间不足', scanned: 2, freeBlocks: 3, largestFree: 260, note: '第一个空闲区只有 120MB，无法容纳 P3，继续扫描。', segments: [{ label: 'P1', start: 0, size: 160, type: 'used' }, { label: '空闲', start: 160, size: 120, type: 'free' }, { label: 'P2', start: 280, size: 200, type: 'used' }, { label: '空闲', start: 480, size: 260, type: 'free' }, { label: '空闲', start: 740, size: 220, type: 'free' }] },
+                        { scanIndex: 2, decision: 'occupied', comparison: 'P2 已占用', currentBlock: '280–480MB', status: '跳过', scanned: 3, freeBlocks: 3, largestFree: 260, note: '扫描 P2 所在分区；该分区已占用，继续向高地址查找。', segments: [{ label: 'P1', start: 0, size: 160, type: 'used' }, { label: '空闲', start: 160, size: 120, type: 'free' }, { label: 'P2', start: 280, size: 200, type: 'used' }, { label: '空闲', start: 480, size: 260, type: 'free' }, { label: '空闲', start: 740, size: 220, type: 'free' }] },
+                        { scanIndex: 3, decision: 'fit', comparison: '260 ≥ 180', currentBlock: '480–740MB', status: '首次命中', scanned: 4, freeBlocks: 3, largestFree: 260, note: '260MB 空闲区是第一个可容纳 P3 的分区，立即停止扫描。', segments: [{ label: 'P1', start: 0, size: 160, type: 'used' }, { label: '空闲', start: 160, size: 120, type: 'free' }, { label: 'P2', start: 280, size: 200, type: 'used' }, { label: '空闲', start: 480, size: 260, type: 'free' }, { label: '空闲', start: 740, size: 220, type: 'free' }] },
+                        { scanIndex: -1, decision: 'allocated', comparison: '260 = 180 + 80', currentBlock: '480–740MB', status: '分配完成', scanned: 4, freeBlocks: 3, largestFree: 220, note: '命中分区被切分为 P3 180MB 和剩余空闲区 80MB。', segments: [{ label: 'P1', start: 0, size: 160, type: 'used' }, { label: '空闲', start: 160, size: 120, type: 'free' }, { label: 'P2', start: 280, size: 200, type: 'used' }, { label: 'P3', start: 480, size: 180, type: 'allocated' }, { label: '空闲', start: 660, size: 80, type: 'free' }, { label: '空闲', start: 740, size: 220, type: 'free' }] },
                     ],
                 },
                 lruPage: {
@@ -1077,36 +1828,16 @@ for time, page in enumerate(reference_string):
             replace victim with page
     last_used[page] = time`,
                     frames: [
-                        { pointer: 0, blocks: [7, '', ''], changed: 0, faults: 1, note: '页面 7 不在内存，装入物理块 1' },
-                        { pointer: 1, blocks: [7, 0, ''], changed: 1, faults: 2, note: '页面 0 缺页，装入物理块 2' },
-                        { pointer: 2, blocks: [7, 0, 1], changed: 2, faults: 3, note: '页面 1 缺页，装入物理块 3' },
-                        { pointer: 3, blocks: [2, 0, 1], changed: 0, faults: 4, note: '页面 2 缺页，替换最久未用的 7' },
-                        { pointer: 4, blocks: [2, 0, 1], changed: -1, faults: 4, note: '页面 0 命中，刷新最近使用时间' },
-                        { pointer: 5, blocks: [2, 0, 3], changed: 2, faults: 5, note: '页面 3 缺页，替换最久未用的 1' },
-                    ],
-                },
-                optPage: {
-                    kind: 'page',
-                    mark: 'O',
-                    title: 'OPT 最佳页面置换',
-                    desc: '淘汰未来最长时间不会再访问的页面，用作理论最优对照。',
-                    codeLang: '伪代码',
-                    reference: [7, 0, 1, 2, 0, 3, 0, 4, 2, 3],
-                    code: `for page at position i:
-    if page not in frames:
-        page_fault += 1
-        if frames are full:
-            victim = page whose next use is farthest
-            replace victim with page
-
-// OPT 需要未来访问序列，实际系统通常无法直接实现`,
-                    frames: [
-                        { pointer: 0, blocks: [7, '', ''], changed: 0, faults: 1, note: '装入页面 7' },
-                        { pointer: 1, blocks: [7, 0, ''], changed: 1, faults: 2, note: '装入页面 0' },
-                        { pointer: 2, blocks: [7, 0, 1], changed: 2, faults: 3, note: '装入页面 1，物理块已满' },
-                        { pointer: 3, blocks: [2, 0, 1], changed: 0, faults: 4, note: '未来 7 不再使用，淘汰 7' },
-                        { pointer: 4, blocks: [2, 0, 1], changed: -1, faults: 4, note: '页面 0 命中' },
-                        { pointer: 5, blocks: [2, 0, 3], changed: 2, faults: 5, note: '未来 1 不再使用，淘汰 1' },
+                        { pointer: 0, page: 7, result: 'fault', blocks: [7, '', ''], changed: 0, accessedFrame: 0, victim: null, recency: [7], faults: 1, hits: 0, note: '页面 7 不在内存，装入 FRAME 1。' },
+                        { pointer: 1, page: 0, result: 'fault', blocks: [7, 0, ''], changed: 1, accessedFrame: 1, victim: null, recency: [0, 7], faults: 2, hits: 0, note: '页面 0 不在内存，装入 FRAME 2。' },
+                        { pointer: 2, page: 1, result: 'fault', blocks: [7, 0, 1], changed: 2, accessedFrame: 2, victim: null, recency: [1, 0, 7], faults: 3, hits: 0, note: '页面 1 不在内存，装入 FRAME 3，物理块已满。' },
+                        { pointer: 3, page: 2, result: 'fault', blocks: [2, 0, 1], changed: 0, accessedFrame: 0, victim: 7, recency: [2, 1, 0], faults: 4, hits: 0, note: '页面 7 位于 LRU 队尾，淘汰 7 并装入 2。' },
+                        { pointer: 4, page: 0, result: 'hit', blocks: [2, 0, 1], changed: -1, accessedFrame: 1, victim: null, recency: [0, 2, 1], faults: 4, hits: 1, note: '页面 0 命中 FRAME 2，并移动到 MRU 队首。' },
+                        { pointer: 5, page: 3, result: 'fault', blocks: [2, 0, 3], changed: 2, accessedFrame: 2, victim: 1, recency: [3, 0, 2], faults: 5, hits: 1, note: '页面 1 位于 LRU 队尾，淘汰 1 并装入 3。' },
+                        { pointer: 6, page: 0, result: 'hit', blocks: [2, 0, 3], changed: -1, accessedFrame: 1, victim: null, recency: [0, 3, 2], faults: 5, hits: 2, note: '页面 0 命中 FRAME 2，并再次移动到 MRU 队首。' },
+                        { pointer: 7, page: 4, result: 'fault', blocks: [4, 0, 3], changed: 0, accessedFrame: 0, victim: 2, recency: [4, 0, 3], faults: 6, hits: 2, note: '页面 2 位于 LRU 队尾，淘汰 2 并装入 4。' },
+                        { pointer: 8, page: 2, result: 'fault', blocks: [4, 0, 2], changed: 2, accessedFrame: 2, victim: 3, recency: [2, 4, 0], faults: 7, hits: 2, note: '页面 3 位于 LRU 队尾，淘汰 3 并装入 2。' },
+                        { pointer: 9, page: 3, result: 'fault', blocks: [4, 3, 2], changed: 1, accessedFrame: 1, victim: 0, recency: [3, 2, 4], faults: 8, hits: 2, note: '页面 0 位于 LRU 队尾，淘汰 0 并装入 3，访问完成。' },
                     ],
                 },
                 producerConsumer: {
@@ -1129,10 +1860,12 @@ consumer:
     signal(mutex)
     signal(empty)`,
                     frames: [
-                        { producer: '就绪', consumer: '等待', buffer: ['', '', '', '', ''], semaphores: [{ label: 'mutex', value: 1 }, { label: 'empty', value: 5 }, { label: 'full', value: 0 }], note: '缓冲区为空，消费者等待 full' },
-                        { producer: '运行', consumer: '等待', buffer: ['', '', '', '', ''], semaphores: [{ label: 'mutex', value: 0 }, { label: 'empty', value: 4 }, { label: 'full', value: 0 }], note: '生产者获得 empty 和 mutex' },
-                        { producer: '运行', consumer: '就绪', buffer: ['A', '', '', '', ''], semaphores: [{ label: 'mutex', value: 1 }, { label: 'empty', value: 4 }, { label: 'full', value: 1 }], note: '生产者写入产品 A，并唤醒消费者' },
-                        { producer: '就绪', consumer: '运行', buffer: ['', '', '', '', ''], semaphores: [{ label: 'mutex', value: 1 }, { label: 'empty', value: 5 }, { label: 'full', value: 0 }], note: '消费者取走产品，释放一个空槽' },
+                        { actor: '', operation: '初始化', explanation: '缓冲区为空，消费者没有可取的产品。', producerState: '就绪', consumerState: '等待 full', buffer: ['', '', '', '', ''], changedSlot: -1, semaphores: [{ label: 'mutex', before: 1, after: 1 }, { label: 'empty', before: 5, after: 5 }, { label: 'full', before: 0, after: 0 }], note: 'full = 0，因此消费者执行 P(full) 时会阻塞。' },
+                        { actor: 'producer', operation: 'P(empty)', explanation: '生产者预占一个空缓冲槽。', producerState: '运行：申请空槽', consumerState: '等待 full', buffer: ['', '', '', '', ''], changedSlot: -1, semaphores: [{ label: 'mutex', before: 1, after: 1 }, { label: 'empty', before: 5, after: 4 }, { label: 'full', before: 0, after: 0 }], note: 'P(empty) 消耗一个空槽许可，empty 从 5 变为 4。' },
+                        { actor: 'producer', operation: 'P(mutex)', explanation: '生产者取得互斥锁，进入临界区。', producerState: '运行：进入临界区', consumerState: '等待 full', buffer: ['', '', '', '', ''], changedSlot: -1, semaphores: [{ label: 'mutex', before: 1, after: 0 }, { label: 'empty', before: 4, after: 4 }, { label: 'full', before: 0, after: 0 }], note: 'mutex = 0 表示共享缓冲区已被生产者锁定。' },
+                        { actor: 'producer', operation: 'put(A); V(mutex); V(full)', explanation: '产品 A 写入缓冲区，并唤醒消费者。', producerState: '完成一次生产', consumerState: '就绪', buffer: ['A', '', '', '', ''], changedSlot: 0, semaphores: [{ label: 'mutex', before: 0, after: 1 }, { label: 'empty', before: 4, after: 4 }, { label: 'full', before: 0, after: 1 }], note: '写入完成后释放互斥锁；full 从 0 变为 1，消费者不再阻塞。' },
+                        { actor: 'consumer', operation: 'P(full); P(mutex)', explanation: '消费者取得产品许可和互斥锁。', producerState: '就绪', consumerState: '运行：进入临界区', buffer: ['A', '', '', '', ''], changedSlot: -1, semaphores: [{ label: 'mutex', before: 1, after: 0 }, { label: 'empty', before: 4, after: 4 }, { label: 'full', before: 1, after: 0 }], note: '消费者消耗一个产品许可，并锁定缓冲区准备取出 A。' },
+                        { actor: 'consumer', operation: 'get(A); V(mutex); V(empty)', explanation: '消费者取出 A，释放互斥锁和空槽。', producerState: '就绪', consumerState: '完成一次消费', buffer: ['', '', '', '', ''], changedSlot: 0, semaphores: [{ label: 'mutex', before: 0, after: 1 }, { label: 'empty', before: 4, after: 5 }, { label: 'full', before: 0, after: 0 }], note: '缓冲槽重新可用，系统回到 empty = 5、full = 0 的初始容量状态。' },
                     ],
                 },
                 banker: {
@@ -1154,141 +1887,10 @@ while exists unfinished process:
     else:
         system_is_unsafe()`,
                     frames: [
-                        { sequence: '待检查', note: '系统读取各进程最大需求和已分配资源。', processes: [{ name: 'P1', allocated: '1 0 1', need: '2 1 0', safe: true }, { name: 'P2', allocated: '2 1 0', need: '1 0 2', safe: true }, { name: 'P3', allocated: '1 1 1', need: '3 1 1', safe: false }] },
-                        { sequence: 'P2', note: '可用资源满足 P2，P2 可完成并释放资源。', processes: [{ name: 'P1', allocated: '1 0 1', need: '2 1 0', safe: true }, { name: 'P2', allocated: '释放', need: '0 0 0', safe: true }, { name: 'P3', allocated: '1 1 1', need: '3 1 1', safe: false }] },
-                        { sequence: 'P2 -> P1', note: '释放后的资源满足 P1，继续进入安全序列。', processes: [{ name: 'P1', allocated: '释放', need: '0 0 0', safe: true }, { name: 'P2', allocated: '释放', need: '0 0 0', safe: true }, { name: 'P3', allocated: '1 1 1', need: '3 1 1', safe: false }] },
-                        { sequence: 'P2 -> P1 -> P3', note: '所有进程均可完成，系统处于安全状态。', processes: [{ name: 'P1', allocated: '释放', need: '0 0 0', safe: true }, { name: 'P2', allocated: '释放', need: '0 0 0', safe: true }, { name: 'P3', allocated: '释放', need: '0 0 0', safe: true }] },
-                    ],
-                },
-                schedule: {
-                    mark: '调',
-                    title: '进程调度',
-                    desc: '时间片轮转调度步骤演示',
-                    codeLang: '伪代码',
-                    code: `ready_queue = [P1, P2, P3]
-time_slice = 2
-
-while ready_queue is not empty:
-    proc = ready_queue.pop_front()
-    run proc for one time_slice
-
-    if proc.finished:
-        done_queue.push(proc)
-    else:
-        ready_queue.push_back(proc)
-
-    update_gantt_chart(proc)`,
-                    frames: [
-                        { ready: ['P1', 'P2', 'P3'], cpu: '', done: [], gantt: [], note: '调度器准备选择队首进程' },
-                        { ready: ['P2', 'P3'], cpu: 'P1', done: [], gantt: ['P1'], note: 'P1 获得 CPU' },
-                        { ready: ['P2', 'P3', 'P1'], cpu: '', done: [], gantt: ['P1', 'P1'], note: 'P1 时间片结束，回到队尾' },
-                        { ready: ['P3', 'P1'], cpu: 'P2', done: [], gantt: ['P1', 'P1', 'P2'], note: 'P2 开始运行' },
-                        { ready: ['P1', 'P2'], cpu: 'P3', done: ['P3'], gantt: ['P1', 'P1', 'P2', 'P2', 'P3'], note: 'P3 在一个时间片内完成' },
-                        { ready: [], cpu: '', done: ['P3', 'P1', 'P2'], gantt: ['P1', 'P1', 'P2', 'P2', 'P3', 'P1', 'P1', 'P2'], note: '所有进程完成' },
-                    ],
-                },
-                memory: {
-                    mark: '存',
-                    title: '动态分区分配',
-                    desc: '最佳适应分区步骤演示',
-                    codeLang: '伪代码',
-                    code: `request = 180MB
-best_block = null
-
-for block in free_list:
-    if block.size >= request:
-        if best_block is null or block.size < best_block.size:
-            best_block = block
-
-if best_block exists:
-    allocate request from best_block
-    split remaining space
-else:
-    compact_memory_or_wait()`,
-                    frames: [
-                        { action: '请求 180MB', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: '空闲', size: 12, type: 'free' }, { label: 'P2', size: 22, type: 'used' }, { label: '空闲', size: 26, type: 'free' }, { label: '空闲', size: 22, type: 'free' }], metrics: [{ label: '请求', value: '180MB' }, { label: '可用块', value: '3' }, { label: '策略', value: '最佳适应' }] },
-                        { action: '选择 260MB 空闲块', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: '空闲', size: 12, type: 'free' }, { label: 'P2', size: 22, type: 'used' }, { label: '命中', size: 26, type: 'hit' }, { label: '空闲', size: 22, type: 'free' }], metrics: [{ label: '命中块', value: '260MB' }, { label: '剩余', value: '80MB' }, { label: '碎片', value: '较少' }] },
-                        { action: '切分并装入 P3', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: '空闲', size: 12, type: 'free' }, { label: 'P2', size: 22, type: 'used' }, { label: 'P3', size: 18, type: 'hit' }, { label: '空闲', size: 8, type: 'free' }, { label: '空闲', size: 22, type: 'free' }], metrics: [{ label: '新进程', value: 'P3' }, { label: '新空闲块', value: '80MB' }, { label: '空闲块', value: '3' }] },
-                        { action: '释放并合并', segments: [{ label: 'P1', size: 18, type: 'used' }, { label: '空闲', size: 34, type: 'free' }, { label: 'P3', size: 18, type: 'used' }, { label: '空闲', size: 30, type: 'free' }], metrics: [{ label: '最大空闲', value: '340MB' }, { label: '合并', value: '完成' }, { label: '空闲块', value: '2' }] },
-                    ],
-                },
-                page: {
-                    mark: '页',
-                    title: '页面置换',
-                    desc: 'LRU 页面置换步骤演示',
-                    codeLang: '伪代码',
-                    reference: [7, 0, 1, 2, 0, 3, 0, 4, 2, 3],
-                    code: `frames = []
-last_used = {}
-
-for time, page in enumerate(reference_string):
-    if page not in frames:
-        page_fault += 1
-        if frames are full:
-            victim = least_recently_used(frames, last_used)
-            replace victim with page
-        else:
-            frames.append(page)
-
-    last_used[page] = time`,
-                    frames: [
-                        { pointer: 0, blocks: [7, '', ''], changed: 0, faults: 1, note: '页面 7 不在内存，装入物理块 1' },
-                        { pointer: 1, blocks: [7, 0, ''], changed: 1, faults: 2, note: '页面 0 缺页，装入物理块 2' },
-                        { pointer: 2, blocks: [7, 0, 1], changed: 2, faults: 3, note: '页面 1 缺页，装入物理块 3' },
-                        { pointer: 3, blocks: [2, 0, 1], changed: 0, faults: 4, note: '页面 2 缺页，替换最久未用的 7' },
-                        { pointer: 4, blocks: [2, 0, 1], changed: -1, faults: 4, note: '页面 0 命中，不增加缺页' },
-                        { pointer: 5, blocks: [2, 0, 3], changed: 2, faults: 5, note: '页面 3 缺页，替换最久未用的 1' },
-                    ],
-                },
-                thread: {
-                    mark: '线',
-                    title: '线程同步',
-                    desc: '生产者消费者同步步骤演示',
-                    codeLang: '伪代码',
-                    code: `producer:
-    wait(empty)
-    wait(mutex)
-    put item into buffer
-    signal(mutex)
-    signal(full)
-
-consumer:
-    wait(full)
-    wait(mutex)
-    remove item from buffer
-    signal(mutex)
-    signal(empty)`,
-                    frames: [
-                        { producer: '就绪', consumer: '等待', buffer: ['', '', '', '', ''], semaphores: [{ label: 'mutex', value: 1 }, { label: 'empty', value: 5 }, { label: 'full', value: 0 }], note: '缓冲区为空，消费者等待 full' },
-                        { producer: '运行', consumer: '等待', buffer: ['', '', '', '', ''], semaphores: [{ label: 'mutex', value: 0 }, { label: 'empty', value: 4 }, { label: 'full', value: 0 }], note: '生产者获得 empty 和 mutex' },
-                        { producer: '运行', consumer: '就绪', buffer: ['A', '', '', '', ''], semaphores: [{ label: 'mutex', value: 1 }, { label: 'empty', value: 4 }, { label: 'full', value: 1 }], note: '生产者写入产品 A，并唤醒消费者' },
-                        { producer: '就绪', consumer: '运行', buffer: ['', '', '', '', ''], semaphores: [{ label: 'mutex', value: 1 }, { label: 'empty', value: 5 }, { label: 'full', value: 0 }], note: '消费者取走产品，释放一个空槽' },
-                    ],
-                },
-                deadlock: {
-                    mark: '锁',
-                    title: '死锁避免',
-                    desc: '银行家算法安全性检查步骤演示',
-                    codeLang: '伪代码',
-                    code: `work = available
-finish = [false, false, false]
-safe_sequence = []
-
-while exists unfinished process:
-    find Pi where need[i] <= work
-    if found:
-        work = work + allocation[i]
-        finish[i] = true
-        safe_sequence.append(Pi)
-    else:
-        system_is_unsafe()
-
-system_is_safe(safe_sequence)`,
-                    frames: [
-                        { sequence: '待检查', note: '系统读取各进程最大需求和已分配资源。', processes: [{ name: 'P1', allocated: '1 0 1', need: '2 1 0', safe: true }, { name: 'P2', allocated: '2 1 0', need: '1 0 2', safe: true }, { name: 'P3', allocated: '1 1 1', need: '3 1 1', safe: false }] },
-                        { sequence: 'P2', note: '可用资源满足 P2，P2 可完成并释放资源。', processes: [{ name: 'P1', allocated: '1 0 1', need: '2 1 0', safe: true }, { name: 'P2', allocated: '释放', need: '0 0 0', safe: true }, { name: 'P3', allocated: '1 1 1', need: '3 1 1', safe: false }] },
-                        { sequence: 'P2 -> P1', note: '释放后的资源满足 P1，继续进入安全序列。', processes: [{ name: 'P1', allocated: '释放', need: '0 0 0', safe: true }, { name: 'P2', allocated: '释放', need: '0 0 0', safe: true }, { name: 'P3', allocated: '1 1 1', need: '3 1 1', safe: false }] },
-                        { sequence: 'P2 -> P1 -> P3', note: '所有进程均可完成，系统处于安全状态。', processes: [{ name: 'P1', allocated: '释放', need: '0 0 0', safe: true }, { name: 'P2', allocated: '释放', need: '0 0 0', safe: true }, { name: 'P3', allocated: '释放', need: '0 0 0', safe: true }] },
+                        { workBefore: [1, 0, 2], released: [0, 0, 0], workAfter: [1, 0, 2], selected: '', eligible: ['P2'], sequence: [], note: '初始 Work 只能满足 P2，系统选择 P2 作为安全序列起点。', processes: [{ name: 'P1', allocated: [1, 0, 1], need: [2, 1, 0], done: false }, { name: 'P2', allocated: [2, 1, 0], need: [1, 0, 2], done: false }, { name: 'P3', allocated: [1, 1, 1], need: [3, 1, 1], done: false }] },
+                        { workBefore: [1, 0, 2], released: [2, 1, 0], workAfter: [3, 1, 2], selected: 'P2', eligible: ['P1', 'P3'], sequence: ['P2'], note: 'P2 完成并释放 [2,1,0]，P1 和 P3 都已满足执行条件。', processes: [{ name: 'P1', allocated: [1, 0, 1], need: [2, 1, 0], done: false }, { name: 'P2', allocated: [2, 1, 0], need: [1, 0, 2], done: true }, { name: 'P3', allocated: [1, 1, 1], need: [3, 1, 1], done: false }] },
+                        { workBefore: [3, 1, 2], released: [1, 0, 1], workAfter: [4, 1, 3], selected: 'P1', eligible: ['P3'], sequence: ['P2', 'P1'], note: 'P1 完成并释放 [1,0,1]，剩余资源足以满足 P3。', processes: [{ name: 'P1', allocated: [1, 0, 1], need: [2, 1, 0], done: true }, { name: 'P2', allocated: [2, 1, 0], need: [1, 0, 2], done: true }, { name: 'P3', allocated: [1, 1, 1], need: [3, 1, 1], done: false }] },
+                        { workBefore: [4, 1, 3], released: [1, 1, 1], workAfter: [5, 2, 4], selected: 'P3', eligible: [], sequence: ['P2', 'P1', 'P3'], note: 'P3 完成，全部进程 Finish = true，系统处于安全状态。', processes: [{ name: 'P1', allocated: [1, 0, 1], need: [2, 1, 0], done: true }, { name: 'P2', allocated: [2, 1, 0], need: [1, 0, 2], done: true }, { name: 'P3', allocated: [1, 1, 1], need: [3, 1, 1], done: true }] },
                     ],
                 },
             };
