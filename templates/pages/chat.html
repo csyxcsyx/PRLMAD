@@ -1,5 +1,291 @@
 {% extends "base.html" %}
 {% block content %}
+<style>
+    .profile-workspace .page-content {
+        overflow: hidden;
+    }
+    .profile-workspace .profile-content {
+        height: 100%;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: 1rem;
+    }
+    .profile-workspace .profile-builder-grid {
+        min-height: 0;
+    }
+    .profile-workspace .profile-form-card {
+        height: 100%;
+        min-height: 0 !important;
+        display: flex;
+        flex-direction: column;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+    .profile-workspace .profile-intro {
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+    .profile-summary-rail,
+    .profile-stepper-scroll {
+        scrollbar-width: none;
+    }
+    .profile-summary-rail::-webkit-scrollbar,
+    .profile-stepper-scroll::-webkit-scrollbar {
+        display: none;
+    }
+    .profile-stepper-scroll {
+        overflow-x: auto;
+        border-bottom: 1px solid #e8e1d8;
+        scrollbar-width: thin;
+        scrollbar-color: #d2c8bd transparent;
+    }
+    .profile-stepper-track {
+        display: flex;
+        width: 100%;
+        min-width: 49rem;
+        padding: 1.35rem 1.5rem 1.1rem;
+    }
+    .profile-stepper-item {
+        min-width: 0;
+        flex: 1 1 0;
+        cursor: default;
+        user-select: none;
+    }
+    .profile-stepper-indicator-row {
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+    .profile-stepper-indicator {
+        flex: 0 0 auto;
+        width: 2rem;
+        height: 2rem;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        border: 1px solid #ddd4ca;
+        background: #f4efe7;
+        color: #8b8379;
+        font-size: .75rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: background-color .25s ease, border-color .25s ease, color .25s ease;
+    }
+    .profile-stepper-indicator:hover:not(:disabled) {
+        border-color: #d4876c;
+        background: #fbf1ed;
+        color: #a9583e;
+    }
+    .profile-stepper-indicator:focus-visible {
+        outline: 3px solid rgba(204, 120, 92, .24);
+        outline-offset: 3px;
+    }
+    .profile-stepper-indicator:disabled {
+        cursor: default;
+    }
+    .profile-stepper-indicator.is-active {
+        border-color: #cc785c;
+        background: #cc785c;
+        color: #fff;
+        box-shadow: 0 0 0 4px rgba(204, 120, 92, .16);
+    }
+    .profile-stepper-indicator.is-complete {
+        border-color: #cc785c;
+        background: #cc785c;
+        color: #fff;
+    }
+    .profile-stepper-active-dot {
+        width: .55rem;
+        height: .55rem;
+        border-radius: 50%;
+        background: currentColor;
+    }
+    .profile-stepper-connector {
+        position: relative;
+        flex: 1 1 auto;
+        height: 2px;
+        margin: 0 .5rem;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e4ddd4;
+    }
+    .profile-stepper-connector-fill {
+        position: absolute;
+        inset: 0;
+        transform: scaleX(0);
+        transform-origin: left;
+        border-radius: inherit;
+        background: #cc785c;
+        transition: transform .4s ease;
+    }
+    .profile-stepper-connector-fill.is-complete {
+        transform: scaleX(1);
+    }
+    .profile-stepper-label {
+        display: block;
+        width: 2rem;
+        margin-top: .55rem;
+        color: #8b8379;
+        font-size: .7rem;
+        font-weight: 700;
+        line-height: 1.35;
+        text-align: center;
+        white-space: nowrap;
+        transform: translateX(calc(1rem - 50%));
+    }
+    .profile-stepper-item.is-current .profile-stepper-label {
+        color: #a9583e;
+    }
+    .profile-step-content {
+        position: relative;
+        min-height: 0;
+        flex: 1 1 auto;
+        overflow: hidden;
+        padding: 1.5rem;
+        will-change: transform, opacity;
+    }
+    .profile-step-panel {
+        height: 100%;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    .profile-step-fields {
+        min-height: 0;
+        flex: 1 1 0;
+        overflow: hidden;
+    }
+    .profile-step-footer {
+        flex: 0 0 auto;
+        margin-top: auto;
+    }
+    .profile-option {
+        min-height: 2.55rem;
+        border: 0 !important;
+        border-bottom: 1px solid #e5ded5 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        padding: .55rem .85rem !important;
+    }
+    .profile-option:hover {
+        border-bottom-color: #d5a28f !important;
+        background: rgba(204, 120, 92, .045) !important;
+    }
+    .profile-option.is-selected {
+        border-bottom-color: transparent !important;
+        border-radius: 1rem !important;
+        background: #efe9df !important;
+        color: #4c443d !important;
+        font-weight: 700;
+        box-shadow: inset 3px 0 0 #cc785c !important;
+    }
+    .profile-custom-input {
+        border: 0 !important;
+        border-radius: .8rem !important;
+        background: #f5f0e8 !important;
+        box-shadow: none !important;
+    }
+    .profile-custom-input:focus {
+        border: 0 !important;
+        background: #fbede7 !important;
+        box-shadow: none !important;
+    }
+    .profile-custom-input:focus-visible {
+        outline: none !important;
+        outline-offset: 0 !important;
+    }
+    .profile-step-content.profile-step-leaving-forward {
+        animation: profileStepExitForward .2s cubic-bezier(.55, 0, .8, .35) both;
+    }
+    .profile-step-content.profile-step-entering-forward {
+        animation: profileStepEnterForward .38s cubic-bezier(.2, .85, .25, 1) both;
+    }
+    .profile-step-content.profile-step-leaving-backward {
+        animation: profileStepExitBackward .2s cubic-bezier(.55, 0, .8, .35) both;
+    }
+    .profile-step-content.profile-step-entering-backward {
+        animation: profileStepEnterBackward .38s cubic-bezier(.2, .85, .25, 1) both;
+    }
+    @keyframes profileStepExitForward {
+        to { opacity: 0; transform: translateX(-72px); }
+    }
+    @keyframes profileStepEnterForward {
+        from { opacity: 0; transform: translateX(72px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes profileStepExitBackward {
+        to { opacity: 0; transform: translateX(72px); }
+    }
+    @keyframes profileStepEnterBackward {
+        from { opacity: 0; transform: translateX(-72px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .profile-step-content {
+            animation: none;
+        }
+    }
+    @media (max-width: 767px) {
+        .profile-intro {
+            height: 0;
+            min-height: 0;
+            overflow: hidden;
+            visibility: hidden;
+            padding: 0 !important;
+            border: 0 !important;
+        }
+        .profile-step-content {
+            min-height: 0;
+            padding: .9rem 1.1rem;
+        }
+        .profile-step-fields .grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .profile-grouped-fields .grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .profile-step-heading {
+            margin-bottom: .65rem !important;
+        }
+        .profile-step-heading p.mt-2 {
+            margin-top: .25rem !important;
+        }
+        .profile-grouped-fields {
+            gap: .55rem;
+        }
+        .profile-grouped-fields > div > p {
+            margin-bottom: .2rem !important;
+        }
+        .profile-option {
+            min-height: 2.1rem;
+            padding: .3rem .5rem !important;
+            font-size: .72rem !important;
+            line-height: 1.25;
+        }
+        .profile-custom-input {
+            margin-top: .25rem !important;
+            padding-block: .35rem !important;
+        }
+        .profile-step-footer {
+            padding-top: .65rem !important;
+        }
+    }
+    @media (max-height: 950px) {
+        .profile-intro {
+            height: 0;
+            min-height: 0;
+            overflow: hidden;
+            visibility: hidden;
+            padding: 0 !important;
+            border: 0 !important;
+        }
+    }
+</style>
 <div x-data="chatPage" class="h-full">
     <div x-show="showWelcome" class="h-full flex items-center justify-center p-8">
         <div class="max-w-lg text-center fade-in">
@@ -64,8 +350,8 @@
             </div>
 
             <div class="page-content flex-1 overflow-y-auto">
-                <div class="profile-content mx-auto space-y-5">
-                    <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <div class="profile-content mx-auto">
+                    <div class="profile-intro p-5">
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                             <div>
                                 <p class="text-xs font-semibold text-brand-600 mb-1">画像用于个性化生成</p>
@@ -89,26 +375,41 @@
                         </div>
                     </div>
 
-                    <div class="profile-builder-grid grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-5">
-                        <div class="profile-step-nav bg-white border border-gray-100 rounded-2xl p-3 shadow-sm h-fit">
-                            <template x-for="(step, idx) in profileSteps" :key="step.key">
-                                <button @click="activeIndex = idx"
-                                    class="w-full text-left rounded-xl px-3 py-3 transition-all mb-1"
-                                    :class="activeIndex === idx ? 'bg-brand-50 text-brand-700' : 'hover:bg-gray-50 text-gray-600'">
-                                    <div class="flex items-center gap-2">
-                                        <span class="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold"
-                                            :class="isStepComplete(step) ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'"
-                                            x-text="isStepComplete(step) ? '✓' : (idx + 1)"></span>
-                                        <span class="text-xs font-semibold" x-text="step.nav"></span>
-                                    </div>
-                                </button>
-                            </template>
-                        </div>
+                    <div class="profile-builder-grid">
+                        <div class="profile-form-card overflow-hidden">
+                            <div class="profile-stepper-scroll">
+                                <ol class="profile-stepper-track" aria-label="学习画像完成进度">
+                                    <template x-for="(step, idx) in profileSteps" :key="step.key">
+                                        <li class="profile-stepper-item"
+                                            :class="activeIndex === idx ? 'is-current' : ''"
+                                            :aria-current="activeIndex === idx ? 'step' : null">
+                                            <div class="profile-stepper-indicator-row">
+                                                <button type="button" class="profile-stepper-indicator"
+                                                    :class="{ 'is-complete': isStepComplete(step), 'is-active': activeIndex === idx }"
+                                                    @click="jumpToStep(idx)"
+                                                    :disabled="stepAnimating || activeIndex === idx"
+                                                    :aria-label="step.nav">
+                                                    <span x-show="isStepComplete(step)" aria-hidden="true">✓</span>
+                                                    <span x-show="!isStepComplete(step) && activeIndex === idx"
+                                                        class="profile-stepper-active-dot" aria-hidden="true"></span>
+                                                    <span x-show="!isStepComplete(step) && activeIndex !== idx"
+                                                        x-text="idx + 1" aria-hidden="true"></span>
+                                                </button>
+                                                <span x-show="idx < totalSteps - 1" class="profile-stepper-connector" aria-hidden="true">
+                                                    <span class="profile-stepper-connector-fill"
+                                                        :class="activeIndex > idx ? 'is-complete' : ''"></span>
+                                                </span>
+                                            </div>
+                                            <span class="profile-stepper-label" x-text="step.nav"></span>
+                                        </li>
+                                    </template>
+                                </ol>
+                            </div>
 
-                        <div class="profile-form-card bg-white border border-gray-100 rounded-2xl p-6 shadow-sm min-h-[520px]">
+                            <div class="profile-step-content" :class="stepTransitionClass">
                             <template x-if="activeStep">
-                                <div>
-                                    <div class="flex items-start justify-between gap-4 mb-5">
+                                <div class="profile-step-panel">
+                                    <div class="profile-step-heading flex items-start justify-between gap-4 mb-5">
                                         <div>
                                             <p class="text-xs text-brand-600 font-semibold mb-1" x-text="'第 ' + currentStep + ' 步'"></p>
                                             <h3 class="text-xl font-medium text-gray-800" x-text="activeStep.title"></h3>
@@ -117,22 +418,23 @@
                                         <span class="label-mark" x-text="activeStep.mark"></span>
                                     </div>
 
-                                    <div x-show="activeStep.type === 'grouped'" class="space-y-5">
+                                    <div class="profile-step-fields">
+                                    <div x-show="activeStep.type === 'grouped'" class="profile-grouped-fields grid gap-4">
                                         <template x-for="field in activeStep.fields" :key="field.key">
                                             <div>
                                                 <p class="text-xs font-semibold text-gray-500 mb-2" x-text="field.label"></p>
                                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                     <template x-for="option in field.options" :key="option">
                                                         <button @click="selectFieldOption(field.key, option)"
-                                                            class="text-left rounded-xl border px-3 py-2.5 text-sm transition-all"
-                                                            :class="profileDraft[field.key] === option ? 'border-brand-300 bg-brand-50 text-brand-700 shadow-sm' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'">
+                                                            class="profile-option text-left text-sm transition-all"
+                                                            :class="profileDraft[field.key] === option ? 'is-selected' : 'text-gray-600'">
                                                             <span x-text="option"></span>
                                                         </button>
                                                     </template>
                                                 </div>
                                                 <input x-model="profileDraft[field.key]" type="text"
                                                     :placeholder="'也可以直接填写' + field.label"
-                                                    class="mt-2 w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50 focus:ring-2 focus:ring-brand-400 outline-none placeholder-gray-400" />
+                                                    class="profile-custom-input mt-2 w-full px-3 py-2 text-sm outline-none placeholder-gray-400" />
                                             </div>
                                         </template>
                                     </div>
@@ -141,30 +443,33 @@
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                             <template x-for="option in activeStep.options" :key="option">
                                                 <button @click="toggleOption(activeStep.target, option, activeStep.multi)"
-                                                    class="text-left rounded-xl border px-3 py-3 text-sm transition-all"
-                                                    :class="isSelected(activeStep.target, option) ? 'border-brand-300 bg-brand-50 text-brand-700 shadow-sm' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'">
+                                                    class="profile-option text-left text-sm transition-all"
+                                                    :class="isSelected(activeStep.target, option) ? 'is-selected' : 'text-gray-600'">
                                                     <span x-text="option"></span>
                                                 </button>
                                             </template>
                                         </div>
                                         <textarea x-model="customInputs[activeStep.target]" rows="3"
                                             :placeholder="activeStep.customPlaceholder"
-                                            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-gray-50 focus:ring-2 focus:ring-brand-400 outline-none resize-none placeholder-gray-400"></textarea>
+                                            class="profile-custom-input w-full px-4 py-3 text-sm outline-none resize-none placeholder-gray-400"></textarea>
+                                    </div>
                                     </div>
 
-                                    <div class="mt-6 flex items-center justify-between border-t border-gray-100 pt-4">
+                                    <div class="profile-step-footer flex items-center justify-between border-t border-gray-100 pt-4">
                                         <button @click="prevStep()"
                                             class="text-sm text-gray-500 hover:text-brand-600 px-3 py-2 rounded-lg hover:bg-gray-50 disabled:opacity-40"
-                                            :disabled="activeIndex === 0">上一步</button>
+                                            :disabled="activeIndex === 0 || stepAnimating">上一步</button>
                                         <div class="flex items-center gap-2">
                                             <span x-show="savedAt" class="text-xs text-green-600" x-text="savedAt"></span>
                                             <button @click="nextStep()"
-                                                class="bg-brand-500 hover:bg-brand-700 text-white rounded-xl px-5 py-2.5 text-sm font-semibold transition-all"
+                                                class="bg-brand-500 hover:bg-brand-700 text-white rounded-xl px-5 py-2.5 text-sm font-semibold transition-all disabled:opacity-50"
+                                                :disabled="stepAnimating"
                                                 x-text="activeIndex === totalSteps - 1 ? '完成' : '下一步'"></button>
                                         </div>
                                     </div>
                                 </div>
                             </template>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -208,5 +513,5 @@
 </div>
 {% endblock %}
 {% block scripts %}
-<script src="/static/js/chat.js?v=0.6.0"></script>
+<script src="/static/js/chat.js?v=1.2.0"></script>
 {% endblock %}

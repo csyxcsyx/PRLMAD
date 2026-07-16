@@ -1,5 +1,190 @@
 {% extends "base.html" %}
 {% block content %}
+<style>
+    .path-workspace .page-content {
+        overflow: hidden;
+    }
+    .path-workspace .content-shell {
+        height: 100%;
+        min-height: 0;
+    }
+    .path-fixed-view {
+        height: 100%;
+        min-height: 0;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: 1rem;
+    }
+    .path-progress-card {
+        position: static !important;
+        padding: 1rem 1.25rem !important;
+        box-shadow: none !important;
+    }
+    .path-learning-layout {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 17rem minmax(0, 1fr);
+        border-top: 1px solid #e7e0d7;
+    }
+    .path-day-list {
+        min-height: 0;
+        padding: 1rem 1rem 1rem 0;
+        border-right: 1px solid #e7e0d7;
+    }
+    .path-day-list ol {
+        height: 100%;
+        display: grid;
+        grid-template-rows: repeat(7, minmax(0, 1fr));
+    }
+    .path-day-button {
+        position: relative;
+        width: 100%;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 2rem minmax(0, 1fr);
+        align-items: center;
+        gap: .7rem;
+        padding: .35rem .55rem;
+        color: #756e65;
+        text-align: left;
+        border-radius: 1rem;
+    }
+    .path-day-button::after {
+        content: "";
+        position: absolute;
+        left: 1.52rem;
+        top: calc(50% + 1rem);
+        bottom: calc(-50% + 1rem);
+        width: 2px;
+        background: #e5ded5;
+    }
+    .path-day-list li:last-child .path-day-button::after {
+        display: none;
+    }
+    .path-day-marker {
+        position: relative;
+        z-index: 1;
+        width: 2rem;
+        height: 2rem;
+        display: grid;
+        place-items: center;
+        border: 1px solid #dcd3c9;
+        border-radius: 50%;
+        background: #faf7f1;
+        color: #8b8379;
+        font-size: .7rem;
+        font-weight: 800;
+    }
+    .path-day-button.is-complete .path-day-marker,
+    .path-day-button.is-current .path-day-marker {
+        border-color: #cc785c;
+        background: #cc785c;
+        color: #fff;
+    }
+    .path-day-button.is-complete::after {
+        background: #cc785c;
+    }
+    .path-day-button.is-selected {
+        color: #4c443d;
+        background: #efe9df;
+        box-shadow: inset 3px 0 0 #cc785c;
+    }
+    .path-day-topic {
+        display: block;
+        margin-top: .15rem;
+        overflow: hidden;
+        color: #5f5952;
+        font-size: .78rem;
+        font-weight: 700;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .path-day-detail {
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+        padding: 1.25rem 0 1.25rem 1.5rem;
+    }
+    .path-detail-panel {
+        height: 100%;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    .path-detail-copy {
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 5;
+    }
+    .path-exercise-list {
+        display: grid;
+        gap: .45rem;
+        margin-top: .65rem;
+    }
+    .path-exercise-item {
+        display: grid;
+        grid-template-columns: 1.5rem minmax(0, 1fr);
+        gap: .55rem;
+        padding: .65rem 0;
+        border-bottom: 1px solid #ece5dc;
+        color: #5f5952;
+        font-size: .82rem;
+    }
+    .path-detail-action {
+        margin-top: auto;
+        padding-top: 1rem;
+        border-top: 1px solid #e7e0d7;
+    }
+    .path-day-detail.is-leaving-forward { animation: pathDetailExitForward .16s ease-in both; }
+    .path-day-detail.is-entering-forward { animation: pathDetailEnterForward .28s cubic-bezier(.2,.85,.25,1) both; }
+    .path-day-detail.is-leaving-backward { animation: pathDetailExitBackward .16s ease-in both; }
+    .path-day-detail.is-entering-backward { animation: pathDetailEnterBackward .28s cubic-bezier(.2,.85,.25,1) both; }
+    @keyframes pathDetailExitForward { to { opacity: 0; transform: translateX(-36px); } }
+    @keyframes pathDetailEnterForward { from { opacity: 0; transform: translateX(36px); } }
+    @keyframes pathDetailExitBackward { to { opacity: 0; transform: translateX(36px); } }
+    @keyframes pathDetailEnterBackward { from { opacity: 0; transform: translateX(-36px); } }
+    @media (max-width: 767px) {
+        .path-learning-layout {
+            grid-template-columns: 1fr;
+            grid-template-rows: 4.8rem minmax(0, 1fr);
+        }
+        .path-day-list {
+            padding: .55rem 0;
+            border-right: 0;
+            border-bottom: 1px solid #e7e0d7;
+        }
+        .path-day-list ol {
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            grid-template-rows: 1fr;
+        }
+        .path-day-button {
+            display: grid;
+            place-items: center;
+            padding: .2rem;
+        }
+        .path-day-button::after {
+            left: calc(50% + 1rem);
+            right: calc(-50% + 1rem);
+            top: 50%;
+            bottom: auto;
+            width: auto;
+            height: 2px;
+        }
+        .path-day-labels {
+            display: none;
+        }
+        .path-day-detail {
+            padding: 1rem 0;
+        }
+        .path-progress-card p.line-clamp-2 {
+            display: none;
+        }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .path-day-detail { animation: none !important; }
+    }
+</style>
 <div x-data="pathPage" class="path-workspace flex flex-col h-full">
     <div class="page-header bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between flex-shrink-0">
         <div class="flex items-center gap-3">
@@ -24,8 +209,7 @@
             </button>
         </div>
     </div>
-    <div class="page-content flex-1 overflow-y-auto" x-ref="pathScroller"
-        @scroll.passive="progressDocked = $event.currentTarget.scrollTop > 18">
+    <div class="page-content flex-1 overflow-hidden">
         <div class="content-shell">
             <!-- Empty State -->
             <div x-show="!pathData.title && !loading" class="text-center py-16 fade-in">
@@ -36,9 +220,8 @@
                 <div x-show="!$store.app.currentSessionId" class="mt-3 text-xs text-amber-500 bg-amber-50 rounded-lg px-4 py-2 inline-block">请先在侧边栏创建学习会话</div>
             </div>
 
-            <div x-show="pathData.title" class="space-y-4 fade-in">
-                <div class="path-progress-card bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 shadow-sm"
-                    :class="progressDocked ? 'is-docked' : ''">
+            <div x-show="pathData.title" class="path-fixed-view fade-in">
+                <div class="path-progress-card bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 shadow-sm">
                     <div class="flex items-start gap-4">
                         <div class="min-w-0 flex-1">
                             <h3 class="text-lg font-bold text-gray-800" x-text="pathData.title"></h3>
@@ -63,7 +246,74 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <div class="path-learning-layout">
+                    <nav class="path-day-list" aria-label="七天学习路径">
+                        <ol>
+                            <template x-for="(step, idx) in (pathData.steps || [])" :key="idx">
+                                <li>
+                                    <button type="button" class="path-day-button"
+                                        :class="{
+                                            'is-complete': idx < currentStep,
+                                            'is-current': idx === currentStep,
+                                            'is-selected': idx === selectedDayIndex,
+                                        }"
+                                        :aria-current="idx === selectedDayIndex ? 'step' : null"
+                                        @click="selectDay(idx)">
+                                        <span class="path-day-marker" x-text="idx < currentStep ? '✓' : (idx + 1)"></span>
+                                        <span class="path-day-labels min-w-0">
+                                            <span class="block text-xs font-semibold" x-text="'第 ' + (step.day || idx + 1) + ' 天'"></span>
+                                            <span class="path-day-topic" x-text="step.topic || step.goal"></span>
+                                        </span>
+                                    </button>
+                                </li>
+                            </template>
+                        </ol>
+                    </nav>
+
+                    <section class="path-day-detail" :class="detailTransitionClass" aria-live="polite">
+                        <template x-if="activeDay">
+                            <div class="path-detail-panel">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div class="min-w-0">
+                                        <p class="text-xs font-semibold text-brand-600"
+                                            x-text="'第 ' + (activeDay.day || selectedDayIndex + 1) + ' 天'"></p>
+                                        <h3 class="mt-1 text-xl font-semibold text-gray-900"
+                                            x-text="activeDay.topic || activeDay.goal"></h3>
+                                    </div>
+                                    <span class="flex-shrink-0 text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full"
+                                        x-text="activeDay.estimated_time || '约 25 分钟'"></span>
+                                </div>
+
+                                <p class="path-detail-copy mt-3 text-sm leading-relaxed text-gray-600"
+                                    x-text="activeDay.content || activeDay.goal"></p>
+
+                                <div x-show="activeDay.exercises && activeDay.exercises.length" class="mt-5">
+                                    <p class="text-xs font-semibold text-gray-500">练习任务</p>
+                                    <div class="path-exercise-list">
+                                        <template x-for="(exercise, exerciseIndex) in (activeDay.exercises || [])" :key="exerciseIndex">
+                                            <div class="path-exercise-item">
+                                                <span class="font-bold text-brand-500" x-text="exerciseIndex + 1 + '.'"></span>
+                                                <span x-text="exercise"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <div class="path-detail-action flex items-center justify-between gap-3">
+                                    <span class="text-xs text-gray-400"
+                                        x-text="selectedDayIndex < currentStep ? '该阶段已完成' : (selectedDayIndex > currentStep ? '完成当前阶段后解锁' : '完成练习后推进到下一天')"></span>
+                                    <button x-show="selectedDayIndex === currentStep && currentStep < (pathData.steps || []).length"
+                                        @click="markComplete(selectedDayIndex)"
+                                        class="bg-brand-500 hover:bg-brand-700 text-white rounded-lg px-4 py-2 text-sm font-semibold transition-colors">
+                                        标记完成
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                    </section>
+                </div>
+
+                <div class="hidden">
                     <template x-for="(step, idx) in (pathData.steps || [])" :key="idx">
                         <div class="relative" :class="idx >= currentStep ? '' : 'opacity-60'">
                             <div class="bg-white border rounded-2xl p-4 shadow-sm h-full transition-all"
@@ -108,7 +358,10 @@ document.addEventListener('alpine:init', () => {
         loading: false,
         pathData: {},
         currentStep: 0,
-        progressDocked: false,
+        selectedDayIndex: 0,
+        detailAnimating: false,
+        detailTransitionPhase: '',
+        detailDirection: 'forward',
         init() {
             this.$watch('$store.app.initialized', (ready) => {
                 if (ready) this.loadPath();
@@ -121,12 +374,19 @@ document.addEventListener('alpine:init', () => {
             if (!steps.length) return 0;
             return Math.round((this.currentStep / steps.length) * 100);
         },
+        get activeDay() {
+            return (this.pathData.steps || [])[this.selectedDayIndex] || null;
+        },
+        get detailTransitionClass() {
+            if (!this.detailTransitionPhase) return '';
+            return `is-${this.detailTransitionPhase}-${this.detailDirection}`;
+        },
         async loadPath() {
             const sid = Alpine.store('app').currentSessionId;
             if (!sid) {
                 this.pathData = {};
                 this.currentStep = 0;
-                this.progressDocked = false;
+                this.selectedDayIndex = 0;
                 return;
             }
             if (this.loading) return;
@@ -135,11 +395,12 @@ document.addEventListener('alpine:init', () => {
                 const data = await resp.json();
                 this.pathData = data.path || {};
                 this.currentStep = data.current_step || 0;
-                this.progressDocked = false;
+                const lastIndex = Math.max((this.pathData.steps || []).length - 1, 0);
+                this.selectedDayIndex = Math.min(this.currentStep, lastIndex);
             } catch (e) {
                 this.pathData = {};
                 this.currentStep = 0;
-                this.progressDocked = false;
+                this.selectedDayIndex = 0;
             }
         },
         async generatePath() {
@@ -157,8 +418,7 @@ document.addEventListener('alpine:init', () => {
                 const data = await resp.json();
                 this.pathData = data.path || {};
                 this.currentStep = 0;
-                this.progressDocked = false;
-                if (this.$refs.pathScroller) this.$refs.pathScroller.scrollTo({ top: 0, behavior: 'smooth' });
+                this.selectedDayIndex = 0;
             } catch (e) {
                 window.PRLMAD.notify('路径生成失败: ' + e.message, 'error');
             }
@@ -167,6 +427,7 @@ document.addEventListener('alpine:init', () => {
         },
         async markComplete(idx) {
             const sid = Alpine.store('app').currentSessionId;
+            if (idx !== this.currentStep) return;
             this.currentStep = idx + 1;
             try {
                 await fetch('/api/learning-path/' + sid + '/step', {
@@ -175,6 +436,27 @@ document.addEventListener('alpine:init', () => {
                     body: JSON.stringify({ current_step: this.currentStep }),
                 });
             } catch (e) {}
+            const lastIndex = Math.max((this.pathData.steps || []).length - 1, 0);
+            await this.selectDay(Math.min(this.currentStep, lastIndex));
+        },
+        async selectDay(index) {
+            const steps = this.pathData.steps || [];
+            if (this.detailAnimating || index === this.selectedDayIndex) return;
+            if (index < 0 || index >= steps.length) return;
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            this.detailAnimating = true;
+            this.detailDirection = index > this.selectedDayIndex ? 'forward' : 'backward';
+            if (!reduceMotion) {
+                this.detailTransitionPhase = 'leaving';
+                await new Promise((resolve) => setTimeout(resolve, 160));
+            }
+            this.selectedDayIndex = index;
+            if (!reduceMotion) {
+                this.detailTransitionPhase = 'entering';
+                await new Promise((resolve) => setTimeout(resolve, 280));
+            }
+            this.detailTransitionPhase = '';
+            this.detailAnimating = false;
         },
     }));
 });

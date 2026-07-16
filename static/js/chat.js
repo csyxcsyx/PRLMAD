@@ -5,6 +5,9 @@ document.addEventListener('alpine:init', () => {
         clearing: false,
         savedAt: '',
         profileVersion: 1,
+        stepAnimating: false,
+        stepTransitionPhase: '',
+        stepDirection: 'forward',
         lastSavedProfileSignature: '',
         showProfileDetail: false,
         profileDraft: {
@@ -189,6 +192,11 @@ document.addEventListener('alpine:init', () => {
 
         get activeStep() {
             return this.profileSteps[this.activeIndex] || this.profileSteps[0];
+        },
+
+        get stepTransitionClass() {
+            if (!this.stepTransitionPhase) return '';
+            return `profile-step-${this.stepTransitionPhase}-${this.stepDirection}`;
         },
 
         get profileProgress() {
@@ -443,18 +451,50 @@ document.addEventListener('alpine:init', () => {
         async nextStep() {
             await this.saveProfile({ silent: true });
             if (this.activeIndex < this.totalSteps - 1) {
-                this.activeIndex += 1;
-                this.savedAt = '';
+                await this.changeStep(this.activeIndex + 1);
             } else {
                 this.savedAt = '画像已完成，可生成资源';
             }
         },
 
-        prevStep() {
+        async prevStep() {
             if (this.activeIndex > 0) {
-                this.activeIndex -= 1;
-                this.savedAt = '';
+                await this.changeStep(this.activeIndex - 1);
             }
+        },
+
+        async jumpToStep(targetIndex) {
+            if (this.stepAnimating || targetIndex === this.activeIndex) return;
+            if (targetIndex < 0 || targetIndex >= this.totalSteps) return;
+            await this.saveProfile({ silent: true });
+            await this.changeStep(targetIndex);
+        },
+
+        async changeStep(nextIndex) {
+            if (this.stepAnimating || nextIndex === this.activeIndex) return;
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            this.stepAnimating = true;
+            this.stepDirection = nextIndex > this.activeIndex ? 'forward' : 'backward';
+            if (!reduceMotion) {
+                this.stepTransitionPhase = 'leaving';
+                await new Promise((resolve) => setTimeout(resolve, 200));
+            }
+            this.activeIndex = nextIndex;
+            this.savedAt = '';
+            this.syncStepIndicator();
+            if (!reduceMotion) {
+                this.stepTransitionPhase = 'entering';
+                await new Promise((resolve) => setTimeout(resolve, 380));
+            }
+            this.stepTransitionPhase = '';
+            this.stepAnimating = false;
+        },
+
+        syncStepIndicator() {
+            this.$nextTick(() => {
+                const current = this.$root.querySelector('.profile-stepper-item.is-current');
+                current?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            });
         },
     }));
 });

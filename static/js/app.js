@@ -412,7 +412,8 @@ window.PRLMAD.createNavigation = () => {
         const scripts = Array.from(doc.querySelectorAll('script'));
         for (const script of scripts) {
             const src = script.getAttribute('src') || '';
-            const isPageScript = src === '/static/js/chat.js' || script.textContent.includes('Alpine.data(');
+            const scriptPath = src.split('?')[0];
+            const isPageScript = scriptPath === '/static/js/chat.js' || script.textContent.includes('Alpine.data(');
             if (!isPageScript) continue;
             let source = script.textContent;
             if (src) {
