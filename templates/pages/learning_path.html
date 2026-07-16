@@ -28,17 +28,25 @@
     }
     .path-day-list {
         min-height: 0;
-        padding: 1rem 1rem 1rem 0;
+        padding: 1.25rem 1rem 1.25rem 0;
         border-right: 1px solid #e7e0d7;
+        overflow: visible;
     }
     .path-day-list ol {
+        position: relative;
         height: 100%;
         display: grid;
         grid-template-rows: repeat(7, minmax(0, 1fr));
+        overflow: visible;
+    }
+    .path-day-list li {
+        min-height: 0;
+        overflow: visible;
     }
     .path-day-button {
         position: relative;
         width: 100%;
+        height: 100%;
         min-height: 0;
         display: grid;
         grid-template-columns: 2rem minmax(0, 1fr);
@@ -47,7 +55,9 @@
         padding: .35rem .55rem;
         color: #756e65;
         text-align: left;
+        border: 1px solid transparent;
         border-radius: 1rem;
+        overflow: visible;
     }
     .path-day-button::after {
         content: "";
@@ -56,14 +66,39 @@
         top: calc(50% + 1rem);
         bottom: calc(-50% + 1rem);
         width: 2px;
-        background: #e5ded5;
+        border-radius: 999px;
+        background: #e2d9cf;
+        pointer-events: none;
+        z-index: 1;
     }
     .path-day-list li:last-child .path-day-button::after {
         display: none;
     }
+    .path-day-button.is-complete::after {
+        background: #cc785c;
+    }
+    .path-day-button.is-selected::before {
+        content: "";
+        position: absolute;
+        left: 1.52rem;
+        top: 0;
+        height: calc(50% - 1rem);
+        width: 2px;
+        border-radius: 999px;
+        background: #e2d9cf;
+        pointer-events: none;
+        z-index: 1;
+    }
+    .path-day-list li:first-of-type .path-day-button.is-selected::before {
+        display: none;
+    }
+    .path-day-button.is-selected.is-complete::before,
+    .path-day-button.is-selected.is-current::before {
+        background: #cc785c;
+    }
     .path-day-marker {
         position: relative;
-        z-index: 1;
+        z-index: 3;
         width: 2rem;
         height: 2rem;
         display: grid;
@@ -81,13 +116,15 @@
         background: #cc785c;
         color: #fff;
     }
-    .path-day-button.is-complete::after {
-        background: #cc785c;
-    }
     .path-day-button.is-selected {
         color: #4c443d;
         background: #efe9df;
-        box-shadow: inset 3px 0 0 #cc785c;
+        border-color: rgba(204, 120, 92, .34);
+        box-shadow: inset 0 0 0 1px rgba(204, 120, 92, .08);
+    }
+    .path-day-labels {
+        position: relative;
+        z-index: 3;
     }
     .path-day-topic {
         display: block;
@@ -144,13 +181,36 @@
     @keyframes pathDetailEnterForward { from { opacity: 0; transform: translateX(36px); } }
     @keyframes pathDetailExitBackward { to { opacity: 0; transform: translateX(36px); } }
     @keyframes pathDetailEnterBackward { from { opacity: 0; transform: translateX(-36px); } }
+    @media (max-height: 760px) and (min-width: 768px) {
+        .path-fixed-view { gap: .6rem; }
+        .path-progress-card { padding: .7rem 1rem !important; }
+        .path-progress-card p.line-clamp-2 { display: none; }
+        .path-progress-card .mt-4 { margin-top: .6rem !important; }
+        .path-progress-card .mt-2 { margin-top: .3rem !important; }
+        .path-learning-layout { grid-template-columns: 15.5rem minmax(0, 1fr); }
+        .path-day-list { padding: .45rem .65rem .45rem 0; }
+        .path-day-button {
+            grid-template-columns: 2rem minmax(0, 1fr);
+            gap: .5rem;
+            padding: .1rem .45rem;
+            border-radius: .75rem;
+        }
+        .path-day-labels > span:first-child { font-size: .66rem !important; line-height: .85rem; }
+        .path-day-topic { margin-top: .05rem; font-size: .7rem; line-height: .9rem; }
+        .path-day-detail { overflow-y: auto; padding: .75rem 0 .75rem 1rem; scrollbar-width: thin; }
+        .path-detail-copy { margin-top: .55rem !important; -webkit-line-clamp: 3; }
+        .path-day-detail .mt-5 { margin-top: .75rem !important; }
+        .path-exercise-list { gap: .2rem; margin-top: .35rem; }
+        .path-exercise-item { padding: .4rem 0; }
+        .path-detail-action { padding-top: .55rem; }
+    }
     @media (max-width: 767px) {
         .path-learning-layout {
             grid-template-columns: 1fr;
             grid-template-rows: 4.8rem minmax(0, 1fr);
         }
         .path-day-list {
-            padding: .55rem 0;
+            padding: .7rem 0;
             border-right: 0;
             border-bottom: 1px solid #e7e0d7;
         }
@@ -164,11 +224,18 @@
             padding: .2rem;
         }
         .path-day-button::after {
-            left: calc(50% + 1rem);
-            right: calc(-50% + 1rem);
+            left: 2.2rem;
+            right: -.25rem;
             top: 50%;
             bottom: auto;
             width: auto;
+            height: 2px;
+        }
+        .path-day-button.is-selected::before {
+            left: 0;
+            right: auto;
+            top: 50%;
+            width: .25rem;
             height: 2px;
         }
         .path-day-labels {
@@ -188,7 +255,7 @@
 <div x-data="pathPage" class="path-workspace flex flex-col h-full">
     <div class="page-header bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between flex-shrink-0">
         <div class="flex items-center gap-3">
-            <div class="page-emblem w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-semibold">P</div>
+            <div class="page-emblem w-9 h-9 rounded-lg flex items-center justify-center text-sm font-semibold">路</div>
             <div>
                 <h2 class="page-header-title text-gray-800">学习路径</h2>
                 <p class="text-xs text-gray-400">把学习目标拆解为清晰、可完成的阶段任务</p>

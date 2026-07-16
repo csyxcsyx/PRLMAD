@@ -2,7 +2,7 @@
 {% block content %}
 <div x-data="knowledgePage" class="flex flex-col h-full" x-init="loadStatus()">
     <div class="page-header bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-3 flex-shrink-0">
-        <div class="page-emblem w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-semibold">K</div>
+        <div class="page-emblem w-9 h-9 rounded-lg flex items-center justify-center text-sm font-semibold">库</div>
         <div>
             <h2 class="page-header-title text-gray-800">教材知识库</h2>
             <p class="text-xs text-gray-400">管理教材索引，并即时验证检索质量</p>
@@ -14,17 +14,17 @@
             <div class="knowledge-overview bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
                 <h3 class="text-sm font-semibold text-gray-700 mb-4">知识库概览</h3>
                 <div class="grid grid-cols-3 gap-4 mb-4">
-                    <div class="bg-[#efe9de] rounded-xl p-4 text-center border border-[#e6dfd8]">
-                        <p class="text-2xl font-bold text-blue-600" x-text="status.document_count || status.doc_count || 0"></p>
-                        <p class="text-xs text-blue-500 font-medium mt-1">文档数</p>
+                    <div class="stat-card bg-[#efe9de] rounded-xl p-4 text-center border border-[#e6dfd8]">
+                        <p class="stat-value text-2xl font-bold" x-text="status.document_count || status.doc_count || 0"></p>
+                        <p class="stat-label text-xs font-medium mt-1">文档数</p>
                     </div>
-                    <div class="bg-[#f5f0e8] rounded-xl p-4 text-center border border-[#e6dfd8]">
-                        <p class="text-2xl font-bold text-green-600" x-text="status.chunk_count || 0"></p>
-                        <p class="text-xs text-green-500 font-medium mt-1">知识切片</p>
+                    <div class="stat-card bg-[#f5f0e8] rounded-xl p-4 text-center border border-[#e6dfd8]">
+                        <p class="stat-value text-2xl font-bold" x-text="status.chunk_count || 0"></p>
+                        <p class="stat-label text-xs font-medium mt-1">知识切片</p>
                     </div>
-                    <div class="bg-[#181715] rounded-xl p-4 text-center border border-[#181715] text-[#faf9f5]">
-                        <p class="text-2xl font-bold text-purple-600" x-text="status.course_count || 0"></p>
-                        <p class="text-xs text-purple-500 font-medium mt-1">课程数</p>
+                    <div class="stat-card stat-card--dark bg-[#181715] rounded-xl p-4 text-center border border-[#181715] text-[#faf9f5]">
+                        <p class="stat-value text-2xl font-bold" x-text="status.course_count || 0"></p>
+                        <p class="stat-label text-xs font-medium mt-1">课程数</p>
                     </div>
                 </div>
                 <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
@@ -157,7 +157,7 @@
                             </template>
                         </div>
                     </div>
-                    <div x-show="ingestResult" class="text-sm p-3 rounded-xl" :class="ingestResult && ingestResult.ok ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'">
+                    <div x-show="ingestResult" class="text-sm p-3 rounded-xl" :class="ingestResult && ingestResult.ok ? 'bg-green-50 text-green-700 border border-green-200' : 'warm-error border'">
                         <p x-text="ingestResult && ingestResult.ok ? '操作成功!' : '失败: ' + ((ingestResult && ingestResult.error) || '未知错误')"></p>
                     </div>
                 </div>

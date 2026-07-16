@@ -157,43 +157,51 @@
     .profile-step-fields {
         min-height: 0;
         flex: 1 1 0;
-        overflow: hidden;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: .1rem .4rem .75rem .1rem;
+        scrollbar-gutter: stable;
+        scrollbar-width: thin;
+        scrollbar-color: #d2c8bd transparent;
+    }
+    .profile-step-fields::-webkit-scrollbar {
+        width: 5px;
     }
     .profile-step-footer {
         flex: 0 0 auto;
         margin-top: auto;
+        background: rgba(250, 249, 245, .96);
     }
     .profile-option {
         min-height: 2.55rem;
-        border: 0 !important;
-        border-bottom: 1px solid #e5ded5 !important;
-        border-radius: 0 !important;
-        background: transparent !important;
-        box-shadow: none !important;
+        border: 1px solid #dfd7cd !important;
+        border-radius: .8rem !important;
+        background: #fffdf9 !important;
+        box-shadow: 0 1px 0 rgba(255, 255, 255, .75) !important;
         padding: .55rem .85rem !important;
     }
     .profile-option:hover {
-        border-bottom-color: #d5a28f !important;
-        background: rgba(204, 120, 92, .045) !important;
+        border-color: #d5a28f !important;
+        background: #f8f1ea !important;
     }
     .profile-option.is-selected {
-        border-bottom-color: transparent !important;
-        border-radius: 1rem !important;
+        border-color: rgba(204, 120, 92, .58) !important;
+        border-radius: .8rem !important;
         background: #efe9df !important;
         color: #4c443d !important;
         font-weight: 700;
-        box-shadow: inset 3px 0 0 #cc785c !important;
+        box-shadow: inset 0 0 0 1px rgba(204, 120, 92, .16), 0 3px 10px rgba(78, 58, 47, .045) !important;
     }
     .profile-custom-input {
-        border: 0 !important;
+        border: 1px solid #dfd7cd !important;
         border-radius: .8rem !important;
-        background: #f5f0e8 !important;
+        background: #fffdf9 !important;
         box-shadow: none !important;
     }
     .profile-custom-input:focus {
-        border: 0 !important;
+        border-color: rgba(204, 120, 92, .58) !important;
         background: #fbede7 !important;
-        box-shadow: none !important;
+        box-shadow: 0 0 0 3px rgba(204, 120, 92, .1) !important;
     }
     .profile-custom-input:focus-visible {
         outline: none !important;
@@ -285,34 +293,54 @@
             border: 0 !important;
         }
     }
+    @media (max-height: 760px) and (min-width: 768px) {
+        .profile-content { gap: .55rem !important; }
+        .profile-stepper-track { padding: .7rem .9rem .55rem; }
+        .profile-stepper-indicator { width: 1.75rem; height: 1.75rem; }
+        .profile-stepper-label {
+            width: 1.75rem;
+            margin-top: .32rem;
+            font-size: .65rem;
+            transform: translateX(calc(.875rem - 50%));
+        }
+        .profile-step-content { padding: .75rem 1rem; }
+        .profile-step-heading { margin-bottom: .6rem !important; }
+        .profile-step-heading p.mt-2 { margin-top: .2rem !important; }
+        .profile-step-fields .grid { gap: .45rem !important; }
+        .profile-grouped-fields { gap: .55rem; }
+        .profile-grouped-fields > div > p { margin-bottom: .3rem !important; }
+        .profile-option { min-height: 2.15rem; padding: .35rem .65rem !important; }
+        .profile-custom-input { margin-top: .35rem !important; padding-block: .4rem !important; }
+        .profile-step-footer { padding-top: .55rem !important; }
+    }
 </style>
 <div x-data="chatPage" class="h-full">
-    <div x-show="showWelcome" class="h-full flex items-center justify-center p-8">
-        <div class="max-w-lg text-center fade-in">
+    <div x-show="showWelcome" class="welcome-stage h-full flex items-center justify-center p-4 sm:p-8">
+        <div class="welcome-panel text-center fade-in">
             {% include "components/learning_motif.html" %}
             <h2 class="text-3xl text-gray-800 mb-2">欢迎使用 KnowStack 知栈</h2>
             <p class="text-gray-500 mb-1">用几分钟建立学习画像，系统会据此调整内容深度与节奏</p>
             <p class="text-sm text-gray-400 mb-8">不需要提前准备材料，按当前真实状态选择即可。</p>
 
             <div class="grid grid-cols-3 gap-3 mb-8">
-                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <div class="welcome-flow-card bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                     <span class="label-mark mx-auto">1</span>
                     <p class="text-xs text-gray-600 mt-2 font-medium">选背景</p>
                     <p class="text-[10px] text-gray-400 mt-0.5">专业、年级、基础</p>
                 </div>
-                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <div class="welcome-flow-card bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                     <span class="label-mark mx-auto">2</span>
                     <p class="text-xs text-gray-600 mt-2 font-medium">定目标</p>
                     <p class="text-[10px] text-gray-400 mt-0.5">考试、项目、理解</p>
                 </div>
-                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <div class="welcome-flow-card bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                     <span class="label-mark mx-auto">3</span>
                     <p class="text-xs text-gray-600 mt-2 font-medium">生成学习支持</p>
                     <p class="text-[10px] text-gray-400 mt-0.5">资源、路径、辅导</p>
                 </div>
             </div>
 
-            <div class="bg-white border border-brand-100 rounded-2xl p-4 text-left shadow-sm mb-6">
+            <div class="welcome-guide bg-white border border-brand-100 rounded-2xl p-4 text-left shadow-sm mb-6">
                 <p class="text-xs font-semibold text-brand-700 mb-2">建议从这里开始</p>
                 <div class="grid gap-2 text-xs text-gray-600">
                     <p><span class="label-mark mr-2">A</span>先创建一个学习会话。</p>
@@ -322,7 +350,7 @@
             </div>
 
             <button @click="doQuickStart()"
-                class="gradient-brand text-white rounded-xl px-8 py-3 text-sm font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95">
+                class="primary-action gradient-brand text-white rounded-xl px-8 py-3 text-sm font-semibold shadow-lg transition-all">
                 创建学习会话
             </button>
             <p class="text-[10px] text-gray-400 mt-3">会话名称会自动避免和已有会话重复</p>
@@ -333,7 +361,7 @@
         <div class="flex-1 flex flex-col h-full min-w-0">
             <div class="page-header bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between flex-shrink-0">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-lg gradient-brand flex items-center justify-center text-white text-sm font-bold">P</div>
+                    <div class="page-emblem w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold">像</div>
                     <div>
                         <h2 class="page-header-title text-gray-800">学习画像</h2>
                         <p class="text-xs text-gray-400">逐步完成 · <span x-text="currentStep + '/' + totalSteps"></span></p>
@@ -360,7 +388,7 @@
                             </div>
                             <div class="flex flex-wrap items-center gap-2 flex-shrink-0">
                                 <button @click="clearCurrentProfile()"
-                                    class="bg-white text-gray-500 hover:text-rose-600 hover:bg-rose-50 border border-gray-200 hover:border-rose-200 rounded-xl px-4 py-2.5 text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                                    class="warm-danger bg-white text-gray-500 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                                     :disabled="saving || clearing || !hasProfileData || !$store.app.currentSessionId">
                                     <span x-show="!clearing">清除当前画像</span>
                                     <span x-show="clearing">清除中...</span>

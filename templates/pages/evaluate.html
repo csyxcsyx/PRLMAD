@@ -3,14 +3,14 @@
 <div x-data="evaluatePage" class="flex flex-col h-full">
     <div class="page-header bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between flex-shrink-0">
         <div class="flex items-center gap-3">
-            <div class="page-emblem w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-semibold">E</div>
+            <div class="page-emblem w-9 h-9 rounded-lg flex items-center justify-center text-sm font-semibold">评</div>
             <div>
                 <h2 class="page-header-title text-gray-800">学习诊断</h2>
                 <p class="text-xs text-gray-400">汇总资源、辅导和路径进度，定位优势与下一步</p>
             </div>
         </div>
         <button @click="runEvaluation()"
-            class="bg-brand-500 hover:bg-brand-700 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:opacity-40"
+            class="primary-action bg-brand-500 hover:bg-brand-700 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:opacity-40"
             :disabled="loading || !$store.app.currentSessionId">
             <span x-show="!loading">开始评估</span>
             <span x-show="loading" class="flex items-center gap-1">
@@ -69,12 +69,12 @@
                             <div class="bg-gray-50 border border-gray-100 rounded-xl p-3.5 min-h-[116px]">
                                 <div class="flex items-center justify-between mb-1.5">
                                     <span class="text-sm font-semibold text-gray-700" x-text="getDimName(key)"></span>
-                                    <span class="text-sm font-semibold tabular-nums" :class="dim.score >= 70 ? 'text-green-600' : dim.score >= 40 ? 'text-yellow-600' : 'text-red-600'"
+                                    <span class="text-sm font-semibold tabular-nums" :class="dim.score >= 70 ? 'text-green-600' : dim.score >= 40 ? 'text-yellow-600' : 'text-brand-700'"
                                         x-text="dim.score + '分'"></span>
                                 </div>
                                 <div class="bg-gray-200 rounded-full h-1.5 overflow-hidden">
                                     <div class="h-full rounded-full transition-all duration-1000"
-                                        :class="dim.score >= 70 ? 'bg-gradient-to-r from-green-400 to-emerald-500' : dim.score >= 40 ? 'bg-gradient-to-r from-yellow-400 to-amber-500' : 'bg-gradient-to-r from-red-400 to-rose-500'"
+                                        :class="dim.score >= 70 ? 'bg-gradient-to-r from-green-400 to-emerald-500' : dim.score >= 40 ? 'bg-gradient-to-r from-yellow-400 to-amber-500' : 'bg-brand-400'"
                                         :style="'width:' + Math.max((dim.score || 0), 3) + '%'"></div>
                                 </div>
                                 <p class="text-xs text-gray-500 mt-2 leading-relaxed" x-text="dim.comment"></p>
