@@ -15,6 +15,52 @@
         min-height: 100%;
         color: var(--body);
     }
+    body.os-lab-immersive {
+        overflow: hidden;
+    }
+    body.os-lab-immersive .app-sidebar,
+    body.os-lab-immersive .mobile-header {
+        display: none !important;
+    }
+    body.os-lab-immersive .app-frame {
+        height: 100dvh;
+    }
+    body.os-lab-immersive .app-main {
+        overflow: hidden;
+    }
+    .os-lab.is-immersive {
+        position: fixed;
+        inset: 0;
+        z-index: 120;
+        width: 100vw;
+        height: 100dvh;
+        overflow: hidden;
+        background: #faf9f5;
+    }
+    .os-lab.is-immersive .desktop {
+        width: 100%;
+        height: 100dvh;
+        min-height: 0;
+        overflow: hidden;
+    }
+    .os-lab.is-immersive .desktop-bar {
+        flex: 0 0 auto;
+    }
+    .os-lab.is-immersive .workspace {
+        flex: 1 1 auto;
+        min-height: 0;
+        width: 100%;
+        max-width: none;
+        overflow: auto;
+        overscroll-behavior: contain;
+        scrollbar-gutter: stable;
+    }
+    .os-lab.is-immersive .experiment-grid {
+        min-height: calc(100dvh - 13rem);
+    }
+    .os-lab.is-immersive .code-pre {
+        max-height: calc(100dvh - 16rem);
+    }
     .os-lab *, .os-lab *::before, .os-lab *::after {
         animation: none !important;
         transition: none !important;
@@ -229,12 +275,45 @@
         margin: 0;
         max-height: 35rem;
         overflow: auto;
-        padding: 1rem 0;
+        padding: .8rem 0 1.2rem;
         color: #37332d;
         font-size: .78rem;
         line-height: 1.72;
-        white-space: pre-wrap;
+        white-space: normal;
         tab-size: 4;
+        counter-reset: code-line;
+        scroll-padding-block: 4rem;
+    }
+    .code-line {
+        position: relative;
+        display: block;
+        min-height: 1.72em;
+        border-left: 3px solid transparent;
+        padding: .08rem .6rem .08rem 3.15rem;
+        color: #4b4640;
+        font: inherit;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        counter-increment: code-line;
+    }
+    .code-line::before {
+        content: counter(code-line);
+        position: absolute;
+        left: .65rem;
+        width: 1.6rem;
+        color: #aaa298;
+        text-align: right;
+        font-size: .64rem;
+        font-weight: 700;
+    }
+    .code-line.active {
+        border-left-color: #b95f42;
+        background: #fff1e9;
+        color: #241f1b;
+        font-weight: 800;
+    }
+    .code-line.active::before {
+        color: #a5513a;
     }
     .flow-grid {
         display: grid;
@@ -1074,6 +1153,90 @@
         color: #a0998f;
         font-weight: 800;
     }
+    /* Keep the lab readable at full-screen viewing distances. */
+    .os-lab .text-\[10px\] {
+        font-size: .78rem !important;
+    }
+    .os-lab .text-xs {
+        font-size: .86rem !important;
+        line-height: 1.5 !important;
+    }
+    .os-lab .text-sm {
+        font-size: .98rem !important;
+        line-height: 1.5 !important;
+    }
+    .os-lab .text-base {
+        font-size: 1.08rem !important;
+    }
+    .os-lab .text-lg {
+        font-size: 1.28rem !important;
+    }
+    .os-lab .toolbar-btn {
+        min-height: 2.55rem;
+        padding: .65rem .95rem;
+        font-size: .9rem;
+    }
+    .os-lab .toolbar-step {
+        min-height: 2.55rem;
+        font-size: .88rem;
+    }
+    .os-lab .panel-title {
+        min-height: 3rem;
+        font-size: .94rem;
+    }
+    .os-lab .code-pre {
+        font-size: .94rem;
+        line-height: 1.78;
+    }
+    .os-lab .code-line {
+        min-height: 1.78em;
+        padding-block: .12rem;
+    }
+    .os-lab .code-line::before {
+        font-size: .76rem;
+    }
+    .os-lab .state-pill,
+    .os-lab .gantt-segment,
+    .os-lab .lru-access-cell {
+        font-size: .9rem;
+    }
+    .os-lab .gantt-kicker,
+    .os-lab .gantt-status,
+    .os-lab .gantt-axis,
+    .os-lab .gantt-empty,
+    .os-lab .ff-decision,
+    .os-lab .ff-segment,
+    .os-lab .lru-result,
+    .os-lab .pc-operation-code,
+    .os-lab .pc-sem-values,
+    .os-lab .pc-actor-state,
+    .os-lab .pc-buffer-slot,
+    .os-lab .pc-rule,
+    .os-lab .banker-matrix-head,
+    .os-lab .banker-vector-text,
+    .os-lab .banker-check,
+    .os-lab .banker-done-label,
+    .os-lab .safe-sequence-step {
+        font-size: .82rem;
+        letter-spacing: 0;
+    }
+    .os-lab .gantt-segment small,
+    .os-lab .ff-segment.current::before,
+    .os-lab .ff-address,
+    .os-lab .ff-map-end,
+    .os-lab .ff-direction,
+    .os-lab .lru-access-cell.current::after,
+    .os-lab .lru-recency-item small,
+    .os-lab .resource-unit small {
+        font-size: .72rem;
+        letter-spacing: 0;
+    }
+    .os-lab .ff-segment strong {
+        font-size: .94rem;
+    }
+    .os-lab .resource-unit strong {
+        font-size: 1.05rem;
+    }
     @media (max-width: 1100px) {
         .experiment-grid {
             grid-template-columns: 1fr;
@@ -1177,7 +1340,7 @@
     }
 </style>
 
-<div x-data="osAlgorithmLab" class="os-lab">
+<div x-data="osAlgorithmLab" class="os-lab" :class="immersive ? 'is-immersive' : ''">
     <div class="desktop">
         <div class="desktop-bar">
             <div class="flex items-center gap-3 min-w-0">
@@ -1586,7 +1749,7 @@
                                 <span>算法逻辑</span>
                                 <span x-text="current.codeLang"></span>
                             </div>
-                            <pre class="code-pre" x-text="current.code"></pre>
+                            <pre class="code-pre"><template x-for="(line, index) in codeLines" :key="index"><code class="code-line" :class="activeCodeLines.includes(index + 1) ? 'active' : ''" :aria-current="activeCodeLines.includes(index + 1) ? 'step' : null" x-text="line || ' '"></code></template></pre>
                         </aside>
                     </div>
                 </section>
@@ -1601,12 +1764,41 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('osAlgorithmLab', () => ({
         selected: '',
+        immersive: false,
+        escapeHandler: null,
         frameIndex: 0,
         running: false,
         timer: null,
         maxFrameReached: 0,
         completedAlgorithms: {},
         resourceLabels: ['A', 'B', 'C'],
+        codeLineMap: {
+            rr: [[1, 3, 4], [5], [5, 9, 10], [4, 5], [7, 8], [3, 7, 8]],
+            firstFit: [[1], [2, 3, 4], [2, 5], [2, 3, 4], [2, 5], [6, 7, 8]],
+            lruPage: [
+                [4, 5, 6, 10], [4, 5, 6, 10], [4, 5, 6, 10],
+                [4, 5, 6, 7, 8, 9, 10], [4, 10],
+                [4, 5, 6, 7, 8, 9, 10], [4, 10],
+                [4, 5, 6, 7, 8, 9, 10], [4, 5, 6, 7, 8, 9, 10],
+                [4, 5, 6, 7, 8, 9, 10],
+            ],
+            producerConsumer: [[8, 9], [1, 2], [3], [4, 5, 6], [8, 9, 10], [11, 12, 13]],
+            banker: [[1, 2, 3, 5, 6], [7, 8, 9, 10], [7, 8, 9, 10], [7, 8, 9, 10]],
+        },
+        init() {
+            this.escapeHandler = (event) => {
+                if (event.key === 'Escape' && this.immersive) this.backToCards();
+            };
+            window.addEventListener('keydown', this.escapeHandler);
+        },
+        destroy() {
+            window.removeEventListener('keydown', this.escapeHandler);
+            document.body.classList.remove('os-lab-immersive');
+        },
+        setImmersive(value) {
+            this.immersive = value;
+            document.body.classList.toggle('os-lab-immersive', value);
+        },
         algorithms: [
             { id: 'rr', mark: '轮', title: 'RR 时间片轮转', tag: '调度', desc: '每个进程获得固定时间片，用完回到队尾。', points: ['时间片', '抢占', '甘特图'] },
             { id: 'firstFit', mark: '首', title: '首次适应分配', tag: '内存', desc: '从低地址开始扫描，命中第一个足够大的空闲区。', points: ['低地址扫描', '切分', '外部碎片'] },
@@ -1616,10 +1808,16 @@ document.addEventListener('alpine:init', () => {
         ],
 
         get current() {
-            return this.scenarios()[this.selected] || this.scenarios().fcfs;
+            return this.scenarios()[this.selected] || this.scenarios().rr;
         },
         get frame() {
             return this.current.frames[this.frameIndex] || this.current.frames[0];
+        },
+        get codeLines() {
+            return this.current.code.split('\n');
+        },
+        get activeCodeLines() {
+            return this.codeLineMap[this.selected]?.[this.frameIndex] || [];
         },
         get ganttCapacity() {
             return Math.max(8, ...this.current.frames.map(item => (item.gantt || []).length));
@@ -1658,13 +1856,16 @@ document.addEventListener('alpine:init', () => {
             this.selected = '';
             this.frameIndex = 0;
             this.maxFrameReached = 0;
+            this.setImmersive(false);
         },
         openAlgorithm(id) {
             this.selected = id;
+            this.setImmersive(true);
             this.frameIndex = 0;
             this.maxFrameReached = 0;
             this.stopRun();
             this.logLabEvent('open_algorithm');
+            this.syncCodeFocus();
         },
         backToCards() {
             this.logLabEvent('back_to_cards', { max_frame_reached: this.maxFrameReached });
@@ -1672,6 +1873,7 @@ document.addEventListener('alpine:init', () => {
             this.selected = '';
             this.frameIndex = 0;
             this.maxFrameReached = 0;
+            this.setImmersive(false);
         },
         resetAnimation() {
             this.frameIndex = 0;
@@ -1679,6 +1881,7 @@ document.addEventListener('alpine:init', () => {
             this.stopRun();
             this.logLabEvent('reset_animation');
             this.syncVisualFocus();
+            this.syncCodeFocus();
         },
         nextFrame() {
             const last = this.current.frames.length - 1;
@@ -1689,6 +1892,7 @@ document.addEventListener('alpine:init', () => {
             this.frameIndex += 1;
             this.maxFrameReached = Math.max(this.maxFrameReached, this.frameIndex);
             this.syncVisualFocus();
+            this.syncCodeFocus();
             this.logLabEvent('step');
             if (this.frameIndex === last && !this.completedAlgorithms[this.selected]) {
                 this.completedAlgorithms[this.selected] = true;
@@ -1729,6 +1933,17 @@ document.addEventListener('alpine:init', () => {
                 }
                 strip.scrollTo({
                     left: current.offsetLeft - ((strip.clientWidth - current.clientWidth) / 2),
+                    behavior: 'smooth',
+                });
+            });
+        },
+        syncCodeFocus() {
+            this.$nextTick(() => {
+                const panel = this.$root.querySelector('.code-pre');
+                const active = panel?.querySelector('.code-line.active');
+                if (!panel || !active) return;
+                panel.scrollTo({
+                    top: Math.max(0, active.offsetTop - (panel.clientHeight / 3)),
                     behavior: 'smooth',
                 });
             });
@@ -1795,8 +2010,9 @@ while ready_queue is not empty:
                     desc: '从低地址开始，找到第一个足够大的空闲区就分配。',
                     codeLang: '伪代码',
                     code: `request = 180MB
-
-for block in free_list:
+for block in memory_blocks:
+    if block.is_used:
+        continue
     if block.size >= request:
         allocate request from block
         split remaining space

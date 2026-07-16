@@ -211,6 +211,25 @@ class FrontendSmokeTests(unittest.TestCase):
         for board in ("ff-board", "lru-board", "pc-board", "banker-board"):
             self.assertRegex(source, rf"\.{board}\s*\{{[^}}]*border:\s*0;")
 
+    def test_os_lab_enters_fullscreen_after_algorithm_selection(self) -> None:
+        source = (ROOT / "templates" / "pages" / "os_lab.html").read_text(encoding="utf-8")
+        self.assertIn("immersive: false", source)
+        self.assertIn("height: 100dvh", source)
+        method_start = source.index("        openAlgorithm(id)")
+        open_algorithm = source[method_start : source.index("        backToCards()", method_start)]
+        self.assertIn("this.setImmersive(true)", open_algorithm)
+        self.assertGreaterEqual(source.count("this.setImmersive(false)"), 2)
+        self.assertIn("event.key === 'Escape'", source)
+
+    def test_os_lab_highlights_code_for_each_step(self) -> None:
+        source = (ROOT / "templates" / "pages" / "os_lab.html").read_text(encoding="utf-8")
+        self.assertIn('class="code-line"', source)
+        self.assertIn("activeCodeLines.includes(index + 1)", source)
+        self.assertIn("codeLineMap: {", source)
+        for scenario in ("rr", "firstFit", "lruPage", "producerConsumer", "banker"):
+            self.assertRegex(source, rf"\b{scenario}:\s*\[\s*\[")
+        self.assertIn("syncCodeFocus()", source)
+        self.assertIn("this.backToCards()", source)
 
 if __name__ == "__main__":
     unittest.main()
