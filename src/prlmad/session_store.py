@@ -120,10 +120,23 @@ class SessionStore:
                     created_at TEXT NOT NULL,
                     FOREIGN KEY(session_id) REFERENCES sessions(session_id) ON DELETE CASCADE
                 );
+                CREATE TABLE IF NOT EXISTS os_lab_events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    session_id TEXT NOT NULL,
+                    algorithm_id TEXT NOT NULL,
+                    algorithm_title TEXT NOT NULL DEFAULT '',
+                    event_type TEXT NOT NULL,
+                    frame_index INTEGER NOT NULL DEFAULT 0,
+                    total_frames INTEGER NOT NULL DEFAULT 0,
+                    metadata_json TEXT NOT NULL DEFAULT '{}',
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY(session_id) REFERENCES sessions(session_id) ON DELETE CASCADE
+                );
                 CREATE INDEX IF NOT EXISTS idx_chat_session ON chat_history(session_id);
                 CREATE INDEX IF NOT EXISTS idx_resources_session ON resources(session_id);
                 CREATE INDEX IF NOT EXISTS idx_evaluations_session ON evaluations(session_id);
                 CREATE INDEX IF NOT EXISTS idx_tutor_logs_session ON tutor_logs(session_id);
+                CREATE INDEX IF NOT EXISTS idx_os_lab_events_session ON os_lab_events(session_id);
                 """
             )
 
@@ -385,6 +398,61 @@ class SessionStore:
                 data_json=row["data_json"],
                 created_at=row["created_at"],
             )
+            for row in rows
+        ]
+
+    def add_os_lab_event(
+        self,
+        session_id: str,
+        algorithm_id: str,
+        algorithm_title: str,
+        event_type: str,
+        frame_index: int = 0,
+        total_frames: int = 0,
+        metadata: dict | None = None,
+    ) -> int:
+        now = datetime.now(timezone.utc).isoformat()
+        with self.connect() as conn:
+            cursor = conn.execute(
+                """
+                INSERT INTO os_lab_events(
+                    session_id, algorithm_id, algorithm_title, event_type,
+                    frame_index, total_frames, metadata_json, created_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    session_id,
+                    algorithm_id,
+                    algorithm_title,
+                    event_type,
+                    frame_index,
+                    total_frames,
+                    json.dumps(metadata or {}, ensure_ascii=False),
+                    now,
+                ),
+            )
+            conn.execute("UPDATE sessions SET updated_at = ? WHERE session_id = ?", (now, session_id))
+            return int(cursor.lastrowid)
+
+    def get_os_lab_events(self, session_id: str, limit: int = 50) -> list[dict]:
+        with self.connect() as conn:
+            rows = conn.execute(
+                "SELECT * FROM os_lab_events WHERE session_id = ? ORDER BY id DESC LIMIT ?",
+                (session_id, limit),
+            ).fetchall()
+        return [
+            {
+                "id": row["id"],
+                "session_id": row["session_id"],
+                "algorithm_id": row["algorithm_id"],
+                "algorithm_title": row["algorithm_title"],
+                "event_type": row["event_type"],
+                "frame_index": row["frame_index"],
+                "total_frames": row["total_frames"],
+                "metadata": json.loads(row["metadata_json"]),
+                "created_at": row["created_at"],
+            }
             for row in rows
         ]
 

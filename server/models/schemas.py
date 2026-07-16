@@ -15,9 +15,8 @@ class GenerateRequest(BaseModel):
     knowledge_points: str = ""
     resource_types: list[str] = Field(default_factory=lambda: [
         "lecture_note", "concept_map", "exercises",
-        "case_project", "video_script", "ppt_outline", "task_checklist",
     ])
-    top_k: int = 6
+    top_k: int = 4
 
 
 class TutorRequest(BaseModel):
@@ -28,6 +27,16 @@ class TutorRequest(BaseModel):
 
 class EvaluateRequest(BaseModel):
     session_id: str
+
+
+class OsLabEventRequest(BaseModel):
+    session_id: str
+    algorithm_id: str
+    algorithm_title: str = ""
+    event_type: str
+    frame_index: int = 0
+    total_frames: int = 0
+    metadata: dict = Field(default_factory=dict)
 
 
 class IngestRequest(BaseModel):

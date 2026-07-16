@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from server.routers import chat, generate, session, tutor, evaluate, knowledge
+from server.routers import chat, generate, session, tutor, evaluate, knowledge, os_lab
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
@@ -24,6 +24,7 @@ app.include_router(session.router)
 app.include_router(tutor.router)
 app.include_router(evaluate.router)
 app.include_router(knowledge.router)
+app.include_router(os_lab.router)
 
 
 @app.get("/api/health")
@@ -64,3 +65,8 @@ async def page_evaluate(request: Request):
 @app.get("/page/knowledge", response_class=HTMLResponse)
 async def page_knowledge(request: Request):
     return templates.TemplateResponse(request, "pages/knowledge.html", {"page": "knowledge"})
+
+
+@app.get("/page/os-lab", response_class=HTMLResponse)
+async def page_os_lab(request: Request):
+    return templates.TemplateResponse(request, "pages/os_lab.html", {"page": "os_lab"})
