@@ -79,11 +79,31 @@ class FrontendSmokeTests(unittest.TestCase):
             )
             self.assertEqual(event_resp.status_code, 200)
 
+            quiz_resp = self.client.post(
+                "/api/os-lab/events",
+                json={
+                    "session_id": session_id,
+                    "algorithm_id": "rr",
+                    "algorithm_title": "RR 时间片轮转",
+                    "event_type": "quiz_answer",
+                    "frame_index": 5,
+                    "total_frames": 6,
+                    "metadata": {
+                        "selected_option": 0,
+                        "correct_option": 0,
+                        "correct": True,
+                    },
+                },
+            )
+            self.assertEqual(quiz_resp.status_code, 200)
+
             events_resp = self.client.get(f"/api/os-lab/events/{session_id}")
             self.assertEqual(events_resp.status_code, 200)
             events = events_resp.json()
             self.assertEqual(events[0]["algorithm_id"], "rr")
-            self.assertEqual(events[0]["event_type"], "open_algorithm")
+            self.assertEqual(events[0]["event_type"], "quiz_answer")
+            self.assertTrue(events[0]["metadata"]["correct"])
+            self.assertEqual(events[1]["event_type"], "open_algorithm")
         finally:
             self.client.delete(f"/api/session/{session_id}")
 
@@ -115,6 +135,10 @@ class FrontendSmokeTests(unittest.TestCase):
                 frame_count = len(re.findall(r"\{\s*pointer:", match.group(2)))
                 self.assertEqual(frame_count, reference_count)
 
+        self.assertIn("const expandedFrames = [];", source)
+        self.assertIn("expandedFrames.push(inspectFrame", source)
+        self.assertIn("result: 'checking'", source)
+        self.assertIn("codeLines: [4, 5]", source)
         self.assertIn("if (this.frameIndex >= last)", source)
         self.assertIn("this.stopRun();", source)
 
@@ -127,7 +151,8 @@ class FrontendSmokeTests(unittest.TestCase):
             ["rr", "firstFit", "lruPage", "producerConsumer", "banker"],
         )
 
-        scenarios = source[source.index("scenarios()") : source.index("}));")]
+        scenario_start = source.index("        scenarios() {")
+        scenarios = source[scenario_start : source.index("\n        },\n    }));", scenario_start)]
         removed_ids = (
             "fcfs", "sjf", "priority", "bestFit", "worstFit", "fifoPage", "optPage",
             "schedule", "memory", "page", "thread", "deadlock",
@@ -141,6 +166,8 @@ class FrontendSmokeTests(unittest.TestCase):
         for work_after in ("[1, 0, 2]", "[3, 1, 2]", "[4, 1, 3]", "[5, 2, 4]"):
             self.assertIn(f"workAfter: {work_after}", banker)
         self.assertIn("sequence: ['P2', 'P1', 'P3']", banker)
+        self.assertEqual(len(re.findall(r"\{ workBefore:", banker)), 7)
+        self.assertEqual(len(re.findall(r"released: \[0, 0, 0\]", banker)), 4)
         self.assertIn('class="banker-ledger"', source)
         self.assertIn('class="banker-matrix"', source)
 
@@ -154,9 +181,13 @@ class FrontendSmokeTests(unittest.TestCase):
                 "初始化",
                 "P(empty)",
                 "P(mutex)",
-                "put(A); V(mutex); V(full)",
-                "P(full); P(mutex)",
-                "get(A); V(mutex); V(empty)",
+                "put(A)",
+                "V(mutex)",
+                "V(full)",
+                "P(full)",
+                "P(mutex)",
+                "get(A); V(mutex)",
+                "V(empty)",
             ],
         )
         self.assertIn('class="pc-semaphores"', source)
@@ -179,7 +210,7 @@ class FrontendSmokeTests(unittest.TestCase):
         decisions = re.findall(r"decision:\s*'([^']+)'", scenario)
         self.assertEqual(
             decisions,
-            ["pending", "occupied", "reject", "occupied", "fit", "allocated"],
+            ["pending", "occupied", "pending", "reject", "occupied", "pending", "fit", "allocated"],
         )
         self.assertIn("comparison: '260 ≥ 180'", scenario)
         self.assertIn("label: 'P3', start: 480, size: 180, type: 'allocated'", scenario)
@@ -189,20 +220,22 @@ class FrontendSmokeTests(unittest.TestCase):
     def test_playback_controls_live_in_experiment_toolbar(self) -> None:
         source = (ROOT / "templates" / "pages" / "os_lab.html").read_text(encoding="utf-8")
         toolbar = source[source.index('<div class="desktop-bar">') : source.index('<div class="workspace">')]
-        stage_head = source[source.index('<div class="stage-head">') : source.index('<div class="experiment-controls">')]
-        controls = source[source.index('<div class="experiment-controls">') : source.index('<div class="experiment-grid">')]
+        stage_head = source[source.index('<div class="stage-head">') : source.index('<div class="experiment-controls"')]
+        controls = source[source.index('<div class="experiment-controls"') : source.index('<div class="experiment-grid">')]
         self.assertNotIn('class="toolbar-step"', toolbar)
         self.assertNotIn('@click="resetAnimation()"', toolbar)
-        self.assertNotIn('@click="resetLab()"', toolbar)
+        self.assertNotIn('@click="backToCards()"', toolbar)
         self.assertNotIn('@click="resetAnimation()"', stage_head)
-        self.assertIn('@click="resetLab()"', stage_head)
+        self.assertIn('showHelp = !showHelp', stage_head)
         self.assertIn('class="toolbar-step"', controls)
         self.assertIn('@click="backToCards()"', controls)
         self.assertIn('@click="resetAnimation()"', controls)
         self.assertIn('@click="toggleRun()"', controls)
         self.assertIn('@click="nextFrame()"', controls)
-        self.assertNotIn('progress-track', source)
-        self.assertNotIn('get progress()', source)
+        self.assertIn('@click="previousFrame()"', controls)
+        self.assertIn('class="progress-range"', controls)
+        self.assertIn('@input="seekFrame($event)"', controls)
+        self.assertIn('setPlaybackSpeed($event.target.value)', controls)
 
     def test_os_lab_uses_open_workbench_layout(self) -> None:
         source = (ROOT / "templates" / "pages" / "os_lab.html").read_text(encoding="utf-8")
@@ -218,8 +251,33 @@ class FrontendSmokeTests(unittest.TestCase):
         method_start = source.index("        openAlgorithm(id)")
         open_algorithm = source[method_start : source.index("        backToCards()", method_start)]
         self.assertIn("this.setImmersive(true)", open_algorithm)
-        self.assertGreaterEqual(source.count("this.setImmersive(false)"), 2)
-        self.assertIn("event.key === 'Escape'", source)
+        self.assertIn("this.setImmersive(false)", source)
+        self.assertIn("document.body.classList.remove('os-lab-immersive')", source)
+        self.assertIn("if (event.key === 'Escape')", source)
+
+    def test_os_lab_compacts_immersive_layout_without_page_scroll(self) -> None:
+        source = (ROOT / "templates" / "pages" / "os_lab.html").read_text(encoding="utf-8")
+        self.assertRegex(
+            source,
+            r"\.os-lab\.is-immersive \.workspace\s*\{[^}]*overflow:\s*hidden;",
+        )
+        self.assertRegex(
+            source,
+            r"\.os-lab\.is-immersive \.experiment-grid\s*\{[^}]*min-height:\s*0\s*!important;[^}]*overflow:\s*hidden;",
+        )
+        self.assertRegex(
+            source,
+            r"\.os-lab\.is-immersive \.learning-context\s*\{[^}]*position:\s*absolute;",
+        )
+        self.assertRegex(
+            source,
+            r"\.os-lab\.is-immersive \.completion-card\s*\{[^}]*position:\s*absolute;",
+        )
+        self.assertIn("@media (min-width: 840px) and (max-width: 1100px)", source)
+        self.assertRegex(
+            source,
+            r"@media \(max-width: 760px\)[\s\S]*?\.os-lab\.is-immersive \.workspace\s*\{[^}]*overflow:\s*auto;",
+        )
 
     def test_os_lab_highlights_code_for_each_step(self) -> None:
         source = (ROOT / "templates" / "pages" / "os_lab.html").read_text(encoding="utf-8")
@@ -230,6 +288,49 @@ class FrontendSmokeTests(unittest.TestCase):
             self.assertRegex(source, rf"\b{scenario}:\s*\[\s*\[")
         self.assertIn("syncCodeFocus()", source)
         self.assertIn("this.backToCards()", source)
+
+    def test_os_lab_uses_unified_motion_controller(self) -> None:
+        source = (ROOT / "templates" / "pages" / "os_lab.html").read_text(encoding="utf-8")
+        self.assertNotIn("animation: none !important", source)
+        self.assertNotIn("transition: none !important", source)
+        self.assertIn("goToFrame(target, source = 'next')", source)
+        self.assertIn("captureMotionRects()", source)
+        self.assertIn("runFlip(previousRects)", source)
+        self.assertIn("element.animate([", source)
+        self.assertIn("cancelActiveAnimations()", source)
+        self.assertIn("@media (prefers-reduced-motion: reduce)", source)
+        for kind in ("schedule", "memory", "page", "thread", "deadlock"):
+            self.assertRegex(source, rf"{kind}: '\.[^']+'")
+
+    def test_os_lab_guidance_and_quiz_cover_all_scenarios(self) -> None:
+        source = (ROOT / "templates" / "pages" / "os_lab.html").read_text(encoding="utf-8")
+        scenario_start = source.index("        scenarios() {")
+        scenarios = source[scenario_start : source.index("\n        },\n    }));", scenario_start)]
+        self.assertEqual(len(re.findall(r"learningGoals:\s*\[", scenarios)), 5)
+        self.assertEqual(len(re.findall(r"terms:\s*\[", scenarios)), 5)
+        self.assertEqual(len(re.findall(r"guides:\s*\[", scenarios)), 5)
+        self.assertEqual(len(re.findall(r"summary:\s*\{", scenarios)), 5)
+        self.assertEqual(len(re.findall(r"quiz:\s*\{", scenarios)), 5)
+        self.assertEqual(len(re.findall(r"correctIndex:\s*0", scenarios)), 5)
+        self.assertIn("guide: scenario.guides[index]", scenarios)
+        self.assertIn('class="step-guide"', source)
+        self.assertIn('class="completion-card"', source)
+        self.assertIn("submitQuiz()", source)
+        self.assertIn("this.logLabEvent('quiz_answer'", source)
+
+    def test_os_lab_playback_has_speed_keyboard_and_boundaries(self) -> None:
+        source = (ROOT / "templates" / "pages" / "os_lab.html").read_text(encoding="utf-8")
+        for value in ("0.75", "1", "1.5", "2"):
+            self.assertIn(f'<option value="{value}">', source)
+        self.assertIn(':disabled="frameIndex === 0"', source)
+        self.assertIn(':disabled="isComplete"', source)
+        self.assertIn("event.key === 'ArrowLeft'", source)
+        self.assertIn("event.key === 'ArrowRight'", source)
+        self.assertIn("event.code === 'Space'", source)
+        self.assertIn("event.key.toLowerCase() === 'r'", source)
+        self.assertIn("document.addEventListener('visibilitychange'", source)
+        self.assertIn("this.baseStepDuration / this.playbackSpeed", source)
+        self.assertIn("clearTimeout(this.timer)", source)
 
 if __name__ == "__main__":
     unittest.main()

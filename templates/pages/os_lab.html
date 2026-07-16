@@ -12,6 +12,12 @@
         --blue-soft: #eaf2ff;
         --green: #35835a;
         --amber: #a87524;
+        --motion-fast: 180ms;
+        --motion-base: 420ms;
+        --motion-slow: 680ms;
+        --motion-ease: cubic-bezier(.22, .8, .25, 1);
+        --motion-spring: cubic-bezier(.2, 1.25, .35, 1);
+        --active-glow: 0 0 0 1px rgba(23, 105, 216, .18), 0 12px 30px rgba(23, 105, 216, .12);
         min-height: 100%;
         color: var(--body);
     }
@@ -60,10 +66,6 @@
     }
     .os-lab.is-immersive .code-pre {
         max-height: calc(100dvh - 16rem);
-    }
-    .os-lab *, .os-lab *::before, .os-lab *::after {
-        animation: none !important;
-        transition: none !important;
     }
     .login-screen {
         min-height: 100%;
@@ -704,6 +706,12 @@
         background: #edf8f0;
         color: #286b47;
     }
+    .lru-result.checking {
+        border-color: #b7d4e5;
+        background: #eef8fc;
+        color: #25627e;
+        animation: checkingGlow 680ms var(--motion-ease) both;
+    }
     .lru-access-scroll {
         overflow-x: auto;
         border-bottom: 1px solid var(--line);
@@ -946,9 +954,9 @@
         transform: translateY(-50%) rotate(45deg);
     }
     .pc-flow-arrow.reverse::after {
-        right: auto;
-        left: 0;
-        transform: translateY(-50%) rotate(-135deg);
+        right: 0;
+        left: auto;
+        transform: translateY(-50%) rotate(45deg);
     }
     .pc-buffer {
         min-width: 0;
@@ -1237,6 +1245,672 @@
     .os-lab .resource-unit strong {
         font-size: 1.05rem;
     }
+
+    /* Motion, guidance, and control layer */
+    .os-lab button,
+    .os-lab select,
+    .os-lab input,
+    .os-lab .algo-card,
+    .os-lab .mini-card,
+    .os-lab .state-pill,
+    .os-lab .code-line,
+    .os-lab .ff-segment,
+    .os-lab .lru-access-cell,
+    .os-lab .lru-frame,
+    .os-lab .lru-recency-item,
+    .os-lab .pc-semaphore,
+    .os-lab .pc-actor,
+    .os-lab .pc-buffer-slot,
+    .os-lab .banker-process-row,
+    .os-lab .safe-sequence-step {
+        transition:
+            color var(--motion-fast) ease,
+            background-color var(--motion-fast) ease,
+            border-color var(--motion-fast) ease,
+            box-shadow var(--motion-base) var(--motion-ease),
+            opacity var(--motion-fast) ease,
+            transform var(--motion-base) var(--motion-ease);
+    }
+    .algo-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(23, 105, 216, .2);
+        box-shadow: 0 16px 34px rgba(67, 56, 45, .09);
+    }
+    .algo-card:focus-visible,
+    .toolbar-btn:focus-visible,
+    .speed-select:focus-visible,
+    .quiz-option:focus-visible,
+    .quiz-submit:focus-visible,
+    .progress-range:focus-visible {
+        outline: 3px solid rgba(23, 105, 216, .23);
+        outline-offset: 2px;
+    }
+    .toolbar-btn:disabled,
+    .quiz-submit:disabled {
+        cursor: not-allowed;
+        opacity: .4;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+    .toolbar-btn:not(:disabled):hover,
+    .quiz-submit:not(:disabled):hover {
+        transform: translateY(-1px);
+    }
+    .stage-actions {
+        display: flex;
+        align-items: center;
+        gap: .55rem;
+    }
+    .learning-context {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, .9fr);
+        gap: 1rem;
+        padding: .9rem 1.5rem;
+        border-bottom: 1px solid var(--line);
+        background:
+            linear-gradient(120deg, rgba(23, 105, 216, .055), transparent 42%),
+            rgba(255, 253, 249, .78);
+    }
+    .learning-context-block {
+        min-width: 0;
+    }
+    .learning-context-label,
+    .guide-eyebrow,
+    .completion-kicker {
+        color: #6f655b;
+        font-size: .68rem;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+    .learning-context-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .38rem;
+        margin-top: .45rem;
+    }
+    .learning-context-chip {
+        padding: .25rem .55rem;
+        border: 1px solid rgba(23, 105, 216, .12);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, .78);
+        color: #514a43;
+        font-size: .72rem;
+        line-height: 1.35;
+    }
+    .shortcut-copy {
+        margin-top: .4rem;
+        color: #716c63;
+        font-size: .72rem;
+        line-height: 1.55;
+    }
+    .shortcut-copy kbd {
+        display: inline-grid;
+        min-width: 1.45rem;
+        height: 1.35rem;
+        place-items: center;
+        margin: 0 .08rem;
+        border: 1px solid #dcd4c8;
+        border-bottom-width: 2px;
+        border-radius: .32rem;
+        background: #fffdf9;
+        color: #413b35;
+        font: 700 .64rem/1 ui-monospace, monospace;
+    }
+    .experiment-controls {
+        align-items: stretch;
+        flex-wrap: wrap;
+        padding-block: .8rem;
+    }
+    .experiment-control-actions {
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .transport-divider {
+        width: 1px;
+        height: 1.8rem;
+        margin-inline: .15rem;
+        background: var(--line);
+    }
+    .speed-control {
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+        color: #716c63;
+        font-size: .72rem;
+        font-weight: 700;
+    }
+    .speed-select {
+        height: 2.45rem;
+        border: 1px solid #ded6cb;
+        border-radius: .58rem;
+        background: #fffdf9;
+        padding: 0 1.75rem 0 .65rem;
+        color: #2f2b27;
+        font-size: .76rem;
+        font-weight: 700;
+    }
+    .progress-control {
+        display: grid;
+        grid-template-columns: minmax(10rem, 1fr) auto;
+        align-items: center;
+        gap: .75rem;
+        flex: 1 1 18rem;
+        min-width: min(100%, 18rem);
+    }
+    .progress-range {
+        width: 100%;
+        height: 1.2rem;
+        margin: 0;
+        accent-color: var(--blue);
+        cursor: pointer;
+    }
+    .progress-range::-webkit-slider-runnable-track {
+        height: .32rem;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--blue) 0 var(--progress), #e8e1d7 var(--progress) 100%);
+    }
+    .progress-range::-webkit-slider-thumb {
+        width: 1rem;
+        height: 1rem;
+        margin-top: -.34rem;
+        border: 3px solid #fff;
+        border-radius: 50%;
+        background: var(--blue);
+        box-shadow: 0 2px 9px rgba(23, 105, 216, .28);
+        -webkit-appearance: none;
+    }
+    .step-guide {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(10rem, .85fr) repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        overflow: hidden;
+        border-bottom: 1px solid var(--line);
+        background: rgba(244, 239, 231, .6);
+    }
+    .step-guide::before {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 3px;
+        background: linear-gradient(180deg, var(--blue), #4aa68a);
+        content: '';
+    }
+    .guide-title {
+        margin-top: .28rem;
+        color: #25211e;
+        font-size: .93rem;
+        font-weight: 800;
+        line-height: 1.35;
+    }
+    .guide-item {
+        min-width: 0;
+    }
+    .guide-item strong {
+        display: block;
+        margin-bottom: .25rem;
+        color: #806c5c;
+        font-size: .66rem;
+        letter-spacing: .04em;
+    }
+    .guide-item p {
+        color: #4f4942;
+        font-size: .76rem;
+        line-height: 1.55;
+    }
+    .step-guide.is-refreshing {
+        animation: guideReveal var(--motion-base) var(--motion-ease) both;
+    }
+    .completion-card {
+        display: grid;
+        grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr);
+        gap: 1rem;
+        margin: 1rem 1.5rem 1.5rem;
+        padding: 1.15rem;
+        border: 1px solid rgba(53, 131, 90, .2);
+        border-radius: .85rem;
+        background:
+            radial-gradient(circle at 10% 10%, rgba(74, 166, 138, .13), transparent 36%),
+            #fffdf9;
+        box-shadow: 0 18px 42px rgba(53, 131, 90, .1);
+        animation: completionReveal var(--motion-slow) var(--motion-spring) both;
+    }
+    .completion-summary h4 {
+        margin-top: .3rem;
+        color: #1e3f31;
+        font-size: 1.08rem;
+        font-weight: 800;
+    }
+    .completion-summary > p {
+        margin-top: .45rem;
+        color: #4f5d55;
+        font-size: .78rem;
+        line-height: 1.65;
+    }
+    .takeaway-list {
+        display: grid;
+        gap: .35rem;
+        margin-top: .7rem;
+    }
+    .takeaway-list li {
+        display: flex;
+        gap: .45rem;
+        color: #454f49;
+        font-size: .74rem;
+        line-height: 1.45;
+    }
+    .takeaway-list li::before {
+        color: var(--green);
+        content: '✓';
+        font-weight: 900;
+    }
+    .pitfall-note {
+        margin-top: .75rem;
+        padding: .55rem .65rem;
+        border-left: 3px solid #c38732;
+        background: rgba(195, 135, 50, .08);
+        color: #6d512b;
+        font-size: .72rem;
+        line-height: 1.5;
+    }
+    .quiz-card {
+        padding: .9rem;
+        border: 1px solid #e5ded3;
+        border-radius: .7rem;
+        background: rgba(250, 249, 245, .88);
+    }
+    .quiz-question {
+        margin-top: .3rem;
+        color: #2e2925;
+        font-size: .83rem;
+        font-weight: 750;
+        line-height: 1.5;
+    }
+    .quiz-options {
+        display: grid;
+        gap: .38rem;
+        margin-top: .65rem;
+    }
+    .quiz-option {
+        width: 100%;
+        border: 1px solid #dfd7cc;
+        border-radius: .55rem;
+        background: #fffdf9;
+        padding: .58rem .65rem;
+        color: #514a43;
+        text-align: left;
+        font-size: .74rem;
+        line-height: 1.4;
+    }
+    .quiz-option:hover,
+    .quiz-option.selected {
+        border-color: rgba(23, 105, 216, .38);
+        background: var(--blue-soft);
+        color: #174f99;
+    }
+    .quiz-option.correct {
+        border-color: rgba(53, 131, 90, .4);
+        background: rgba(53, 131, 90, .1);
+        color: #246441;
+    }
+    .quiz-option.incorrect {
+        border-color: rgba(185, 95, 66, .4);
+        background: rgba(185, 95, 66, .09);
+        color: #93442d;
+    }
+    .quiz-footer {
+        display: flex;
+        align-items: center;
+        gap: .65rem;
+        margin-top: .65rem;
+    }
+    .quiz-submit {
+        min-height: 2.2rem;
+        border: 1px solid #171512;
+        border-radius: .52rem;
+        background: #171512;
+        padding: .42rem .8rem;
+        color: #fffaf2;
+        font-size: .72rem;
+        font-weight: 800;
+    }
+    .quiz-feedback {
+        flex: 1;
+        color: #5b554f;
+        font-size: .71rem;
+        line-height: 1.45;
+    }
+    .quiz-feedback strong {
+        color: #246441;
+    }
+    .quiz-feedback.is-wrong strong {
+        color: #93442d;
+    }
+    .cpu-core.is-running {
+        border-color: rgba(53, 131, 90, .28);
+        box-shadow: 0 0 0 1px rgba(53, 131, 90, .08), 0 14px 34px rgba(53, 131, 90, .12);
+        animation: cpuPulse 1.2s ease-in-out 1;
+    }
+    .flow-line::before,
+    .pc-flow-arrow::before {
+        position: absolute;
+        z-index: 2;
+        width: .46rem;
+        height: .46rem;
+        border-radius: 50%;
+        background: #49a985;
+        box-shadow: 0 0 12px rgba(73, 169, 133, .65);
+        content: '';
+        opacity: 0;
+    }
+    .schedule-board.is-advancing .flow-line::before {
+        top: 50%;
+        left: 0;
+        opacity: 1;
+        animation: flowDot var(--motion-slow) ease-out both;
+    }
+    .gantt-segment.is-active {
+        animation: ganttGrow var(--motion-base) var(--motion-spring) both;
+        box-shadow: 0 6px 16px rgba(23, 45, 61, .2);
+    }
+    .ff-segment.current::before {
+        animation: scanSweep var(--motion-slow) ease-in-out both;
+    }
+    .ff-segment.rejected {
+        animation: rejectShake 360ms ease both;
+    }
+    .ff-segment.selected,
+    .ff-segment.allocated {
+        animation: selectedGlow 620ms var(--motion-spring) both;
+    }
+    .lru-access-cell.current {
+        animation: accessFocus var(--motion-base) var(--motion-spring) both;
+    }
+    .lru-frame.changed {
+        animation: pageSwap var(--motion-slow) var(--motion-spring) both;
+    }
+    .lru-frame.hit {
+        animation: hitPulse 560ms ease both;
+    }
+    .pc-pipeline {
+        position: relative;
+    }
+    .pc-pipeline.is-producing .pc-flow-arrow:not(.reverse)::before,
+    .pc-pipeline.is-consuming .pc-flow-arrow.reverse::before {
+        top: 50%;
+        left: 0;
+        opacity: 1;
+        animation: flowDot var(--motion-slow) ease-out both;
+    }
+    .pc-semaphore.changed {
+        animation: valueFlip var(--motion-base) var(--motion-spring) both;
+    }
+    .pc-actor.active {
+        box-shadow: var(--active-glow);
+        animation: actorWake 560ms var(--motion-spring) both;
+    }
+    .pc-actor.waiting {
+        opacity: .7;
+    }
+    .banker-process-row.is-eligible:not(.is-selected) {
+        animation: eligiblePulse 900ms ease-in-out 1;
+    }
+    .banker-process-row.is-selected,
+    .safe-sequence-step.complete {
+        animation: selectedGlow 620ms var(--motion-spring) both;
+    }
+    .resource-unit.is-released {
+        animation: resourceDrop var(--motion-slow) var(--motion-spring) both;
+    }
+    .code-line.active {
+        box-shadow: inset 3px 0 0 #b95f42, 0 3px 12px rgba(185, 95, 66, .06);
+    }
+    .sr-only-status {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+    .stage {
+        position: relative;
+    }
+    .visual-canvas {
+        position: relative;
+        isolation: isolate;
+    }
+    .visual-canvas::after {
+        position: absolute;
+        z-index: -1;
+        inset: 8% 6%;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(23, 105, 216, .13), rgba(74, 166, 138, .06) 42%, transparent 72%);
+        content: '';
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(.72);
+    }
+    .visual-canvas.motion-burst::after {
+        animation: canvasEnergy 720ms var(--motion-ease) both;
+    }
+    .visual-canvas.motion-burst .panel-title,
+    .visual-canvas.motion-burst .gantt-kicker {
+        text-shadow: 0 0 16px rgba(23, 105, 216, .18);
+    }
+    .os-lab.is-immersive .workspace {
+        display: flex;
+        overflow: hidden;
+        padding: .65rem 1.25rem .85rem;
+    }
+    .os-lab.is-immersive .workspace > div[x-show="selected"] {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+    }
+    .os-lab.is-immersive .stage {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+    }
+    .os-lab.is-immersive .stage-head {
+        flex: 0 0 auto;
+        align-items: center;
+        padding-bottom: .55rem;
+    }
+    .os-lab.is-immersive .stage-head .card-mark {
+        width: 2rem;
+        height: 2rem;
+    }
+    .os-lab.is-immersive .stage-head h3 {
+        font-size: 1rem;
+    }
+    .os-lab.is-immersive .learning-context {
+        position: absolute;
+        z-index: 55;
+        top: 3.45rem;
+        right: 0;
+        width: min(48rem, calc(100% - 1rem));
+        max-height: min(22rem, calc(100dvh - 8rem));
+        overflow: auto;
+        border: 1px solid rgba(23, 105, 216, .16);
+        border-radius: .8rem;
+        box-shadow: 0 22px 58px rgba(42, 37, 31, .2);
+        backdrop-filter: blur(18px);
+    }
+    .os-lab.is-immersive .experiment-controls {
+        flex: 0 0 auto;
+        padding-block: .52rem;
+    }
+    .os-lab.is-immersive .toolbar-btn,
+    .os-lab.is-immersive .speed-select {
+        min-height: 2.2rem;
+        padding-block: .42rem;
+    }
+    .os-lab.is-immersive .step-guide {
+        flex: 0 0 auto;
+        gap: .7rem;
+        padding: .62rem 1rem;
+    }
+    .os-lab.is-immersive .guide-title {
+        font-size: .84rem;
+    }
+    .os-lab.is-immersive .guide-item p {
+        font-size: .71rem;
+        line-height: 1.42;
+    }
+    .os-lab.is-immersive .experiment-grid {
+        flex: 1 1 auto;
+        min-height: 0 !important;
+        overflow: hidden;
+    }
+    .os-lab.is-immersive .visual-side,
+    .os-lab.is-immersive .code-side {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+    }
+    .os-lab.is-immersive .visual-side {
+        padding: .65rem 1rem .25rem 0;
+    }
+    .os-lab.is-immersive .code-side {
+        padding-top: .65rem;
+    }
+    .os-lab.is-immersive .panel-title {
+        flex: 0 0 auto;
+        min-height: 2rem;
+        padding-bottom: .4rem;
+    }
+    .os-lab.is-immersive .visual-canvas,
+    .os-lab.is-immersive .code-pre {
+        flex: 1 1 auto;
+        min-height: 0;
+        max-height: none;
+        overflow: auto;
+        overscroll-behavior: contain;
+        scrollbar-gutter: stable;
+    }
+    .os-lab.is-immersive .visual-canvas {
+        padding-top: .6rem;
+    }
+    .os-lab.is-immersive .code-pre {
+        padding-top: .5rem;
+    }
+    .os-lab.is-immersive .completion-card {
+        position: absolute;
+        z-index: 48;
+        inset: 8.8rem .5rem .35rem;
+        margin: 0;
+        max-height: none;
+        overflow: auto;
+        align-content: start;
+        border-color: rgba(53, 131, 90, .32);
+        background:
+            radial-gradient(circle at 10% 10%, rgba(74, 166, 138, .18), transparent 36%),
+            rgba(255, 253, 249, .98);
+        backdrop-filter: blur(20px);
+    }
+    .os-lab.is-immersive .ff-board,
+    .os-lab.is-immersive .lru-board,
+    .os-lab.is-immersive .pc-board,
+    .os-lab.is-immersive .banker-board {
+        min-height: 100%;
+    }
+    .os-lab.is-immersive .banker-ledger-block,
+    .os-lab.is-immersive .banker-process-row,
+    .os-lab.is-immersive .lru-section,
+    .os-lab.is-immersive .pc-actor {
+        padding-block: .65rem;
+    }
+    @keyframes guideReveal {
+        from { opacity: .35; transform: translateY(-4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes canvasEnergy {
+        0% { opacity: 0; transform: scale(.72); filter: blur(8px); }
+        34% { opacity: .95; }
+        100% { opacity: 0; transform: scale(1.16); filter: blur(0); }
+    }
+    @keyframes checkingGlow {
+        0% { box-shadow: 0 0 0 0 rgba(45, 137, 176, .24); transform: translateY(1px); }
+        55% { box-shadow: 0 0 0 7px rgba(45, 137, 176, .07); }
+        100% { box-shadow: 0 0 0 0 rgba(45, 137, 176, 0); transform: translateY(0); }
+    }
+    @keyframes completionReveal {
+        from { opacity: 0; transform: translateY(12px) scale(.985); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes cpuPulse {
+        45% { transform: translateY(-2px) scale(1.025); box-shadow: 0 0 0 7px rgba(53, 131, 90, .08), 0 18px 36px rgba(53, 131, 90, .15); }
+    }
+    @keyframes flowDot {
+        0% { left: 0; opacity: 0; transform: translate(0, -50%) scale(.55); }
+        15% { opacity: 1; }
+        85% { opacity: 1; }
+        100% { left: calc(100% - .46rem); opacity: 0; transform: translate(0, -50%) scale(1); }
+    }
+    @keyframes ganttGrow {
+        from { opacity: .25; transform: scaleX(.15) translateY(3px); transform-origin: left; }
+        to { opacity: 1; transform: scaleX(1) translateY(0); transform-origin: left; }
+    }
+    @keyframes scanSweep {
+        0% { opacity: 0; transform: translateX(-35%); }
+        25%, 75% { opacity: 1; }
+        100% { opacity: 0; transform: translateX(35%); }
+    }
+    @keyframes rejectShake {
+        25% { transform: translateX(-3px); }
+        55% { transform: translateX(3px); }
+        80% { transform: translateX(-1px); }
+    }
+    @keyframes selectedGlow {
+        0% { transform: scale(.96); box-shadow: 0 0 0 0 rgba(53, 131, 90, .22); }
+        55% { transform: scale(1.018); box-shadow: 0 0 0 7px rgba(53, 131, 90, .08); }
+        100% { transform: scale(1); }
+    }
+    @keyframes accessFocus {
+        0% { transform: translateY(-7px) scale(.9); opacity: .5; }
+        100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    @keyframes pageSwap {
+        0% { opacity: .35; transform: translateY(-10px) rotateX(18deg); }
+        65% { transform: translateY(2px) rotateX(0); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes hitPulse {
+        45% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(53, 131, 90, .09); }
+    }
+    @keyframes valueFlip {
+        0% { transform: rotateX(42deg) scale(.94); opacity: .45; }
+        100% { transform: rotateX(0) scale(1); opacity: 1; }
+    }
+    @keyframes actorWake {
+        0% { transform: translateY(4px) scale(.98); }
+        55% { transform: translateY(-2px) scale(1.015); }
+        100% { transform: translateY(0) scale(1); }
+    }
+    @keyframes eligiblePulse {
+        50% { background: rgba(23, 105, 216, .09); box-shadow: inset 3px 0 0 rgba(23, 105, 216, .35); }
+    }
+    @keyframes resourceDrop {
+        from { opacity: .2; transform: translateY(-8px) scale(.9); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .os-lab *,
+        .os-lab *::before,
+        .os-lab *::after {
+            scroll-behavior: auto !important;
+            animation-duration: .001ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: .001ms !important;
+        }
+    }
     @media (max-width: 1100px) {
         .experiment-grid {
             grid-template-columns: 1fr;
@@ -1252,8 +1926,141 @@
         .code-pre {
             max-height: 24rem;
         }
+        .step-guide {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .step-guide-heading {
+            grid-column: 1 / -1;
+        }
+    }
+    @media (min-width: 840px) and (max-width: 1100px) {
+        .os-lab.is-immersive .experiment-grid {
+            grid-template-columns: minmax(0, 1.5fr) minmax(18rem, .72fr);
+        }
+        .os-lab.is-immersive .visual-side {
+            padding-right: 1rem;
+            border-right: 1px solid var(--line);
+            border-bottom: 0;
+        }
+        .os-lab.is-immersive .code-side {
+            padding: .65rem 0 0 1rem;
+        }
+        .os-lab.is-immersive .code-pre {
+            max-height: none;
+            font-size: .8rem;
+            line-height: 1.55;
+        }
+        .os-lab.is-immersive .code-line {
+            min-height: 1.55em;
+            padding-left: 2.65rem;
+        }
+        .os-lab.is-immersive .lru-operation {
+            padding: .4rem .7rem;
+        }
+        .os-lab.is-immersive .lru-access-cell {
+            height: 2.5rem;
+        }
+        .os-lab.is-immersive .lru-main > section {
+            padding: .4rem .7rem;
+        }
+        .os-lab.is-immersive .lru-frames,
+        .os-lab.is-immersive .lru-recency {
+            gap: .4rem;
+            margin-top: .35rem;
+        }
+        .os-lab.is-immersive .lru-frame {
+            min-height: 4.65rem;
+        }
+        .os-lab.is-immersive .lru-recency-item {
+            min-height: 3.5rem;
+        }
+        .os-lab.is-immersive .lru-stat {
+            padding: .45rem .7rem;
+        }
+        .os-lab.is-immersive .ff-operation,
+        .os-lab.is-immersive .ff-ledger-item,
+        .os-lab.is-immersive .ff-summary-item {
+            padding: .5rem .7rem;
+        }
+        .os-lab.is-immersive .ff-map-scroll {
+            padding: 2rem .7rem 1.9rem;
+        }
+        .os-lab.is-immersive .ff-map {
+            height: 6.3rem;
+        }
+        .os-lab.is-immersive .pc-operation,
+        .os-lab.is-immersive .pc-semaphore {
+            padding: .5rem .7rem;
+        }
+        .os-lab.is-immersive .pc-pipeline {
+            padding: .7rem;
+        }
+        .os-lab.is-immersive .pc-actor {
+            min-height: 6.7rem;
+            padding: .55rem;
+        }
+        .os-lab.is-immersive .pc-rule {
+            padding: .5rem .7rem;
+        }
+        .os-lab.is-immersive .banker-ledger-block {
+            padding: .45rem .55rem;
+        }
+        .os-lab.is-immersive .resource-vector {
+            margin-top: .35rem;
+        }
+        .os-lab.is-immersive .resource-unit {
+            padding: .25rem .2rem;
+        }
+        .os-lab.is-immersive .resource-unit small {
+            margin-top: .12rem;
+        }
+        .os-lab.is-immersive .banker-matrix-head,
+        .os-lab.is-immersive .banker-process-row {
+            padding: .35rem .7rem;
+        }
+        .os-lab.is-immersive .banker-process-row {
+            min-height: 3rem;
+        }
+        .os-lab.is-immersive .safe-sequence {
+            padding: .3rem .7rem;
+        }
+        .os-lab.is-immersive .safe-sequence-step {
+            width: 2rem;
+            height: 2rem;
+        }
     }
     @media (max-width: 760px) {
+        .os-lab.is-immersive .workspace {
+            display: block;
+            overflow: auto;
+            padding: .75rem 1rem 1.25rem;
+        }
+        .os-lab.is-immersive .workspace > div[x-show="selected"],
+        .os-lab.is-immersive .stage {
+            height: auto;
+            min-height: 100%;
+        }
+        .os-lab.is-immersive .experiment-grid {
+            overflow: visible;
+        }
+        .os-lab.is-immersive .visual-side,
+        .os-lab.is-immersive .code-side,
+        .os-lab.is-immersive .visual-canvas,
+        .os-lab.is-immersive .code-pre {
+            overflow: visible;
+        }
+        .os-lab.is-immersive .learning-context {
+            position: fixed;
+            top: 5rem;
+            left: 1rem;
+            right: 1rem;
+            width: auto;
+        }
+        .os-lab.is-immersive .completion-card {
+            position: relative;
+            inset: auto;
+            margin: 1rem 0 0;
+        }
         .desktop-bar {
             align-items: flex-start;
             flex-direction: column;
@@ -1337,10 +2144,54 @@
         .experiment-controls .toolbar-step {
             margin-left: auto;
         }
+        .learning-context,
+        .step-guide,
+        .completion-card {
+            grid-template-columns: 1fr;
+        }
+        .learning-context,
+        .step-guide {
+            padding-inline: 1rem;
+        }
+        .completion-card {
+            margin-inline: 1rem;
+        }
+        .experiment-control-actions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            width: 100%;
+        }
+        .experiment-control-actions .toolbar-btn,
+        .speed-control,
+        .speed-select {
+            width: 100%;
+        }
+        .transport-divider {
+            display: none;
+        }
+        .progress-control {
+            flex-basis: 100%;
+            width: 100%;
+        }
+        .stage-actions .toolbar-btn {
+            min-height: 2.5rem;
+        }
+        .schedule-board.is-advancing .flow-line::before,
+        .pc-pipeline.is-producing .pc-flow-arrow:not(.reverse)::before,
+        .pc-pipeline.is-consuming .pc-flow-arrow.reverse::before {
+            top: 0;
+            left: 50%;
+            animation-name: flowDotVertical;
+        }
+    }
+    @keyframes flowDotVertical {
+        0% { top: 0; opacity: 0; transform: translate(-50%, 0) scale(.55); }
+        15%, 85% { opacity: 1; }
+        100% { top: calc(100% - .46rem); opacity: 0; transform: translate(-50%, 0) scale(1); }
     }
 </style>
 
-<div x-data="osAlgorithmLab" class="os-lab" :class="immersive ? 'is-immersive' : ''">
+<div x-data="osAlgorithmLab" class="os-lab" :class="immersive ? 'is-immersive' : ''" tabindex="-1">
     <div class="desktop">
         <div class="desktop-bar">
             <div class="flex items-center gap-3 min-w-0">
@@ -1398,18 +2249,74 @@
                                 <p class="text-xs text-gray-500 mt-1" x-text="current.desc"></p>
                             </div>
                         </div>
-                        <button @click="resetLab()" class="toolbar-btn">清空状态</button>
+                        <div class="stage-actions">
+                            <button type="button" @click="showHelp = !showHelp" class="toolbar-btn"
+                                :aria-expanded="showHelp" aria-controls="os-lab-learning-context"
+                                x-text="showHelp ? '收起操作提示' : '学习目标与操作提示'"></button>
+                        </div>
                     </div>
 
-                    <div class="experiment-controls">
-                        <div class="experiment-control-actions">
-                            <button @click="backToCards()" class="toolbar-btn">返回卡片</button>
-                            <button @click="resetAnimation()" class="toolbar-btn">重播</button>
-                            <button @click="toggleRun()" class="toolbar-btn good" x-text="running ? '暂停播放' : '播放步骤'"></button>
-                            <button @click="nextFrame()" class="toolbar-btn dark">单步</button>
+                    <section id="os-lab-learning-context" x-show="showHelp" class="learning-context">
+                        <div class="learning-context-block">
+                            <p class="learning-context-label">本实验学习目标</p>
+                            <div class="learning-context-list">
+                                <template x-for="goal in current.learningGoals" :key="goal">
+                                    <span class="learning-context-chip" x-text="goal"></span>
+                                </template>
+                            </div>
                         </div>
-                        <span class="toolbar-step" x-text="(frameIndex + 1) + '/' + current.frames.length"></span>
+                        <div class="learning-context-block">
+                            <p class="learning-context-label">核心术语</p>
+                            <div class="learning-context-list">
+                                <template x-for="term in current.terms" :key="term">
+                                    <span class="learning-context-chip" x-text="term"></span>
+                                </template>
+                            </div>
+                        </div>
+                        <div class="learning-context-block">
+                            <p class="learning-context-label">键盘操作</p>
+                            <p class="shortcut-copy"><kbd>←</kbd><kbd>→</kbd> 切换步骤 · <kbd>Space</kbd> 播放 · <kbd>R</kbd> 重播 · <kbd>Esc</kbd> 返回</p>
+                        </div>
+                    </section>
+
+                    <div class="experiment-controls" role="group" aria-label="实验播放控制">
+                        <div class="experiment-control-actions">
+                            <button type="button" @click="backToCards()" class="toolbar-btn" aria-label="返回实验目录，快捷键 Escape">返回目录</button>
+                            <button type="button" @click="resetAnimation()" class="toolbar-btn" aria-label="从头开始，快捷键 R">从头开始</button>
+                            <span class="transport-divider" aria-hidden="true"></span>
+                            <button type="button" @click="previousFrame()" class="toolbar-btn" :disabled="frameIndex === 0" aria-label="上一步，快捷键左方向键">上一步</button>
+                            <button type="button" @click="toggleRun()" class="toolbar-btn good"
+                                :aria-label="running ? '暂停播放，快捷键空格' : (isComplete ? '重新播放，快捷键空格' : '播放步骤，快捷键空格')"
+                                x-text="running ? '暂停' : (isComplete ? '重新播放' : '播放')"></button>
+                            <button type="button" @click="nextFrame()" class="toolbar-btn dark" :disabled="isComplete" aria-label="下一步，快捷键右方向键">下一步</button>
+                            <label class="speed-control">速度
+                                <select class="speed-select" :value="playbackSpeed" @change="setPlaybackSpeed($event.target.value)" aria-label="自动播放速度">
+                                    <option value="0.75">0.75×</option>
+                                    <option value="1">1×</option>
+                                    <option value="1.5">1.5×</option>
+                                    <option value="2">2×</option>
+                                </select>
+                            </label>
+                        </div>
+                        <label class="progress-control">
+                            <span class="sr-only-status">实验步骤进度</span>
+                            <input class="progress-range" type="range" min="0" :max="current.frames.length - 1" :value="frameIndex"
+                                :style="'--progress:' + progressPercent + '%'" @input="seekFrame($event)"
+                                :aria-valuetext="'第 ' + (frameIndex + 1) + ' 步，共 ' + current.frames.length + ' 步'">
+                            <span class="toolbar-step" x-text="(frameIndex + 1) + '/' + current.frames.length"></span>
+                        </label>
                     </div>
+
+                    <section class="step-guide" :class="guideRefreshing ? 'is-refreshing' : ''" aria-label="当前步骤讲解">
+                        <div class="step-guide-heading">
+                            <p class="guide-eyebrow" x-text="'步骤 ' + (frameIndex + 1) + ' · 学习引导'"></p>
+                            <h4 class="guide-title" x-text="currentGuide.title"></h4>
+                        </div>
+                        <div class="guide-item"><strong>发生了什么</strong><p x-text="currentGuide.what"></p></div>
+                        <div class="guide-item"><strong>为什么</strong><p x-text="currentGuide.why"></p></div>
+                        <div class="guide-item"><strong>观察重点</strong><p x-text="currentGuide.watch"></p></div>
+                    </section>
+                    <p class="sr-only-status" aria-live="polite" aria-atomic="true" x-text="liveStepStatus"></p>
 
                     <div class="experiment-grid">
                         <div class="visual-side">
@@ -1417,9 +2324,9 @@
                                 <span>状态演算</span>
                                 <span x-text="'步骤 ' + (frameIndex + 1) + ' / ' + current.frames.length"></span>
                             </div>
-                            <div class="visual-canvas">
+                            <div class="visual-canvas" :class="motionBurst ? 'motion-burst' : ''">
                                 <template x-if="current.kind === 'schedule'">
-                                    <div class="space-y-5">
+                                    <div class="space-y-5 schedule-board" :class="direction === 'forward' ? 'is-advancing' : ''">
                                         <div class="flow-grid">
                                             <div class="mini-card min-h-32">
                                                 <div class="flex items-center justify-between mb-3">
@@ -1428,14 +2335,14 @@
                                                 </div>
                                                 <div class="flex flex-wrap gap-2">
                                                     <template x-for="proc in frame.ready" :key="proc">
-                                                        <span class="state-pill" x-text="proc"></span>
+                                                        <span class="state-pill" :data-motion-key="'process-' + proc" x-text="proc"></span>
                                                     </template>
                                                 </div>
                                             </div>
                                             <div class="flow-line"></div>
-                                            <div class="mini-card min-h-36 flex flex-col items-center justify-center bg-emerald-50">
+                                            <div class="mini-card cpu-core min-h-36 flex flex-col items-center justify-center bg-emerald-50" :class="frame.cpu ? 'is-running' : ''" data-step-effect>
                                                 <p class="text-xs text-emerald-700 font-semibold">CPU 核心</p>
-                                                <p class="mt-2 text-3xl font-bold text-gray-900" x-text="frame.cpu || '空闲'"></p>
+                                                <p class="mt-2 text-3xl font-bold text-gray-900" :data-motion-key="frame.cpu ? 'process-' + frame.cpu : 'cpu-idle'" x-text="frame.cpu || '空闲'"></p>
                                                 <p class="mt-1 text-xs text-gray-500 text-center" x-text="frame.note"></p>
                                             </div>
                                             <div class="flow-line"></div>
@@ -1446,7 +2353,7 @@
                                                 </div>
                                                 <div class="flex flex-wrap gap-2">
                                                     <template x-for="proc in frame.done" :key="proc">
-                                                        <span class="state-pill bg-emerald-50 border-emerald-100 text-emerald-700" x-text="proc"></span>
+                                                        <span class="state-pill bg-emerald-50 border-emerald-100 text-emerald-700" :data-motion-key="'process-' + proc" x-text="proc"></span>
                                                     </template>
                                                 </div>
                                             </div>
@@ -1471,6 +2378,7 @@
                                                             <div class="gantt-segment"
                                                                 :class="['gantt-tone-' + segment.tone, segment.active ? 'is-active' : '']"
                                                                 :style="'grid-column:' + (segment.start + 1) + ' / span ' + segment.duration"
+                                                                :data-motion-key="'gantt-' + segment.start + '-' + segment.label"
                                                                 :title="segment.label + '：' + segment.start + ' → ' + segment.end">
                                                                 <span x-text="segment.label"></span>
                                                                 <small x-show="segment.duration > 1" x-text="segment.duration + 't'"></small>
@@ -1517,7 +2425,8 @@
                                                             frame.scanIndex === index && frame.decision === 'reject' ? 'rejected' : '',
                                                             frame.scanIndex === index && frame.decision === 'fit' ? 'selected' : ''
                                                         ]"
-                                                        :style="'flex:' + seg.size + ' 0 0'">
+                                                        :style="'flex:' + seg.size + ' 0 0'"
+                                                        :data-motion-key="'memory-' + seg.start + '-' + seg.label">
                                                         <span x-text="seg.label"></span>
                                                         <strong x-text="seg.size + 'MB'"></strong>
                                                         <small class="ff-address" x-text="seg.start"></small>
@@ -1542,8 +2451,9 @@
                                                 <p class="gantt-kicker">Current Access</p>
                                                 <p class="mt-1 text-sm font-semibold text-gray-900" x-text="frame.note"></p>
                                             </div>
-                                            <span class="lru-result" :class="frame.result === 'hit' ? 'hit' : ''"
-                                                x-text="frame.result === 'hit' ? '命中 PAGE ' + frame.page : '缺页 PAGE ' + frame.page"></span>
+                                            <span class="lru-result"
+                                                :class="{ 'hit': frame.result === 'hit', 'checking': frame.result === 'checking' }"
+                                                x-text="frame.result === 'checking' ? '检查 PAGE ' + frame.page : (frame.result === 'hit' ? '命中 PAGE ' + frame.page : '缺页 PAGE ' + frame.page)"></span>
                                         </div>
 
                                         <div class="lru-access-scroll">
@@ -1551,6 +2461,7 @@
                                                 <template x-for="(page, index) in current.reference" :key="index">
                                                     <span class="lru-access-cell"
                                                         :class="{ 'visited': index < frame.pointer, 'current': index === frame.pointer }"
+                                                        :data-motion-key="'access-' + index"
                                                         x-text="page"></span>
                                                 </template>
                                             </div>
@@ -1568,7 +2479,8 @@
                                                 <div class="lru-frames">
                                                     <template x-for="(block, index) in frame.blocks" :key="index">
                                                         <div class="lru-frame"
-                                                            :class="{ 'changed': frame.changed === index, 'hit': frame.result === 'hit' && frame.accessedFrame === index }">
+                                                            :class="{ 'changed': frame.changed === index, 'hit': frame.result === 'hit' && frame.accessedFrame === index }"
+                                                            :data-motion-key="'physical-frame-' + index">
                                                             <span class="gantt-kicker" x-text="'FRAME ' + (index + 1)"></span>
                                                             <strong class="lru-page-value" x-text="block === '' ? '-' : block"></strong>
                                                             <small class="mt-1 text-[9px] font-bold" x-show="frame.changed === index" x-text="frame.victim === null ? '装入' : frame.victim + ' → ' + frame.page"></small>
@@ -1588,7 +2500,7 @@
                                                 </div>
                                                 <div class="lru-recency">
                                                     <template x-for="(page, index) in frame.recency" :key="page">
-                                                        <div class="lru-recency-item">
+                                                        <div class="lru-recency-item" :data-motion-key="'recency-' + page">
                                                             <span x-text="page"></span>
                                                             <small x-text="index === 0 ? 'MOST RECENT' : (index === frame.recency.length - 1 ? 'EVICT NEXT' : 'RECENT')"></small>
                                                         </div>
@@ -1628,7 +2540,7 @@
                                             </template>
                                         </div>
 
-                                        <div class="pc-pipeline">
+                                        <div class="pc-pipeline" :class="{ 'is-producing': frame.actor === 'producer', 'is-consuming': frame.actor === 'consumer' }">
                                             <div class="pc-actor" :class="{ 'active': frame.actor === 'producer', 'waiting': frame.producerState.includes('等待') }">
                                                 <div>
                                                     <p class="gantt-kicker">Producer</p>
@@ -1646,6 +2558,7 @@
                                                     <template x-for="(cell, index) in frame.buffer" :key="index">
                                                         <span class="pc-buffer-slot"
                                                             :class="{ 'filled': Boolean(cell), 'changed': frame.changedSlot === index }"
+                                                            :data-motion-key="cell ? 'buffer-item-' + cell : 'buffer-slot-' + index"
                                                             x-text="cell || (index + 1)"></span>
                                                     </template>
                                                 </div>
@@ -1675,7 +2588,7 @@
                                                 <p class="mt-1 text-xs text-gray-600">执行前可用资源</p>
                                                 <div class="resource-vector">
                                                     <template x-for="(value, index) in frame.workBefore" :key="'before-' + index">
-                                                        <span class="resource-unit"><strong x-text="value"></strong><small x-text="resourceLabels[index]"></small></span>
+                                                        <span class="resource-unit" :data-motion-key="'work-before-' + index"><strong x-text="value"></strong><small x-text="resourceLabels[index]"></small></span>
                                                     </template>
                                                 </div>
                                             </div>
@@ -1685,7 +2598,7 @@
                                                 <p class="mt-1 text-xs text-gray-600" x-text="frame.selected ? frame.selected + ' 释放资源' : '等待进程完成'"></p>
                                                 <div class="resource-vector">
                                                     <template x-for="(value, index) in frame.released" :key="'released-' + index">
-                                                        <span class="resource-unit"><strong x-text="value"></strong><small x-text="resourceLabels[index]"></small></span>
+                                                        <span class="resource-unit" :class="value > 0 ? 'is-released' : ''" :data-motion-key="'released-' + index"><strong x-text="value"></strong><small x-text="resourceLabels[index]"></small></span>
                                                     </template>
                                                 </div>
                                             </div>
@@ -1695,7 +2608,7 @@
                                                 <p class="mt-1 text-xs text-gray-600">执行后可用资源</p>
                                                 <div class="resource-vector">
                                                     <template x-for="(value, index) in frame.workAfter" :key="'after-' + index">
-                                                        <span class="resource-unit"><strong x-text="value"></strong><small x-text="resourceLabels[index]"></small></span>
+                                                        <span class="resource-unit" :data-motion-key="'work-' + index"><strong x-text="value"></strong><small x-text="resourceLabels[index]"></small></span>
                                                     </template>
                                                 </div>
                                             </div>
@@ -1707,7 +2620,8 @@
                                             </div>
                                             <template x-for="proc in frame.processes" :key="proc.name">
                                                 <div class="banker-process-row"
-                                                    :class="{ 'is-selected': frame.selected === proc.name, 'is-eligible': frame.eligible.includes(proc.name), 'is-done': proc.done }">
+                                                    :class="{ 'is-selected': frame.selected === proc.name, 'is-eligible': frame.eligible.includes(proc.name), 'is-done': proc.done }"
+                                                    :data-motion-key="'banker-process-' + proc.name">
                                                     <div>
                                                         <p class="text-sm font-bold text-gray-900" x-text="proc.name"></p>
                                                         <p class="mt-1 text-[10px] font-bold" x-text="proc.done ? '已完成' : (frame.eligible.includes(proc.name) ? '可执行' : '等待')"></p>
@@ -1734,7 +2648,9 @@
                                             </div>
                                             <template x-for="(slot, index) in 3" :key="slot">
                                                 <div class="contents">
-                                                    <span class="safe-sequence-step" :class="frame.sequence[index] ? 'complete' : ''" x-text="frame.sequence[index] || (index + 1)"></span>
+                                                    <span class="safe-sequence-step" :class="frame.sequence[index] ? 'complete' : ''"
+                                                        :data-motion-key="frame.sequence[index] ? 'safe-' + frame.sequence[index] : 'safe-slot-' + index"
+                                                        x-text="frame.sequence[index] || (index + 1)"></span>
                                                     <span x-show="index < 2" class="safe-sequence-arrow">→</span>
                                                 </div>
                                             </template>
@@ -1752,6 +2668,37 @@
                             <pre class="code-pre"><template x-for="(line, index) in codeLines" :key="index"><code class="code-line" :class="activeCodeLines.includes(index + 1) ? 'active' : ''" :aria-current="activeCodeLines.includes(index + 1) ? 'step' : null" x-text="line || ' '"></code></template></pre>
                         </aside>
                     </div>
+
+                    <section x-show="isComplete" x-cloak class="completion-card" aria-label="实验完成总结">
+                        <div class="completion-summary">
+                            <p class="completion-kicker">Experiment Complete</p>
+                            <h4 x-text="current.summary.title"></h4>
+                            <p x-text="current.summary.conclusion"></p>
+                            <ul class="takeaway-list">
+                                <template x-for="item in current.summary.takeaways" :key="item"><li x-text="item"></li></template>
+                            </ul>
+                            <p class="pitfall-note"><strong>易错提醒：</strong><span x-text="current.summary.pitfall"></span></p>
+                        </div>
+                        <div class="quiz-card">
+                            <p class="completion-kicker">一分钟自测</p>
+                            <p class="quiz-question" x-text="current.quiz.question"></p>
+                            <div class="quiz-options" role="radiogroup" :aria-label="current.quiz.question">
+                                <template x-for="(option, index) in current.quiz.options" :key="option">
+                                    <button type="button" class="quiz-option" role="radio"
+                                        :aria-checked="selectedQuizOption === index"
+                                        :class="quizOptionClass(index)" :disabled="quizSubmitted"
+                                        @click="selectedQuizOption = index" x-text="String.fromCharCode(65 + index) + '. ' + option"></button>
+                                </template>
+                            </div>
+                            <div class="quiz-footer">
+                                <button type="button" class="quiz-submit" :disabled="selectedQuizOption === null || quizSubmitted" @click="submitQuiz()">提交答案</button>
+                                <p x-show="quizSubmitted" class="quiz-feedback" :class="quizIsCorrect ? '' : 'is-wrong'">
+                                    <strong x-text="quizIsCorrect ? '回答正确。' : '再想一步。'"></strong>
+                                    <span x-text="current.quiz.explanation"></span>
+                                </p>
+                            </div>
+                        </div>
+                    </section>
                 </section>
             </div>
         </div>
@@ -1765,16 +2712,32 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('osAlgorithmLab', () => ({
         selected: '',
         immersive: false,
-        escapeHandler: null,
+        keyboardHandler: null,
+        visibilityHandler: null,
+        motionQuery: null,
+        motionQueryHandler: null,
         frameIndex: 0,
         running: false,
         timer: null,
+        guideTimer: null,
+        motionTimer: null,
+        playbackSpeed: 1,
+        baseStepDuration: 2200,
+        direction: 'forward',
+        showHelp: false,
+        motionBurst: false,
+        guideRefreshing: false,
+        isReducedMotion: false,
+        activeAnimations: [],
+        scenarioCache: null,
         maxFrameReached: 0,
         completedAlgorithms: {},
+        selectedQuizOption: null,
+        quizSubmitted: false,
         resourceLabels: ['A', 'B', 'C'],
         codeLineMap: {
-            rr: [[1, 3, 4], [5], [5, 9, 10], [4, 5], [7, 8], [3, 7, 8]],
-            firstFit: [[1], [2, 3, 4], [2, 5], [2, 3, 4], [2, 5], [6, 7, 8]],
+            rr: [[1, 3, 4], [3, 4], [5], [5, 9, 10], [3, 4], [5, 9, 10], [3, 4], [5, 7, 8], [3, 4, 5, 7, 8], [3, 4, 5, 7, 8]],
+            firstFit: [[1], [2, 3, 4], [2, 3, 5], [2, 5], [2, 3, 4], [2, 5], [5], [6, 7, 8]],
             lruPage: [
                 [4, 5, 6, 10], [4, 5, 6, 10], [4, 5, 6, 10],
                 [4, 5, 6, 7, 8, 9, 10], [4, 10],
@@ -1782,17 +2745,54 @@ document.addEventListener('alpine:init', () => {
                 [4, 5, 6, 7, 8, 9, 10], [4, 5, 6, 7, 8, 9, 10],
                 [4, 5, 6, 7, 8, 9, 10],
             ],
-            producerConsumer: [[8, 9], [1, 2], [3], [4, 5, 6], [8, 9, 10], [11, 12, 13]],
-            banker: [[1, 2, 3, 5, 6], [7, 8, 9, 10], [7, 8, 9, 10], [7, 8, 9, 10]],
+            producerConsumer: [[8, 9], [1, 2], [3], [4], [5], [6], [8, 9], [10], [11, 12], [13]],
+            banker: [[1, 2, 3, 5, 6], [5, 6], [7, 8, 9, 10], [5, 6], [7, 8, 9, 10], [5, 6], [7, 8, 9, 10]],
         },
         init() {
-            this.escapeHandler = (event) => {
-                if (event.key === 'Escape' && this.immersive) this.backToCards();
+            this.motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+            this.isReducedMotion = this.motionQuery.matches;
+            this.motionQueryHandler = event => { this.isReducedMotion = event.matches; };
+            if (this.motionQuery.addEventListener) this.motionQuery.addEventListener('change', this.motionQueryHandler);
+            else this.motionQuery.addListener?.(this.motionQueryHandler);
+            this.keyboardHandler = event => {
+                if (!this.immersive || !this.selected) return;
+                const target = event.target;
+                if (target?.closest?.('input, select, textarea, button, a, [contenteditable="true"]')) return;
+                if (event.key === 'Escape') {
+                    event.preventDefault();
+                    this.backToCards();
+                } else if (event.key === 'ArrowLeft') {
+                    event.preventDefault();
+                    this.previousFrame('keyboard');
+                } else if (event.key === 'ArrowRight') {
+                    event.preventDefault();
+                    this.nextFrame('keyboard');
+                } else if (event.code === 'Space') {
+                    event.preventDefault();
+                    this.toggleRun();
+                } else if (event.key.toLowerCase() === 'r') {
+                    event.preventDefault();
+                    this.resetAnimation();
+                }
             };
-            window.addEventListener('keydown', this.escapeHandler);
+            this.visibilityHandler = () => {
+                if (document.hidden && this.running) {
+                    this.stopRun();
+                    this.logLabEvent('pause_playback', { reason: 'page_hidden' });
+                }
+            };
+            window.addEventListener('keydown', this.keyboardHandler);
+            document.addEventListener('visibilitychange', this.visibilityHandler);
         },
         destroy() {
-            window.removeEventListener('keydown', this.escapeHandler);
+            window.removeEventListener('keydown', this.keyboardHandler);
+            document.removeEventListener('visibilitychange', this.visibilityHandler);
+            if (this.motionQuery?.removeEventListener) this.motionQuery.removeEventListener('change', this.motionQueryHandler);
+            else this.motionQuery?.removeListener?.(this.motionQueryHandler);
+            this.stopRun();
+            this.cancelActiveAnimations();
+            if (this.guideTimer) clearTimeout(this.guideTimer);
+            if (this.motionTimer) clearTimeout(this.motionTimer);
             document.body.classList.remove('os-lab-immersive');
         },
         setImmersive(value) {
@@ -1813,11 +2813,28 @@ document.addEventListener('alpine:init', () => {
         get frame() {
             return this.current.frames[this.frameIndex] || this.current.frames[0];
         },
+        get currentGuide() {
+            return this.frame.guide || { title: '观察状态变化', what: this.frame.note || '', why: '算法规则决定了当前状态。', watch: '对照可视化与高亮伪代码。' };
+        },
+        get isComplete() {
+            return this.frameIndex === this.current.frames.length - 1;
+        },
+        get progressPercent() {
+            const last = this.current.frames.length - 1;
+            return last > 0 ? Math.round((this.frameIndex / last) * 100) : 100;
+        },
+        get liveStepStatus() {
+            if (!this.selected) return '';
+            return `${this.current.title}，第 ${this.frameIndex + 1} 步，共 ${this.current.frames.length} 步：${this.currentGuide.title}`;
+        },
+        get quizIsCorrect() {
+            return this.selectedQuizOption === this.current.quiz.correctIndex;
+        },
         get codeLines() {
             return this.current.code.split('\n');
         },
         get activeCodeLines() {
-            return this.codeLineMap[this.selected]?.[this.frameIndex] || [];
+            return this.frame.codeLines || this.codeLineMap[this.selected]?.[this.frameIndex] || [];
         },
         get ganttCapacity() {
             return Math.max(8, ...this.current.frames.map(item => (item.gantt || []).length));
@@ -1849,71 +2866,221 @@ document.addEventListener('alpine:init', () => {
         vectorText(vector) {
             return `[ ${vector.join('  ')} ]`;
         },
-
-        resetLab() {
-            if (this.selected) this.logLabEvent('reset_lab');
-            this.stopRun();
-            this.selected = '';
-            this.frameIndex = 0;
-            this.maxFrameReached = 0;
-            this.setImmersive(false);
-        },
         openAlgorithm(id) {
             this.selected = id;
             this.setImmersive(true);
             this.frameIndex = 0;
             this.maxFrameReached = 0;
             this.stopRun();
+            this.cancelActiveAnimations();
+            this.direction = 'forward';
+            this.showHelp = false;
+            this.selectedQuizOption = null;
+            this.quizSubmitted = false;
             this.logLabEvent('open_algorithm');
-            this.syncCodeFocus();
+            this.$nextTick(() => {
+                this.refreshMotionBurst();
+                this.animateStep('open');
+                this.syncCodeFocus();
+            });
         },
         backToCards() {
             this.logLabEvent('back_to_cards', { max_frame_reached: this.maxFrameReached });
             this.stopRun();
+            this.cancelActiveAnimations();
             this.selected = '';
             this.frameIndex = 0;
             this.maxFrameReached = 0;
+            this.selectedQuizOption = null;
+            this.quizSubmitted = false;
             this.setImmersive(false);
         },
         resetAnimation() {
+            this.stopRun();
+            this.cancelActiveAnimations();
             this.frameIndex = 0;
             this.maxFrameReached = 0;
-            this.stopRun();
+            this.direction = 'backward';
+            this.selectedQuizOption = null;
+            this.quizSubmitted = false;
             this.logLabEvent('reset_animation');
-            this.syncVisualFocus();
-            this.syncCodeFocus();
+            this.$nextTick(() => {
+                this.refreshMotionBurst();
+                this.animateStep('restart');
+                this.refreshGuide();
+                this.syncVisualFocus();
+                this.syncCodeFocus();
+            });
         },
-        nextFrame() {
+        previousFrame(source = 'previous') {
+            if (this.frameIndex <= 0) return;
+            this.stopRun();
+            this.goToFrame(this.frameIndex - 1, source);
+        },
+        nextFrame(source = 'next') {
             const last = this.current.frames.length - 1;
-            if (this.frameIndex >= last) {
-                this.stopRun();
-                return;
-            }
-            this.frameIndex += 1;
-            this.maxFrameReached = Math.max(this.maxFrameReached, this.frameIndex);
-            this.syncVisualFocus();
-            this.syncCodeFocus();
-            this.logLabEvent('step');
-            if (this.frameIndex === last && !this.completedAlgorithms[this.selected]) {
-                this.completedAlgorithms[this.selected] = true;
-                this.logLabEvent('complete_algorithm');
-                this.stopRun();
-            }
+            if (this.frameIndex >= last) return;
+            this.goToFrame(this.frameIndex + 1, source);
+        },
+        seekFrame(event) {
+            const target = Number(event.target.value);
+            this.stopRun();
+            this.goToFrame(target, 'seek');
+        },
+        goToFrame(target, source = 'next') {
+            if (!this.selected) return;
+            const last = this.current.frames.length - 1;
+            const next = Math.max(0, Math.min(last, Number(target)));
+            if (!Number.isFinite(next) || next === this.frameIndex) return;
+            const previous = this.frameIndex;
+            const previousRects = this.captureMotionRects();
+            this.cancelActiveAnimations();
+            this.direction = next > previous ? 'forward' : 'backward';
+            this.frameIndex = next;
+            this.maxFrameReached = Math.max(this.maxFrameReached, next);
+            this.$nextTick(() => {
+                this.runFlip(previousRects);
+                this.refreshMotionBurst();
+                this.animateStep(source);
+                this.refreshGuide();
+                this.syncVisualFocus();
+                this.syncCodeFocus();
+            });
+            this.logLabEvent('step', {
+                navigation: source,
+                from_frame: previous,
+                to_frame: next,
+                speed: this.playbackSpeed,
+            });
+            if (next === last) this.markAlgorithmComplete();
+        },
+        markAlgorithmComplete() {
+            this.stopRun();
+            if (this.completedAlgorithms[this.selected]) return;
+            this.completedAlgorithms[this.selected] = true;
+            this.logLabEvent('complete_algorithm', { max_frame_reached: this.maxFrameReached });
         },
         toggleRun() {
-            const last = this.current.frames.length - 1;
-            if (!this.running && this.frameIndex >= last) {
-                this.frameIndex = 0;
-                this.maxFrameReached = 0;
-            }
-            this.running = !this.running;
-            if (!this.running) {
-                this.logLabEvent('pause_playback');
+            if (this.running) {
+                this.logLabEvent('pause_playback', { reason: 'user' });
                 this.stopRun();
                 return;
             }
+            if (this.isComplete) this.resetAnimation();
+            this.running = true;
             this.logLabEvent('start_playback');
-            this.timer = setInterval(() => this.nextFrame(), 2200);
+            this.scheduleNextFrame();
+        },
+        scheduleNextFrame() {
+            if (this.timer) clearTimeout(this.timer);
+            if (!this.running || this.isComplete) return;
+            this.timer = setTimeout(() => {
+                this.timer = null;
+                if (!this.running) return;
+                this.nextFrame('autoplay');
+                if (this.running) this.scheduleNextFrame();
+            }, this.baseStepDuration / this.playbackSpeed);
+        },
+        setPlaybackSpeed(value) {
+            const speed = Number(value);
+            if (![0.75, 1, 1.5, 2].includes(speed)) return;
+            this.playbackSpeed = speed;
+            if (this.running) this.scheduleNextFrame();
+        },
+        captureMotionRects() {
+            const rects = new Map();
+            if (this.isReducedMotion || !this.$root) return rects;
+            this.$root.querySelectorAll('[data-motion-key]').forEach(element => {
+                const key = element.dataset.motionKey;
+                if (key && element.offsetParent !== null) rects.set(key, element.getBoundingClientRect());
+            });
+            return rects;
+        },
+        runFlip(previousRects) {
+            if (this.isReducedMotion || !previousRects.size) return;
+            this.$root.querySelectorAll('[data-motion-key]').forEach(element => {
+                const previous = previousRects.get(element.dataset.motionKey);
+                if (!previous || element.offsetParent === null) return;
+                const current = element.getBoundingClientRect();
+                const deltaX = previous.left - current.left;
+                const deltaY = previous.top - current.top;
+                if (Math.abs(deltaX) < 1 && Math.abs(deltaY) < 1) return;
+                if (typeof element.animate !== 'function') return;
+                this.trackAnimation(element.animate([
+                    { transform: `translate(${deltaX}px, ${deltaY}px)`, opacity: .62 },
+                    { transform: 'translate(0, 0)', opacity: 1 },
+                ], { duration: 520, easing: 'cubic-bezier(.22,.8,.25,1)' }));
+            });
+        },
+        animateStep(source) {
+            if (this.isReducedMotion || !this.$root) return;
+            const selectors = {
+                schedule: '.cpu-core, .gantt-segment.is-active',
+                memory: '.ff-segment.current, .ff-segment.allocated, .ff-decision',
+                page: '.lru-access-cell.current, .lru-frame.changed, .lru-frame.hit',
+                thread: '.pc-semaphore.changed, .pc-actor.active, .pc-buffer-slot.changed',
+                deadlock: '.banker-process-row.is-selected, .safe-sequence-step.complete, .resource-unit.is-released',
+            };
+            const selector = selectors[this.current.kind];
+            if (!selector) return;
+            this.$root.querySelectorAll(selector).forEach((element, index) => {
+                if (typeof element.animate !== 'function') return;
+                this.trackAnimation(element.animate([
+                    { opacity: .45, transform: this.direction === 'backward' ? 'translateY(-5px) scale(.98)' : 'translateY(7px) scale(.97)' },
+                    { opacity: 1, transform: 'translateY(0) scale(1)' },
+                ], { duration: 420, delay: Math.min(index * 45, 180), easing: 'cubic-bezier(.2,1.25,.35,1)' }));
+            });
+        },
+        trackAnimation(animation) {
+            if (!animation) return;
+            this.activeAnimations.push(animation);
+            const remove = () => { this.activeAnimations = this.activeAnimations.filter(item => item !== animation); };
+            if (animation.addEventListener) {
+                animation.addEventListener('finish', remove, { once: true });
+                animation.addEventListener('cancel', remove, { once: true });
+            } else {
+                animation.onfinish = remove;
+                animation.oncancel = remove;
+            }
+        },
+        cancelActiveAnimations() {
+            const animations = [...this.activeAnimations];
+            this.activeAnimations = [];
+            animations.forEach(animation => {
+                try { animation.cancel(); } catch (_) {}
+            });
+        },
+        refreshGuide() {
+            this.guideRefreshing = false;
+            if (this.guideTimer) clearTimeout(this.guideTimer);
+            this.$nextTick(() => {
+                this.guideRefreshing = true;
+                this.guideTimer = setTimeout(() => { this.guideRefreshing = false; }, 460);
+            });
+        },
+        refreshMotionBurst() {
+            if (this.isReducedMotion) return;
+            this.motionBurst = false;
+            if (this.motionTimer) clearTimeout(this.motionTimer);
+            this.$nextTick(() => {
+                this.motionBurst = true;
+                this.motionTimer = setTimeout(() => { this.motionBurst = false; }, 760);
+            });
+        },
+        quizOptionClass(index) {
+            if (!this.quizSubmitted) return this.selectedQuizOption === index ? 'selected' : '';
+            if (index === this.current.quiz.correctIndex) return 'correct';
+            if (index === this.selectedQuizOption) return 'incorrect';
+            return '';
+        },
+        submitQuiz() {
+            if (this.selectedQuizOption === null || this.quizSubmitted) return;
+            this.quizSubmitted = true;
+            this.logLabEvent('quiz_answer', {
+                selected_option: this.selectedQuizOption,
+                correct_option: this.current.quiz.correctIndex,
+                correct: this.quizIsCorrect,
+            });
         },
         syncVisualFocus() {
             this.$nextTick(() => {
@@ -1928,12 +3095,12 @@ document.addEventListener('alpine:init', () => {
                 }
                 if (!strip) return;
                 if (!current) {
-                    strip.scrollTo({ left: 0, behavior: 'smooth' });
+                    strip.scrollTo({ left: 0, behavior: this.isReducedMotion ? 'auto' : 'smooth' });
                     return;
                 }
                 strip.scrollTo({
                     left: current.offsetLeft - ((strip.clientWidth - current.clientWidth) / 2),
-                    behavior: 'smooth',
+                    behavior: this.isReducedMotion ? 'auto' : 'smooth',
                 });
             });
         },
@@ -1944,12 +3111,12 @@ document.addEventListener('alpine:init', () => {
                 if (!panel || !active) return;
                 panel.scrollTo({
                     top: Math.max(0, active.offsetTop - (panel.clientHeight / 3)),
-                    behavior: 'smooth',
+                    behavior: this.isReducedMotion ? 'auto' : 'smooth',
                 });
             });
         },
         stopRun() {
-            if (this.timer) clearInterval(this.timer);
+            if (this.timer) clearTimeout(this.timer);
             this.timer = null;
             this.running = false;
         },
@@ -1958,7 +3125,7 @@ document.addEventListener('alpine:init', () => {
             if (!sid || !this.selected) return;
             const current = this.current;
             try {
-                await fetch('/api/os-lab/events', {
+                const response = await fetch('/api/os-lab/events', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1971,18 +3138,46 @@ document.addEventListener('alpine:init', () => {
                         metadata,
                     }),
                 });
+                if (!response.ok) throw new Error(`OS lab event failed (${response.status})`);
             } catch (error) {
                 console.warn('Failed to record OS lab event', error);
             }
         },
 
         scenarios() {
-            return {
+            if (this.scenarioCache) return this.scenarioCache;
+            const scenarioSet = {
                 rr: {
                     kind: 'schedule',
                     mark: '轮',
                     title: 'RR 时间片轮转',
                     desc: '每个进程获得固定时间片，用完后回到就绪队列尾部。',
+                    learningGoals: ['理解时间片如何轮转', '识别抢占与回队', '读懂调度甘特图'],
+                    terms: ['Ready Queue', 'Time Quantum', 'Preemption', 'Context Switch'],
+                    guides: [
+                        { title: '建立轮转起点', what: '三个进程按 P1、P2、P3 排入就绪队列，CPU 尚未执行进程。', why: 'RR 总是从队首选择进程，并为它分配固定长度的时间片。', watch: '记住队列顺序和时间片 2，它们决定后续调度。' },
+                        { title: '调度器派发 P1', what: 'P1 从队首移动到 CPU，P2、P3 保持等待。', why: '队首进程先取得本轮时间片，派发时尚未消耗 CPU 时间。', watch: '进程卡片跨越队列与 CPU，但甘特图还没有增长。' },
+                        { title: 'P1 消耗完整时间片', what: 'P1 连续运行两个时间单位，甘特图写入两个 P1 单元。', why: '时间片为 2，调度器允许 P1 最多运行两个单位。', watch: 'CPU 仍显示 P1，就绪队列顺序暂时不变。' },
+                        { title: 'P1 被抢占并回队', what: 'P1 尚未完成，被抢占后放到 P2、P3 后面。', why: 'RR 用“时间片耗尽即回队”防止单个进程长期占用 CPU。', watch: '就绪队列变为 P2、P3、P1，这是公平性的来源。' },
+                        { title: '调度器派发 P2', what: '新的队首 P2 进入 CPU，P3、P1 继续等待。', why: '调度器重新从当前队首开始下一轮。', watch: '上下文从 P1 切换到 P2，但时间轴保持连续。' },
+                        { title: 'P2 时间片结束', what: 'P2 运行两个单位后仍未完成，回到队尾。', why: 'P2 也受到相同时间片约束，不因到达次序而获得额外时间。', watch: '队列变为 P3、P1、P2，P3 即将获得 CPU。' },
+                        { title: '调度器派发 P3', what: 'P3 从队首进入 CPU，准备执行。', why: 'P3 已等待一轮，现在按公平顺序获得处理器。', watch: '派发阶段与实际执行阶段被拆开，便于观察上下文切换。' },
+                        { title: 'P3 提前完成', what: 'P3 只需一个时间单位便完成，直接进入完成队列。', why: '进程可在时间片用尽前主动结束，不需要等待满两个单位。', watch: 'P3 不会回到就绪队列，甘特图只增加一个单元。' },
+                        { title: 'P1 完成剩余工作', what: 'P1 再获 CPU 并完成最后两个时间单位。', why: '回队进程保留剩余工作量，下一轮从断点继续。', watch: 'P1 进入完成队列，只剩 P2 尚未完成。' },
+                        { title: '所有进程完成', what: 'P1、P2 完成剩余工作，CPU 与就绪队列都变为空。', why: 'RR 持续轮转，直到所有进程完成。', watch: '时间片越小响应通常越快，但上下文切换开销也会增加。' },
+                    ],
+                    summary: {
+                        title: '轮转调度完成',
+                        conclusion: 'RR 用固定时间片在就绪进程间循环分配 CPU，以可控的上下文切换开销换取公平性和较快响应。',
+                        takeaways: ['未完成进程在时间片耗尽后回到队尾', '提前完成的进程直接离开调度循环', '甘特图展示了 CPU 时间被如何切分'],
+                        pitfall: '时间片并非越小越好；过小会导致频繁上下文切换，降低有效吞吐量。',
+                    },
+                    quiz: {
+                        question: '若把 RR 的时间片继续调小，最可能同时出现什么变化？',
+                        options: ['响应更及时，但上下文切换更频繁', '所有进程都按一次运行完成', '算法自动退化为先来先服务'],
+                        correctIndex: 0,
+                        explanation: '较小时间片提高轮转频率和交互响应，但也会增加保存与恢复进程上下文的成本。',
+                    },
                     codeLang: '伪代码',
                     code: `time_slice = 2
 
@@ -1996,10 +3191,14 @@ while ready_queue is not empty:
         ready_queue.push_back(proc)`,
                     frames: [
                         { ready: ['P1', 'P2', 'P3'], cpu: '', done: [], gantt: [], note: '时间片为 2，调度器选择队首进程' },
-                        { ready: ['P2', 'P3'], cpu: 'P1', done: [], gantt: ['P1'], note: 'P1 获得一个时间片' },
-                        { ready: ['P2', 'P3', 'P1'], cpu: '', done: [], gantt: ['P1', 'P1'], note: 'P1 未完成，回到队尾' },
-                        { ready: ['P3', 'P1'], cpu: 'P2', done: [], gantt: ['P1', 'P1', 'P2'], note: 'P2 开始运行' },
-                        { ready: ['P1', 'P2'], cpu: 'P3', done: ['P3'], gantt: ['P1', 'P1', 'P2', 'P2', 'P3'], note: 'P3 在一个时间片内完成' },
+                        { ready: ['P2', 'P3'], cpu: 'P1', done: [], gantt: [], note: '派发 P1，装入 CPU 上下文' },
+                        { ready: ['P2', 'P3'], cpu: 'P1', done: [], gantt: ['P1', 'P1'], note: 'P1 用满 2 个时间单位' },
+                        { ready: ['P2', 'P3', 'P1'], cpu: '', done: [], gantt: ['P1', 'P1'], note: 'P1 未完成，被抢占并回到队尾' },
+                        { ready: ['P3', 'P1'], cpu: 'P2', done: [], gantt: ['P1', 'P1'], note: '派发新的队首 P2' },
+                        { ready: ['P3', 'P1', 'P2'], cpu: '', done: [], gantt: ['P1', 'P1', 'P2', 'P2'], note: 'P2 用满时间片后回到队尾' },
+                        { ready: ['P1', 'P2'], cpu: 'P3', done: [], gantt: ['P1', 'P1', 'P2', 'P2'], note: '派发 P3，开始第三次上下文切换' },
+                        { ready: ['P1', 'P2'], cpu: '', done: ['P3'], gantt: ['P1', 'P1', 'P2', 'P2', 'P3'], note: 'P3 仅运行 1 个单位便完成' },
+                        { ready: ['P2'], cpu: 'P1', done: ['P3', 'P1'], gantt: ['P1', 'P1', 'P2', 'P2', 'P3', 'P1', 'P1'], note: 'P1 完成剩余工作并退出' },
                         { ready: [], cpu: '', done: ['P3', 'P1', 'P2'], gantt: ['P1', 'P1', 'P2', 'P2', 'P3', 'P1', 'P1', 'P2'], note: '所有进程完成' },
                     ],
                 },
@@ -2008,6 +3207,30 @@ while ready_queue is not empty:
                     mark: '首',
                     title: '首次适应分配',
                     desc: '从低地址开始，找到第一个足够大的空闲区就分配。',
+                    learningGoals: ['理解低地址顺序扫描', '区分跳过与拒绝', '观察分区切分和碎片'],
+                    terms: ['Free Block', 'First Fit', 'Split', 'External Fragmentation'],
+                    guides: [
+                        { title: '读取分配请求', what: '进程 P3 请求 180MB，扫描指针位于最低地址。', why: '首次适应每次都从低地址开始寻找第一个足够大的空闲区。', watch: '先看请求大小，再沿 LOW → HIGH 比较每个分区。' },
+                        { title: '跳过已占用分区', what: '0–160MB 属于 P1，不能用于新分配。', why: '已占用分区不参与容量比较，算法直接继续扫描。', watch: '“已占用”和“空闲但太小”是两种不同的跳过原因。' },
+                        { title: '读取首个空闲区', what: '扫描器抵达 160–280MB 空闲区，读取容量 120MB。', why: '只有确认分区空闲后，算法才会进入容量比较阶段。', watch: '此时只是读取候选，尚未作出接受或拒绝决定。' },
+                        { title: '拒绝过小空闲区', what: '首个空闲区只有 120MB，小于请求的 180MB。', why: '空闲区必须完整容纳请求，120MB 不满足条件。', watch: '该空间仍然空闲，只是本次请求不能使用它。' },
+                        { title: '继续越过 P2', what: '280–480MB 已被 P2 占用，扫描继续向高地址移动。', why: '首次适应不会因为前面失败而改变方向或选择最大空闲区。', watch: '扫描次数增加，但内存布局尚未改变。' },
+                        { title: '读取 260MB 候选区', what: '扫描器抵达 480–740MB 空闲区并读取容量 260MB。', why: '算法需要先读取候选区大小，再与 180MB 请求逐项比较。', watch: '后方仍有 220MB 空闲区，但当前候选尚未完成判定。' },
+                        { title: '锁定第一次命中', what: '480–740MB 的 260MB 空闲区首次满足 180MB 请求。', why: 'First Fit 在第一次满足条件时立即停止，不再比较后面的 220MB 空闲区。', watch: '“第一次满足”而不是“最合适”是算法名称的关键。' },
+                        { title: '切分命中分区', what: '260MB 被拆成 P3 的 180MB 和剩余 80MB 空闲区。', why: '动态分区只分配请求所需容量，剩余部分继续作为空闲块。', watch: '80MB 是新的外部碎片；最大空闲块变为 220MB。' },
+                    ],
+                    summary: {
+                        title: '首次适应分配完成',
+                        conclusion: 'First Fit 顺序扫描并在首次满足请求时停止，查找通常较快，但低地址区域容易累积小型外部碎片。',
+                        takeaways: ['占用区直接跳过，空闲区才比较容量', '首次命中后不会继续寻找更贴合的分区', '分配后剩余容量仍作为独立空闲区'],
+                        pitfall: '首次适应不是最佳适应；它不会选择剩余空间最小的空闲区。',
+                    },
+                    quiz: {
+                        question: '本例中 480–740MB 分区命中后，算法为什么不再检查后面的 220MB 空闲区？',
+                        options: ['因为首次适应在第一次满足条件时停止', '因为 220MB 小于 180MB', '因为必须选择最大的空闲区'],
+                        correctIndex: 0,
+                        explanation: 'First Fit 的停止条件就是遇到第一个容量不小于请求的空闲块。',
+                    },
                     codeLang: '伪代码',
                     code: `request = 180MB
 for block in memory_blocks:
@@ -2020,8 +3243,10 @@ for block in memory_blocks:
                     frames: [
                         { scanIndex: -1, decision: 'pending', comparison: '等待扫描', currentBlock: '起始地址 0MB', status: '准备', scanned: 0, freeBlocks: 3, largestFree: 260, note: 'P3 请求 180MB，首次适应算法从最低地址开始。', segments: [{ label: 'P1', start: 0, size: 160, type: 'used' }, { label: '空闲', start: 160, size: 120, type: 'free' }, { label: 'P2', start: 280, size: 200, type: 'used' }, { label: '空闲', start: 480, size: 260, type: 'free' }, { label: '空闲', start: 740, size: 220, type: 'free' }] },
                         { scanIndex: 0, decision: 'occupied', comparison: 'P1 已占用', currentBlock: '0–160MB', status: '跳过', scanned: 1, freeBlocks: 3, largestFree: 260, note: '扫描 P1 所在分区；该分区已占用，继续向高地址查找。', segments: [{ label: 'P1', start: 0, size: 160, type: 'used' }, { label: '空闲', start: 160, size: 120, type: 'free' }, { label: 'P2', start: 280, size: 200, type: 'used' }, { label: '空闲', start: 480, size: 260, type: 'free' }, { label: '空闲', start: 740, size: 220, type: 'free' }] },
+                        { scanIndex: 1, decision: 'pending', comparison: '读取 120MB', currentBlock: '160–280MB', status: '比较中', scanned: 2, freeBlocks: 3, largestFree: 260, note: '发现空闲区，读取容量并准备与 180MB 请求比较。', segments: [{ label: 'P1', start: 0, size: 160, type: 'used' }, { label: '空闲', start: 160, size: 120, type: 'free' }, { label: 'P2', start: 280, size: 200, type: 'used' }, { label: '空闲', start: 480, size: 260, type: 'free' }, { label: '空闲', start: 740, size: 220, type: 'free' }] },
                         { scanIndex: 1, decision: 'reject', comparison: '120 < 180', currentBlock: '160–280MB', status: '空间不足', scanned: 2, freeBlocks: 3, largestFree: 260, note: '第一个空闲区只有 120MB，无法容纳 P3，继续扫描。', segments: [{ label: 'P1', start: 0, size: 160, type: 'used' }, { label: '空闲', start: 160, size: 120, type: 'free' }, { label: 'P2', start: 280, size: 200, type: 'used' }, { label: '空闲', start: 480, size: 260, type: 'free' }, { label: '空闲', start: 740, size: 220, type: 'free' }] },
                         { scanIndex: 2, decision: 'occupied', comparison: 'P2 已占用', currentBlock: '280–480MB', status: '跳过', scanned: 3, freeBlocks: 3, largestFree: 260, note: '扫描 P2 所在分区；该分区已占用，继续向高地址查找。', segments: [{ label: 'P1', start: 0, size: 160, type: 'used' }, { label: '空闲', start: 160, size: 120, type: 'free' }, { label: 'P2', start: 280, size: 200, type: 'used' }, { label: '空闲', start: 480, size: 260, type: 'free' }, { label: '空闲', start: 740, size: 220, type: 'free' }] },
+                        { scanIndex: 3, decision: 'pending', comparison: '读取 260MB', currentBlock: '480–740MB', status: '比较中', scanned: 4, freeBlocks: 3, largestFree: 260, note: '发现第二个空闲区，准备判断 260MB 是否可容纳请求。', segments: [{ label: 'P1', start: 0, size: 160, type: 'used' }, { label: '空闲', start: 160, size: 120, type: 'free' }, { label: 'P2', start: 280, size: 200, type: 'used' }, { label: '空闲', start: 480, size: 260, type: 'free' }, { label: '空闲', start: 740, size: 220, type: 'free' }] },
                         { scanIndex: 3, decision: 'fit', comparison: '260 ≥ 180', currentBlock: '480–740MB', status: '首次命中', scanned: 4, freeBlocks: 3, largestFree: 260, note: '260MB 空闲区是第一个可容纳 P3 的分区，立即停止扫描。', segments: [{ label: 'P1', start: 0, size: 160, type: 'used' }, { label: '空闲', start: 160, size: 120, type: 'free' }, { label: 'P2', start: 280, size: 200, type: 'used' }, { label: '空闲', start: 480, size: 260, type: 'free' }, { label: '空闲', start: 740, size: 220, type: 'free' }] },
                         { scanIndex: -1, decision: 'allocated', comparison: '260 = 180 + 80', currentBlock: '480–740MB', status: '分配完成', scanned: 4, freeBlocks: 3, largestFree: 220, note: '命中分区被切分为 P3 180MB 和剩余空闲区 80MB。', segments: [{ label: 'P1', start: 0, size: 160, type: 'used' }, { label: '空闲', start: 160, size: 120, type: 'free' }, { label: 'P2', start: 280, size: 200, type: 'used' }, { label: 'P3', start: 480, size: 180, type: 'allocated' }, { label: '空闲', start: 660, size: 80, type: 'free' }, { label: '空闲', start: 740, size: 220, type: 'free' }] },
                     ],
@@ -2031,6 +3256,32 @@ for block in memory_blocks:
                     mark: 'L',
                     title: 'LRU 页面置换',
                     desc: '淘汰最近最久未使用的页面。',
+                    learningGoals: ['区分命中与缺页', '维护 MRU→LRU 顺序', '根据历史选择淘汰页'],
+                    terms: ['Page Fault', 'Hit', 'MRU', 'LRU Victim'],
+                    guides: [
+                        { title: '首次装入页面 7', what: '页面 7 缺页并装入第一个空物理块。', why: '访问页不在内存时产生缺页；有空块时无需淘汰。', watch: '缺页数变为 1，7 同时成为最近使用页。' },
+                        { title: '装入页面 0', what: '页面 0 缺页并占用第二个物理块。', why: '仍有空物理块，因此直接装入。', watch: 'MRU 顺序更新为 0、7。' },
+                        { title: '装满物理块', what: '页面 1 装入第三个物理块，内存容量达到上限。', why: '三个物理块都已占用，下一次缺页将触发置换。', watch: '当前 LRU 队尾是最早未再次访问的页面 7。' },
+                        { title: '第一次淘汰', what: '访问页面 2 缺页，淘汰队尾页面 7。', why: '7 是当前最久没有被访问的驻留页。', watch: '物理块位置固定，内容从 7 变为 2。' },
+                        { title: '页面 0 命中', what: '0 已在内存，不产生缺页，只移动到 MRU 队首。', why: '命中无需磁盘装入，但必须刷新最近使用时间。', watch: '物理块不变，命中数增加，顺序发生改变。' },
+                        { title: '淘汰页面 1', what: '页面 3 缺页，1 作为 LRU 被 3 替换。', why: '1 自装入后没有再次访问，历史最久远。', watch: '淘汰依据来自访问历史，不是页号大小。' },
+                        { title: '再次命中页面 0', what: '0 再次命中并回到 MRU 队首。', why: '每次命中都会刷新页面的最近使用位置。', watch: '连续观察 0 如何因为重复访问避免被淘汰。' },
+                        { title: '页面 4 替换页面 2', what: '4 缺页，队尾的 2 被淘汰。', why: '此刻 2 比 0 和 3 更久未使用。', watch: '先读 MRU→LRU 队列，再验证物理块变化。' },
+                        { title: '页面 2 重新装入', what: '2 已被淘汰，因此再次访问会产生缺页并替换 3。', why: '曾经驻留不代表当前仍在内存。', watch: '缺页数继续增加，3 成为本步牺牲页。' },
+                        { title: '完成访问序列', what: '页面 3 缺页并替换 LRU 页面 0，最终为 8 次缺页、2 次命中。', why: '0 虽曾多次命中，但从上次访问后已经最久未使用。', watch: '最终命中率为 20%，LRU 只依据过去，不预知未来。' },
+                    ],
+                    summary: {
+                        title: 'LRU 访问序列完成',
+                        conclusion: 'LRU 用最近访问历史近似未来局部性：命中时刷新顺序，缺页且满载时淘汰 LRU 队尾。',
+                        takeaways: ['命中不会改变物理块内容，但会刷新新旧顺序', '缺页不一定淘汰，只有物理块已满时才需要', '本例 10 次访问产生 8 次缺页和 2 次命中'],
+                        pitfall: 'LRU 淘汰的是“最近最久未使用”页，不是最早装入页；两者只在部分序列中相同。',
+                    },
+                    quiz: {
+                        question: '当页面命中时，LRU 算法仍必须执行哪项操作？',
+                        options: ['刷新该页的最近使用顺序', '立即淘汰最旧装入页', '把缺页计数加一'],
+                        correctIndex: 0,
+                        explanation: '命中不产生缺页，但必须记录这次访问，使该页成为最新使用页。',
+                    },
                     codeLang: '伪代码',
                     reference: [7, 0, 1, 2, 0, 3, 0, 4, 2, 3],
                     code: `frames = []
@@ -2061,6 +3312,32 @@ for time, page in enumerate(reference_string):
                     mark: '线',
                     title: '生产者消费者',
                     desc: '生产者消费者同步步骤演示',
+                    learningGoals: ['理解三类信号量职责', '跟踪阻塞与唤醒', '识别临界区保护顺序'],
+                    terms: ['P / wait', 'V / signal', 'mutex', 'Bounded Buffer'],
+                    guides: [
+                        { title: '初始化同步约束', what: '缓冲区为空：empty=5、full=0、mutex=1，消费者等待产品。', why: 'full=0 表示没有可消费项，P(full) 会让消费者阻塞。', watch: '三个信号量分别描述空槽、产品和互斥访问，含义不能混用。' },
+                        { title: '生产者预占空槽', what: '生产者执行 P(empty)，empty 从 5 减为 4。', why: '写入前先声明将占用一个空槽，避免多个生产者超出缓冲区容量。', watch: '缓冲区尚未写入，只有容量许可发生变化。' },
+                        { title: '进入临界区', what: '生产者执行 P(mutex)，mutex 从 1 变为 0。', why: '共享缓冲区同一时刻只能由一个执行流修改。', watch: '先取得 empty 再取得 mutex，可避免持锁等待空槽。' },
+                        { title: '写入产品 A', what: '生产者在持有 mutex 时把 A 写入缓冲槽。', why: '临界区内的写操作不会被其他执行流同时修改或读取。', watch: 'A 已出现，但 full 仍为 0，消费者此刻仍不能取走它。' },
+                        { title: '离开生产者临界区', what: '生产者执行 V(mutex)，互斥锁从 0 恢复为 1。', why: '共享缓冲区写入已经完成，应尽快缩短持锁时间。', watch: '释放锁不等于发布产品；消费者仍在等待 full。' },
+                        { title: '发布产品并唤醒消费者', what: '生产者执行 V(full)，full 从 0 变为 1，消费者转为就绪。', why: '只有完整数据写入后，才可以对外宣布可用产品数量增加。', watch: '区分“释放互斥锁”和“通知有产品”这两个独立动作。' },
+                        { title: '消费者申请产品', what: '消费者执行 P(full)，消费一个产品许可。', why: '先确认缓冲区中确实有产品，避免空读。', watch: 'full 回到 0，但 A 仍在缓冲区，尚未进入临界区。' },
+                        { title: '消费者进入临界区', what: '消费者执行 P(mutex)，取得缓冲区互斥访问权。', why: '读取并删除共享槽位同样必须受到互斥保护。', watch: 'mutex 从 1 变为 0；此时消费者持锁，生产者不能并发修改。' },
+                        { title: '取出产品并释放锁', what: '消费者取出 A，随后执行 V(mutex)。', why: '数据操作结束后即可释放互斥锁，让其他执行流继续访问。', watch: '缓冲槽已空，但 empty 尚未归还，容量账本还没有闭环。' },
+                        { title: '归还空槽', what: '消费者执行 V(empty)，empty 从 4 恢复为 5。', why: '空槽许可必须在取出完成后归还，生产者才能再次使用该容量。', watch: '最终 empty=5、full=0、mutex=1，完成一次同步闭环。' },
+                    ],
+                    summary: {
+                        title: '一次生产—消费闭环完成',
+                        conclusion: 'empty/full 管理容量与可用产品，mutex 保护临界区；正确的 P/V 顺序同时避免越界、竞争和读取未完成数据。',
+                        takeaways: ['生产者先 P(empty) 再 P(mutex)', '写入后先释放互斥锁，再 V(full) 通知消费者', '消费者完成后用 V(empty) 归还空槽'],
+                        pitfall: '若先锁 mutex 再等待 empty/full，执行流可能持锁阻塞，导致另一方无法进入临界区并形成死锁。',
+                    },
+                    quiz: {
+                        question: '生产者为什么应先执行 P(empty)，再执行 P(mutex)？',
+                        options: ['避免在没有空槽时持有互斥锁等待', '让 full 立即增加', '保证消费者永远不会运行'],
+                        correctIndex: 0,
+                        explanation: '先检查容量可避免生产者拿着 mutex 等待空槽，从而阻碍消费者取出产品并释放容量。',
+                    },
                     codeLang: '伪代码',
                     code: `producer:
     wait(empty)
@@ -2079,9 +3356,13 @@ consumer:
                         { actor: '', operation: '初始化', explanation: '缓冲区为空，消费者没有可取的产品。', producerState: '就绪', consumerState: '等待 full', buffer: ['', '', '', '', ''], changedSlot: -1, semaphores: [{ label: 'mutex', before: 1, after: 1 }, { label: 'empty', before: 5, after: 5 }, { label: 'full', before: 0, after: 0 }], note: 'full = 0，因此消费者执行 P(full) 时会阻塞。' },
                         { actor: 'producer', operation: 'P(empty)', explanation: '生产者预占一个空缓冲槽。', producerState: '运行：申请空槽', consumerState: '等待 full', buffer: ['', '', '', '', ''], changedSlot: -1, semaphores: [{ label: 'mutex', before: 1, after: 1 }, { label: 'empty', before: 5, after: 4 }, { label: 'full', before: 0, after: 0 }], note: 'P(empty) 消耗一个空槽许可，empty 从 5 变为 4。' },
                         { actor: 'producer', operation: 'P(mutex)', explanation: '生产者取得互斥锁，进入临界区。', producerState: '运行：进入临界区', consumerState: '等待 full', buffer: ['', '', '', '', ''], changedSlot: -1, semaphores: [{ label: 'mutex', before: 1, after: 0 }, { label: 'empty', before: 4, after: 4 }, { label: 'full', before: 0, after: 0 }], note: 'mutex = 0 表示共享缓冲区已被生产者锁定。' },
-                        { actor: 'producer', operation: 'put(A); V(mutex); V(full)', explanation: '产品 A 写入缓冲区，并唤醒消费者。', producerState: '完成一次生产', consumerState: '就绪', buffer: ['A', '', '', '', ''], changedSlot: 0, semaphores: [{ label: 'mutex', before: 0, after: 1 }, { label: 'empty', before: 4, after: 4 }, { label: 'full', before: 0, after: 1 }], note: '写入完成后释放互斥锁；full 从 0 变为 1，消费者不再阻塞。' },
-                        { actor: 'consumer', operation: 'P(full); P(mutex)', explanation: '消费者取得产品许可和互斥锁。', producerState: '就绪', consumerState: '运行：进入临界区', buffer: ['A', '', '', '', ''], changedSlot: -1, semaphores: [{ label: 'mutex', before: 1, after: 0 }, { label: 'empty', before: 4, after: 4 }, { label: 'full', before: 1, after: 0 }], note: '消费者消耗一个产品许可，并锁定缓冲区准备取出 A。' },
-                        { actor: 'consumer', operation: 'get(A); V(mutex); V(empty)', explanation: '消费者取出 A，释放互斥锁和空槽。', producerState: '就绪', consumerState: '完成一次消费', buffer: ['', '', '', '', ''], changedSlot: 0, semaphores: [{ label: 'mutex', before: 0, after: 1 }, { label: 'empty', before: 4, after: 5 }, { label: 'full', before: 0, after: 0 }], note: '缓冲槽重新可用，系统回到 empty = 5、full = 0 的初始容量状态。' },
+                        { actor: 'producer', operation: 'put(A)', explanation: '产品 A 在互斥保护下写入缓冲区。', producerState: '运行：写入临界区', consumerState: '等待 full', buffer: ['A', '', '', '', ''], changedSlot: 0, semaphores: [{ label: 'mutex', before: 0, after: 0 }, { label: 'empty', before: 4, after: 4 }, { label: 'full', before: 0, after: 0 }], note: '数据已经写入，但 full 尚未增加，消费者仍不能读取。' },
+                        { actor: 'producer', operation: 'V(mutex)', explanation: '生产者完成写入并释放互斥锁。', producerState: '运行：离开临界区', consumerState: '等待 full', buffer: ['A', '', '', '', ''], changedSlot: -1, semaphores: [{ label: 'mutex', before: 0, after: 1 }, { label: 'empty', before: 4, after: 4 }, { label: 'full', before: 0, after: 0 }], note: '互斥访问已经结束，但产品许可还没有发布。' },
+                        { actor: 'producer', operation: 'V(full)', explanation: '生产者发布一个完整产品并唤醒消费者。', producerState: '完成一次生产', consumerState: '就绪', buffer: ['A', '', '', '', ''], changedSlot: -1, semaphores: [{ label: 'mutex', before: 1, after: 1 }, { label: 'empty', before: 4, after: 4 }, { label: 'full', before: 0, after: 1 }], note: 'full 从 0 变为 1，等待该信号量的消费者获得运行条件。' },
+                        { actor: 'consumer', operation: 'P(full)', explanation: '消费者取得一个产品许可。', producerState: '就绪', consumerState: '运行：申请产品', buffer: ['A', '', '', '', ''], changedSlot: -1, semaphores: [{ label: 'mutex', before: 1, after: 1 }, { label: 'empty', before: 4, after: 4 }, { label: 'full', before: 1, after: 0 }], note: '许可已经消费，但共享缓冲区还未锁定，A 也尚未取出。' },
+                        { actor: 'consumer', operation: 'P(mutex)', explanation: '消费者取得互斥锁，进入临界区。', producerState: '就绪', consumerState: '运行：进入临界区', buffer: ['A', '', '', '', ''], changedSlot: -1, semaphores: [{ label: 'mutex', before: 1, after: 0 }, { label: 'empty', before: 4, after: 4 }, { label: 'full', before: 0, after: 0 }], note: '消费者现在独占缓冲区，可以安全读取并清空槽位。' },
+                        { actor: 'consumer', operation: 'get(A); V(mutex)', explanation: '消费者取出 A，并释放互斥锁。', producerState: '就绪', consumerState: '运行：离开临界区', buffer: ['', '', '', '', ''], changedSlot: 0, semaphores: [{ label: 'mutex', before: 0, after: 1 }, { label: 'empty', before: 4, after: 4 }, { label: 'full', before: 0, after: 0 }], note: '槽位内容已经清空；下一步还需用 V(empty) 归还容量许可。' },
+                        { actor: 'consumer', operation: 'V(empty)', explanation: '消费者归还一个空槽许可。', producerState: '就绪', consumerState: '完成一次消费', buffer: ['', '', '', '', ''], changedSlot: -1, semaphores: [{ label: 'mutex', before: 1, after: 1 }, { label: 'empty', before: 4, after: 5 }, { label: 'full', before: 0, after: 0 }], note: '系统回到 empty = 5、full = 0、mutex = 1 的初始容量状态。' },
                     ],
                 },
                 banker: {
@@ -2089,6 +3370,29 @@ consumer:
                     mark: '锁',
                     title: '银行家算法',
                     desc: '银行家算法安全性检查步骤演示',
+                    learningGoals: ['逐项判断 Need ≤ Work', '理解资源释放如何扩大 Work', '构造并解释安全序列'],
+                    terms: ['Available / Work', 'Allocation', 'Need', 'Safe Sequence'],
+                    guides: [
+                        { title: '寻找首个可完成进程', what: '初始 Work=[1,0,2]，逐项比较后只有 P2 的 Need 可满足。', why: '安全性检查必须找到一个当前资源足以支持其完成的未结束进程。', watch: '向量比较必须每一类资源都满足 Need≤Work，不能只比较总数。' },
+                        { title: '确认 P2 可执行', what: '逐项验证 P2 的 Need=[1,0,2] ≤ Work=[1,0,2]，暂不回收资源。', why: '先完成可执行性证明，再模拟进程结束，能看清判断与状态更新的边界。', watch: '三个分量分别成立，P2 被锁定为本轮选择，Work 仍保持不变。' },
+                        { title: 'P2 完成并释放资源', what: 'P2 进入安全序列，释放 Allocation=[2,1,0]，Work 变为 [3,1,2]。', why: '假设可执行进程完成后，其已分配资源都会归还系统。', watch: '资源回收使 P1 与 P3 都成为可执行候选。' },
+                        { title: '比较并选择 P1', what: '在 Work=[3,1,2] 下，P1 与 P3 都满足条件，本次选择 P1。', why: '安全序列不要求唯一；只需持续选择一个可完成进程。', watch: '选择发生时 Work 不变，安全序列仍为 P2。' },
+                        { title: 'P1 完成并释放资源', what: 'P1 释放 Allocation=[1,0,1]，Work 增长到 [4,1,3]。', why: '完成进程释放资源后，后续进程获得更宽松的执行条件。', watch: '序列成为 P2→P1，剩余 P3 的 Need 已全部满足。' },
+                        { title: '确认最后的 P3', what: '逐项验证 P3 的 Need=[3,1,1] ≤ Work=[4,1,3]。', why: '即使只剩一个进程，也必须执行同样的安全性判定。', watch: 'P3 只是被选中，Finish 尚未更新，资源也还没有流回 Work。' },
+                        { title: '得到完整安全序列', what: 'P3 完成并释放资源，所有 Finish=true，序列为 P2→P1→P3。', why: '存在完整完成顺序即证明当前状态安全。', watch: '安全状态表示有完成路径；不安全状态也不等同于已经发生死锁。' },
+                    ],
+                    summary: {
+                        title: '安全性检查通过',
+                        conclusion: '系统找到 P2→P1→P3，使每个进程都能在当时的 Work 下完成并归还资源，因此当前状态是安全的。',
+                        takeaways: ['Need≤Work 必须按资源类型逐项成立', '完成进程会把 Allocation 加回 Work', '完整安全序列是安全状态的证明'],
+                        pitfall: '“不安全”表示无法保证所有进程完成，并不等价于当前已经死锁；死锁是更强的状态判断。',
+                    },
+                    quiz: {
+                        question: '找到完整安全序列能够直接说明什么？',
+                        options: ['当前状态存在让所有进程完成的资源分配顺序', '系统今后绝不可能发生死锁', '每个进程可同时获得全部资源'],
+                        correctIndex: 0,
+                        explanation: '安全序列证明当前状态至少存在一条完成路径，不代表未来任意资源请求都安全。',
+                    },
                     codeLang: '伪代码',
                     code: `work = available
 finish = [false, false, false]
@@ -2104,12 +3408,65 @@ while exists unfinished process:
         system_is_unsafe()`,
                     frames: [
                         { workBefore: [1, 0, 2], released: [0, 0, 0], workAfter: [1, 0, 2], selected: '', eligible: ['P2'], sequence: [], note: '初始 Work 只能满足 P2，系统选择 P2 作为安全序列起点。', processes: [{ name: 'P1', allocated: [1, 0, 1], need: [2, 1, 0], done: false }, { name: 'P2', allocated: [2, 1, 0], need: [1, 0, 2], done: false }, { name: 'P3', allocated: [1, 1, 1], need: [3, 1, 1], done: false }] },
+                        { workBefore: [1, 0, 2], released: [0, 0, 0], workAfter: [1, 0, 2], selected: 'P2', eligible: ['P2'], sequence: [], note: '逐项检查 1≤1、0≤0、2≤2，P2 可以执行；此刻尚未释放资源。', processes: [{ name: 'P1', allocated: [1, 0, 1], need: [2, 1, 0], done: false }, { name: 'P2', allocated: [2, 1, 0], need: [1, 0, 2], done: false }, { name: 'P3', allocated: [1, 1, 1], need: [3, 1, 1], done: false }] },
                         { workBefore: [1, 0, 2], released: [2, 1, 0], workAfter: [3, 1, 2], selected: 'P2', eligible: ['P1', 'P3'], sequence: ['P2'], note: 'P2 完成并释放 [2,1,0]，P1 和 P3 都已满足执行条件。', processes: [{ name: 'P1', allocated: [1, 0, 1], need: [2, 1, 0], done: false }, { name: 'P2', allocated: [2, 1, 0], need: [1, 0, 2], done: true }, { name: 'P3', allocated: [1, 1, 1], need: [3, 1, 1], done: false }] },
+                        { workBefore: [3, 1, 2], released: [0, 0, 0], workAfter: [3, 1, 2], selected: 'P1', eligible: ['P1', 'P3'], sequence: ['P2'], note: 'P1 与 P3 都满足 Need≤Work；选择 P1，但还未将它的 Allocation 加回 Work。', processes: [{ name: 'P1', allocated: [1, 0, 1], need: [2, 1, 0], done: false }, { name: 'P2', allocated: [2, 1, 0], need: [1, 0, 2], done: true }, { name: 'P3', allocated: [1, 1, 1], need: [3, 1, 1], done: false }] },
                         { workBefore: [3, 1, 2], released: [1, 0, 1], workAfter: [4, 1, 3], selected: 'P1', eligible: ['P3'], sequence: ['P2', 'P1'], note: 'P1 完成并释放 [1,0,1]，剩余资源足以满足 P3。', processes: [{ name: 'P1', allocated: [1, 0, 1], need: [2, 1, 0], done: true }, { name: 'P2', allocated: [2, 1, 0], need: [1, 0, 2], done: true }, { name: 'P3', allocated: [1, 1, 1], need: [3, 1, 1], done: false }] },
+                        { workBefore: [4, 1, 3], released: [0, 0, 0], workAfter: [4, 1, 3], selected: 'P3', eligible: ['P3'], sequence: ['P2', 'P1'], note: '3≤4、1≤1、1≤3，P3 通过逐项检查，等待模拟完成并释放资源。', processes: [{ name: 'P1', allocated: [1, 0, 1], need: [2, 1, 0], done: true }, { name: 'P2', allocated: [2, 1, 0], need: [1, 0, 2], done: true }, { name: 'P3', allocated: [1, 1, 1], need: [3, 1, 1], done: false }] },
                         { workBefore: [4, 1, 3], released: [1, 1, 1], workAfter: [5, 2, 4], selected: 'P3', eligible: [], sequence: ['P2', 'P1', 'P3'], note: 'P3 完成，全部进程 Finish = true，系统处于安全状态。', processes: [{ name: 'P1', allocated: [1, 0, 1], need: [2, 1, 0], done: true }, { name: 'P2', allocated: [2, 1, 0], need: [1, 0, 2], done: true }, { name: 'P3', allocated: [1, 1, 1], need: [3, 1, 1], done: true }] },
                     ],
                 },
             };
+            Object.values(scenarioSet).forEach(scenario => {
+                if (scenario.kind === 'page') {
+                    const resolvedFrames = scenario.frames;
+                    const expandedFrames = [];
+                    resolvedFrames.forEach((resolvedFrame, index) => {
+                        const previousFrame = resolvedFrames[index - 1] || {
+                            blocks: ['', '', ''],
+                            recency: [],
+                            faults: 0,
+                            hits: 0,
+                        };
+                        const inspectFrame = {
+                            pointer: resolvedFrame.pointer,
+                            page: resolvedFrame.page,
+                            phase: 'inspect',
+                            result: 'checking',
+                            blocks: [...previousFrame.blocks],
+                            changed: -1,
+                            accessedFrame: -1,
+                            victim: null,
+                            recency: [...previousFrame.recency],
+                            faults: previousFrame.faults,
+                            hits: previousFrame.hits,
+                            note: `先查询页面 ${resolvedFrame.page} 是否已驻留在三个物理块中。`,
+                            guide: {
+                                title: `检查页面 ${resolvedFrame.page}`,
+                                what: `CPU 发出页面 ${resolvedFrame.page} 访问请求，系统先查询当前三个物理块。`,
+                                why: 'LRU 必须先区分命中和缺页，才能决定只刷新顺序还是执行页面置换。',
+                                watch: '对照物理块内容与 MRU→LRU 队列；此时统计值和驻留页面都还没有改变。',
+                            },
+                            codeLines: [4, 5],
+                        };
+                        expandedFrames.push(inspectFrame, {
+                            ...resolvedFrame,
+                            phase: 'resolve',
+                            guide: scenario.guides[index],
+                            codeLines: this.codeLineMap.lruPage[index],
+                        });
+                    });
+                    scenario.frames = expandedFrames;
+                } else {
+                    scenario.frames = scenario.frames.map((frame, index) => ({
+                        ...frame,
+                        guide: scenario.guides[index],
+                    }));
+                }
+                delete scenario.guides;
+            });
+            this.scenarioCache = scenarioSet;
+            return this.scenarioCache;
         },
     }));
 });
